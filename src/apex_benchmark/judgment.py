@@ -52,7 +52,7 @@ SCHEMA = obj({
 })
 
 
-def decision_schema(packet):
+def legacy_decision_schema(packet):
     fields=packet.get('custom_metric_definition',{}).get('context_fields',[])
     if not fields:return SCHEMA
     schema=copy.deepcopy(SCHEMA)
@@ -105,10 +105,17 @@ Older observations are permitted when latest available and explicitly dated; tar
 not a requirement that every current observation has that exact date. Do not call HTML text OCR.
 '''
             input_data = dict(packet, correction=correction)
+        if packet.get('numbered_passages'):
+            instructions = instructions.replace('Every supplied candidate must be accounted\nfor in assessments, including historical values, duplicate passages and different definitions.',
+                'Give concise assessments for selected evidence and material competing figures; do not enumerate duplicates.')
+            instructions += '\nNUMBERED CITATION CONTRACT: select selected_passage and citations using supplied passage_number integers only.\nNever copy source quotes or candidate IDs. Cite enough passages to establish the value, definition and context.\nComparison context uses passage_number, or null with value Not established. No quote field.\nWithhold means selected_passage null, value null, directly_reported false.\nKeep rationales concise. The application restores exact original source text and checks every selection.\n'
         payload = {'model':self.model, 'store':False, 'instructions':PROMPT,
             'input':json.dumps(input_data,sort_keys=True,allow_nan=False),
             'text':{'format':{'type':'json_schema','name':'financial_judgment','strict':True,'schema':decision_schema(packet)}},
-            'max_output_tokens':32768}
+            'max_output_tokens':8192 if packet.get('numbered_passages') else 32768}
+        if packet.get('numbered_passages'):
+            instructions=instructions.replace('Citation quote strings must be exact contiguous source substrings: do not add quotation marks,\nellipses, or change whitespace. Assess every evidence ID exactly once, using short reasons.', 'Use numbered passage selections and concise explanations of material competing figures.')
+            instructions=instructions.replace('For a known detail cite a supplied candidate_id and an exact contiguous quote establishing it.', 'For a known detail select the passage_number establishing it.').replace('For unknown details use value Not established, candidate_id null and quote empty.', 'For unknown details use value Not established and passage_number null.').replace('Cite verbatim excerpts including the value and surrounding definition/date/class where available.', 'Select numbered passages establishing the value and surrounding definition/date/class.')
         payload['instructions'] = instructions
         key = hashlib.sha256(json.dumps(payload,sort_keys=True).encode()).hexdigest()
         path = self.cache / (key + '.json')
@@ -325,7 +332,7 @@ def validate_decision(decision, packet):
     return sources
 
 
-def adjudicate_run(run, judge, source_cache, progress=print):
+def _adjudicate_cells(run, judge, source_cache, progress=print):
     run['llm_judgments']=[]
     run['rule_results']=copy.deepcopy(run['results'])
     run['rule_nav_history']=copy.deepcopy(run['nav_history'])
@@ -400,4 +407,135 @@ def adjudicate_run(run, judge, source_cache, progress=print):
             result.pop('calculation',None)
         annotate_result(result)
         run['llm_judgments'].append(record)
+    return run
+
+
+class NumberedJudge(OpenAIJudge):
+    """Compact wire contract; source quotes are restored locally, never generated."""
+    protocol='numbered-passages-v1'
+
+    def judge(self, packet, correction=None):
+        wire=copy.deepcopy(packet)
+        originals={i:c for i,c in enumerate(packet['evidence'],1)}
+        for i,c in enumerate(wire['evidence'],1):
+            c['passage_number']=i
+            c.pop('equivalent_candidate_ids',None)
+        wire['numbered_passages']=True
+        # Retain local stable IDs in audit only. The model selects short numbers.
+        for c in wire['evidence']:c.pop('id',None)
+        if correction and hasattr(self,'last_numbered_decision'):
+            correction=dict(correction,previous_decision=self.last_numbered_decision)
+        raw, provenance=super().judge(wire,correction)
+        self.last_numbered_decision=raw
+        from jsonschema import validate, ValidationError
+        try:validate(raw,decision_schema(wire))
+        except ValidationError as exc:raise JudgmentError('Invalid numbered judgment: '+exc.message[:160]) from None
+        def candidate(n):
+            if n not in originals:raise JudgmentError('Unknown numbered source passage')
+            return originals[n]
+        d={k:v for k,v in raw.items() if k not in {'selected_passage','citations','assessments','comparison_context'}}
+        d['selected_candidate_id']=candidate(raw['selected_passage'])['id'] if raw['selected_passage'] is not None else None
+        d['citations']=[{'candidate_id':candidate(n)['id'],'quote':candidate(n)['quote']} for n in raw['citations']]
+        explanations={}
+        for a in raw['assessments']:
+            cid=candidate(a['passage_number'])['id']
+            if cid in explanations:raise JudgmentError('Duplicate passage assessment')
+            explanations[cid]=a['reason']
+        d['assessments']=[{'candidate_id':c['id'],'reason':explanations.get(c['id'],
+            'No individual selection rationale supplied; see the overall decision and retained source passage.')} for c in originals.values()]
+        if 'comparison_context' in raw:
+            d['comparison_context']=[{'field':x['field'],'value':x['value'],
+                'candidate_id':candidate(x['passage_number'])['id'] if x['passage_number'] is not None else None,
+                'quote':candidate(x['passage_number'])['quote'] if x['passage_number'] is not None else ''}
+                for x in raw['comparison_context']]
+        return d,dict(provenance,citation_protocol=self.protocol)
+
+
+# Keep the legacy reader for prior saved decisions and fixture-backed replay.
+def decision_schema(packet):
+    schema=legacy_decision_schema(packet)
+    if not packet.get('numbered_passages'):return schema
+    schema=copy.deepcopy(schema)
+    props=schema['properties']
+    props.pop('selected_candidate_id')
+    props['selected_passage']={'type':['integer','null']}
+    props['citations']={'type':'array','items':{'type':'integer'}}
+    props['assessments']={'type':'array','items':obj({'passage_number':{'type':'integer'},'reason':S})}
+    if 'comparison_context' in props:
+        fields=packet['custom_metric_definition']['context_fields']
+        props['comparison_context']={'type':'array','items':obj({'field':{'type':'string','enum':fields},
+            'value':S,'passage_number':{'type':['integer','null']}})}
+    schema['required']=list(props)
+    return schema
+
+
+def adjudicate_run(run, judge, source_cache, progress=print, concurrency=1, affected=None):
+    """Bounded independent reviews, durable per-cell checkpoints, exact untouched results."""
+    if concurrency==1 and affected is None and not isinstance(judge,NumberedJudge):
+        return _adjudicate_cells(run,judge,source_cache,progress)
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Event
+    concurrency=max(1,min(int(concurrency),4))
+    def included(r,history=False):
+        return affected is None or r['metric'] in affected or (r['ticker'],r['metric'],r['period'] if history else None) in affected
+    jobs=[(r,False) for r in run['results'] if included(r)]
+    jobs += [(r,True) for r in run['nav_history'] if included(r,True)]
+    keys={(r['ticker'],r['metric'],r['period'] if hist else None) for r,hist in jobs}
+    for name,history in (('rule_results',False),('rule_nav_history',True)):
+        saved=list(run.get(name,[]))
+        known={(r['ticker'],r['metric'],r.get('requested_period',r.get('period')) if history else None) for r in saved}
+        saved.extend(copy.deepcopy(r) for r,h in jobs if h==history and
+            (r['ticker'],r['metric'],r['period'] if history else None) not in known)
+        run[name]=saved
+    retained=[j for j in run.get('llm_judgments',[]) if (j['ticker'],j['metric'],j.get('requested_period')) not in keys]
+    run['judgment_mode']='llm_cached' if judge.offline else 'llm'
+    stats=run.setdefault('incremental',{})
+    stats.update(reviews_planned=len(jobs),results_reused=len(run['results'])+len(run['nav_history'])-len(jobs),
+                 review_concurrency=concurrency,decision_checkpoint_hits=0)
+    progress(f"Review plan: {len(jobs)} affected cells; {stats['results_reused']} saved results untouched; concurrency {concurrency}",flush=True)
+    folder=Path(source_cache)/'decisions';folder.mkdir(parents=True,exist_ok=True)
+    stopped=Event()
+    def work(job):
+        original,history=job
+        result=copy.deepcopy(original)
+        if history:result['requested_period']=result['period']
+        packet=build_packet(run,result)
+        key=hashlib.sha256(json.dumps([packet,getattr(judge,'model','test'),getattr(judge,'protocol','legacy'),
+            hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+            [e for e in run['errors'] if e['ticker']==result['ticker']]],sort_keys=True).encode()).hexdigest()
+        path=folder/(key+'.json')
+        if path.exists():
+            saved=json.loads(path.read_text())
+            # Checkpoints never waive source integrity checks.
+            valid=all((Path(source_cache)/c['source_sha256']).is_file() and
+                hashlib.sha256((Path(source_cache)/c['source_sha256']).read_bytes()).hexdigest()==c['source_sha256']
+                for c in packet['evidence'])
+            if valid:return original,saved['result'],saved['record'],True
+        local=dict(run,results=[] if history else [result],nav_history=[result] if history else [])
+        local_judge=judge
+        if isinstance(judge,NumberedJudge):
+            local_judge=NumberedJudge(judge.api_key,judge.model,judge.cache,offline=judge.offline)
+        if stopped.is_set():
+            class Stopped:
+                offline=judge.offline
+                def judge(self,p):raise JudgmentError('Provider failure paused remaining reviews; retry explicitly.')
+            local_judge=Stopped()
+        _adjudicate_cells(local,local_judge,source_cache,progress)
+        record=local['llm_judgments'][0]
+        if record.get('error','').startswith('LLM API HTTP'):
+            stopped.set()
+        if record['validation']=='passed':
+            tmp=path.with_suffix('.tmp');tmp.write_text(json.dumps({'result':result,'record':record},allow_nan=False));tmp.replace(path)
+        return original,result,record,False
+    records=[]
+    network_records=[]
+    with ThreadPoolExecutor(max_workers=concurrency) as pool:
+        for original,result,record,cached in pool.map(work,jobs):
+            original.clear();original.update(result);records.append(record)
+            stats['decision_checkpoint_hits']+=int(cached)
+            if not cached:network_records.append(record)
+    run['llm_judgments']=retained+records
+    stats['reviews_completed']=len(records)
+    stats['model_network_responses']=sum(not p.get('cache_hit',True) for j in network_records
+        for p in [j.get('provenance',{}),j.get('initial_attempt',{}).get('provenance',{})])
     return run

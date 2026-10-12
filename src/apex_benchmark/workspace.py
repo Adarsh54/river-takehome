@@ -23,7 +23,11 @@ FILES={'candidates.html':'text/html','timings.json':'application/json','benchmar
 
 class Workspace:
     def __init__(self,root,config,report):
-        self.root=Path(root).resolve();self.config_path=Path(config).resolve();self.report=Path(report).resolve()
+        self.root=Path(root).resolve();self.config_path=Path(config).resolve()
+        self.latest_path=self.root/'output/workspace-latest.json'
+        if report is None and self.latest_path.exists():
+            report=json.loads(self.latest_path.read_text())['report']
+        self.report=Path(report or self.root/'output/llm').resolve()
         self.lock=threading.RLock();self.sec_lock=threading.Lock();self.token=secrets.token_urlsafe(32)
         if not self.config_path.exists():
             self.config_path.parent.mkdir(parents=True,exist_ok=True)
@@ -69,7 +73,8 @@ class Workspace:
             audit=self.report/'audit.json'
             if audit.exists():
                 prior=json.loads(audit.read_text())['config']
-                if {k:v for k,v in prior.items() if k!='custom_metrics'}=={k:v for k,v in self.config.items() if k!='custom_metrics'}:
+                from .incremental import compatible_audit
+                if compatible_audit(prior,self.config):
                     args+=['--from-audit',str(audit)]
             if mode=='cached':args+=['--offline']
             self.job={'id':uid,'status':'running','mode':mode,'output':str(result),'log_path':str(log),'config':copy.deepcopy(self.config),'started_at':time.time()}
@@ -83,7 +88,10 @@ class Workspace:
                         timing_path=result/'timings.json'
                         if timing_path.exists():job['timings']=json.loads(timing_path.read_text())
                         job['exit_code']=code;job['status']='complete' if code==0 else 'review_required' if (result/'index.html').exists() else 'failed'
-                        if (result/'index.html').exists():self.report=result
+                        if (result/'index.html').exists():
+                            self.report=result
+                            pointer=self.latest_path.with_suffix('.tmp')
+                            pointer.write_text(json.dumps({'report':str(result)}));pointer.replace(self.latest_path)
                 except Exception:
                     with self.lock:job['status']='failed'
             threading.Thread(target=work,daemon=True).start()
@@ -160,7 +168,7 @@ def main(argv=None):
     from dotenv import load_dotenv
     load_dotenv('.env')
     parser=argparse.ArgumentParser(description='Local Apex Ridge workspace')
-    parser.add_argument('--port',type=int,default=8766);parser.add_argument('--config',default='config/workspace.json');parser.add_argument('--report',default='output/llm')
+    parser.add_argument('--port',type=int,default=8766);parser.add_argument('--config',default='config/workspace.json');parser.add_argument('--report',help='Initial report directory; defaults to the last completed workspace run')
     args=parser.parse_args(argv);w=Workspace(Path.cwd(),args.config,args.report)
     server=ThreadingHTTPServer(('127.0.0.1',args.port),handler(w))
     print(f'Workspace: http://127.0.0.1:{args.port}/',flush=True)

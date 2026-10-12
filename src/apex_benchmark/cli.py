@@ -102,6 +102,9 @@ def run_pipeline(config, client, internal_path, decisions=None, progress=print, 
                         # Failures are retried on rerun (e.g. missing language data or transient OCR timeout).
                         if not any(d.get('error') for d in diagnostics):
                             parsed_path.write_text(json.dumps(parsed, allow_nan=False))
+                    if not url.lower().endswith('.xml'):
+                        from .passages import document_passages
+                        document_passages(client.cache,digest,run.setdefault('incremental',{}))
                     found = parsed['candidates']
                     run['nport_reports'].extend(parsed['structured'])
                     for diagnostic in parsed['diagnostics']:
@@ -136,9 +139,12 @@ def run_pipeline(config, client, internal_path, decisions=None, progress=print, 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description='Auditable SEC benchmarking; no synthetic competitor fallback.')
-    parser.add_argument('--from-audit', type=Path, help='Reuse a saved source audit and re-run selection/judgment without rediscovery')
+    parser.add_argument('--retry-unfinished',action='store_true',help='Explicitly retry unfinished AI cells in addition to configuration changes')
+    parser.add_argument('--render-audit',type=Path,help='Generate reports from saved decisions only; no source or AI calls')
+    parser.add_argument('--from-audit', type=Path, help='Update only changed metrics/funds against a saved audit; preserve other decisions')
     parser.add_argument('--llm', choices=['on', 'cached', 'off'], default='on',
                         help='Model judgment (default), cache-only replay, or explicitly labeled parser-only review')
+    parser.add_argument('--review-concurrency',type=int,default=3,choices=range(1,5),help='Maximum independent AI reviews (1–4; default 3)')
     parser.add_argument('--model', help='Override OPENAI_MODEL for judgment')
     parser.add_argument('--config', type=Path, default=Path('config/engagement.json'))
     parser.add_argument('--apex-data', type=Path, default=Path('data/apex_ridge_fund_data.csv'))
@@ -150,6 +156,11 @@ def main(argv=None):
     parser.add_argument('--offline', action='store_true', help='Use previously downloaded real SEC responses only')
     parser.add_argument('--refresh', action='store_true', help='Recheck SEC responses instead of using URL cache')
     args = parser.parse_args(argv)
+    if args.render_audit:
+        export(json.loads(args.render_audit.read_text()),args.output)
+        return 0
+    if args.from_audit and args.refresh:
+        parser.error('--refresh requires fresh source discovery; omit --from-audit')
     if args.offline and args.refresh:
         parser.error('--offline and --refresh cannot be combined')
     from dotenv import load_dotenv
@@ -166,47 +177,48 @@ def main(argv=None):
         decisions = json.loads(args.decisions.read_text()) if args.decisions else []
         judge = None
         if args.llm != 'off':
-            from .judgment import OpenAIJudge
-            judge = OpenAIJudge(os.environ.get('OPENAI_API_KEY'), args.model or os.environ.get('OPENAI_MODEL', 'gpt-5.4'),
+            from .judgment import NumberedJudge
+            judge = NumberedJudge(os.environ.get('OPENAI_API_KEY'), args.model or os.environ.get('OPENAI_MODEL', 'gpt-5.4'),
                                 args.cache / 'judgments', offline=args.llm=='cached')
         print('Stage: source preparation',flush=True)
         source_started=time.perf_counter()
+        affected=None
         if args.from_audit:
             run = json.loads(args.from_audit.read_text())
-            if {k:v for k,v in run['config'].items() if k != 'custom_metrics'} != {k:v for k,v in config.items() if k != 'custom_metrics'}:
-                raise ValueError('Saved audit configuration differs; rebuild sources for the new configuration')
+            from .incremental import prepare
             validate_config(config)
-            run['config'] = config
-            print('Reusing the source audit and gathering evidence for the saved metric definitions',flush=True)
-            augment_custom(run, args.cache)
+            def pull_funds(funds):
+                client=SecClient(ua or 'offline-cache-only',args.cache,args.offline,args.refresh)
+                return run_pipeline(dict(config,funds=funds),client,args.apex_data,decisions,ocr_mode=args.ocr)
+            if decisions:
+                raise ValueError('Explicit manual decisions require a source rebuild; omit --from-audit.')
+            print('Reusing saved decisions; retrieving evidence only for changed dependencies',flush=True)
+            affected=prepare(run,config,args.cache,pull_funds=pull_funds)
             run['reprocessed_from_run_id'] = run['run_id']
             run['source_run_mode'] = run.get('source_run_mode', run['mode'])
             run['mode'] = 'reprocessed_audit'
             run['generated_at'] = datetime.now(timezone.utc).isoformat()
             run['run_id'] = hashlib.sha256(run['generated_at'].encode()).hexdigest()[:16]
-            run['results'], run['nav_history'] = [], []
             run['apex'] = internal_data(args.apex_data, config)
-            run['applied_decisions'] = apply_decisions(run['candidates'], decisions, config['filing_cutoff'])
-            for fund in config['funds']:
-                errors = [e for e in run['errors'] if e['ticker']==fund['ticker']]
-                for metric in metric_labels(config):
-                    run['results'].append(resolve_metric(run['candidates'],fund,metric,config,retrieval_errors=errors))
-                for period in run['quarters']:
-                    run['nav_history'].append(resolve_metric(run['candidates'],fund,'nav',config,exact_period=period,retrieval_errors=errors))
         else:
             client = SecClient(ua or 'offline-cache-only', args.cache, args.offline, args.refresh)
             run = run_pipeline(config, client, args.apex_data, decisions, ocr_mode=args.ocr)
+        if args.retry_unfinished and affected is not None:
+            affected.update((r['ticker'],r['metric'],r['period'] if history else None)
+                for history,items in ((False,run['results']),(True,run['nav_history'])) for r in items
+                if r.get('decision_author','rules_only') in {'llm_not_completed','rules_only'})
         timings['source_preparation_seconds']=round(time.perf_counter()-source_started,3)
         print('Stage: AI review',flush=True)
         review_started=time.perf_counter()
         if judge:
             from .judgment import adjudicate_run
-            adjudicate_run(run, judge, args.cache)
+            adjudicate_run(run, judge, args.cache, concurrency=args.review_concurrency, affected=affected)
         else:
-            run['judgment_mode'] = 'rules_only'
-            run.pop('llm_judgments', None)
-            run.pop('rule_results', None)
-            run.pop('rule_nav_history', None)
+            run['judgment_mode'] = 'rules_only' if affected is None else 'saved_decisions_with_rules_only_updates'
+            if affected is None:
+                run.pop('llm_judgments', None)
+                run.pop('rule_results', None)
+                run.pop('rule_nav_history', None)
         timings['ai_review_seconds']=round(time.perf_counter()-review_started,3)
         print('Stage: report generation',flush=True)
         export_started=time.perf_counter()
@@ -217,7 +229,9 @@ def main(argv=None):
         timings['total_seconds']=round(time.perf_counter()-started,3)
         timings['source_mode']='saved_audit' if args.from_audit else run['mode']
         timings['review_mode']=run['judgment_mode']
+        timings['incremental']=run.get('incremental',{})
         timings['model_network_responses']=sum(not p.get('cache_hit',True) for j in run.get('llm_judgments',[]) for p in [j.get('provenance',{}),j.get('initial_attempt',{}).get('provenance',{})])
+        if 'model_network_responses' in run.get('incremental',{}):timings['model_network_responses']=run['incremental']['model_network_responses']
         (args.output/'timings.json').write_text(json.dumps(timings,indent=2))
     except (ValueError, OSError, KeyError) as exc:
         parser.error(str(exc))

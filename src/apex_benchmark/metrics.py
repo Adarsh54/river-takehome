@@ -3,8 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-from bs4 import BeautifulSoup
-from .extract import METRICS, Candidate, clean
+from .extract import METRICS, Candidate
 
 
 def custom_metrics(config):
@@ -41,69 +40,46 @@ def definition_hash(metric):
     return hashlib.sha256(json.dumps(metric,sort_keys=True).encode()).hexdigest()
 
 
-def extract_custom(body, fund, filing, source, definitions):
-    """Keep complete tables and adjacent context; never auto-approve a numeric regex guess."""
-    if not definitions or source['url'].lower().endswith('.xml'):
-        return []
-    passages=[]
-    retain_context=any(m.get('context_fields') for m in definitions)
-    def with_neighbors(node,text):
-        if not retain_context:return text
-        before=[clean(x.get_text(' ',strip=True)) for x in node.find_previous_siblings(limit=2)]
-        after=[clean(x.get_text(' ',strip=True)) for x in node.find_next_siblings(limit=3)]
-        return ' '.join([*reversed(before),text,*after])
-    if body.startswith(b'%PDF'):
-        from io import BytesIO
-        from pypdf import PdfReader
-        reader=PdfReader(BytesIO(body))
-        passages=[(f'PDF page {i+1}; native text',clean(page.extract_text() or '')) for i,page in enumerate(reader.pages)]
-    else:
-        soup=BeautifulSoup(body,'lxml')
-        for tag in soup(['script','style']):tag.decompose()
-        for i,table in enumerate(soup.find_all('table'),1):
-            if table.find('table'):continue
-            text=clean(table.get_text(' ',strip=True))
-            if text:passages.append((f'HTML table {i}'+('; includes preceding 2 and following 3 sibling elements' if retain_context else ''),with_neighbors(table,text)))
-        for i,block in enumerate(soup.find_all(['p','div']),1):
-            if block.find_parent('table') or block.find(['p','div','table']):continue
-            text=clean(block.get_text(' ',strip=True))
-            if text:passages.append((f'Custom text block {i}'+('; includes preceding 2 and following 3 sibling elements' if retain_context else ''),with_neighbors(block,text)))
-        if not passages:passages=[('Document text',clean(soup.get_text(' ',strip=True)))]
+def candidates_from_passages(passages, fund, filing, source, definitions):
     result=[]
     for m in definitions:
-        for loc,text in passages:
+        for passage in passages:
+            text=passage.get('context',passage['text'])
             if not any(k.lower() in text.lower() for k in m['keywords']):continue
             result.append(Candidate(ticker=fund['ticker'],metric=m['id'],value=None,unit=m['unit'],
                 period=filing.get('reportDate',''),basis='unconfirmed',share_class='unconfirmed',
                 filing_date=filing['filingDate'],form=filing['form'],accession=filing['accessionNumber'],
-                source_url=source['url'],source_sha256=source['sha256'],locator=loc,quote=text,
+                source_url=source['url'],source_sha256=source['sha256'],locator=passage['locator'],quote=text,
                 method='custom_reported_evidence',eligible=False,
                 reasons=['User-defined metric requires interpretation of definition, period, unit and scope.'],
-                extraction_meta={'metric_definition_sha256':definition_hash(m)}).dict())
+                extraction_meta={'metric_definition_sha256':definition_hash(m),
+                                 'passage_id':passage.get('id')}).dict())
     return result
 
 
-def augment_custom(run, cache):
-    """Re-extract custom definitions from immutable downloaded documents without new SEC calls."""
-    from pathlib import Path
-    definitions=list(custom_metrics(run['config']).values())
-    run['candidates']=[c for c in run['candidates'] if not c['metric'].startswith('custom_')]
+def extract_custom(body, fund, filing, source, definitions):
+    from .passages import parse_passages
+    if not definitions or source['url'].lower().endswith('.xml'):return []
+    return candidates_from_passages(parse_passages(body),fund,filing,source,definitions)
+
+
+def augment_custom(run, cache, affected=None):
+    """Retrieve only affected custom definitions from saved, metric-independent passages."""
+    definitions=[m for m in custom_metrics(run['config']).values() if affected is None or m['id'] in affected]
+    run['candidates']=[c for c in run['candidates'] if not c['metric'].startswith('custom_') or (affected is not None and c['metric'] not in affected)]
     if not definitions:return
     funds={f['ticker']:f for f in run['config']['funds']}
     filings={(f['ticker'],f['accessionNumber']):f for f in run['filings']}
-    parsed=Path(cache)/'custom';parsed.mkdir(exist_ok=True)
+    from .passages import document_passages
+    stats=run.setdefault('incremental',{})
+    stats.setdefault('documents_parsed',0)
+    stats.setdefault('document_index_hits',0)
     for doc in run['documents']:
         fund=funds.get(doc['ticker']);filing=filings.get((doc['ticker'],doc['accession']))
-        if not fund or not filing:continue
-        key=hashlib.sha256(json.dumps([doc,fund,filing,definitions,'custom-v3-context'],sort_keys=True).encode()).hexdigest()
-        path=parsed/(key+'.json')
+        if not fund or not filing or doc['url'].lower().endswith('.xml'):continue
         try:
-            body=(Path(cache)/doc['sha256']).read_bytes()
-            if hashlib.sha256(body).hexdigest()!=doc['sha256']:raise ValueError('Custom extraction source checksum mismatch')
-            if path.exists():found=json.loads(path.read_text())
-            else:
-                found=extract_custom(body,fund,filing,{'url':doc['url'],'sha256':doc['sha256']},definitions)
-                path.write_text(json.dumps(found))
+            passages=document_passages(cache,doc['sha256'],stats)
+            found=candidates_from_passages(passages,fund,filing,doc,definitions)
             run['candidates'].extend(found)
         except (OSError,ValueError) as exc:
             run['errors'].append({'ticker':doc['ticker'],'stage':'parse','error':str(exc),'source_url':doc['url']})

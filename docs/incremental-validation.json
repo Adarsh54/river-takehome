@@ -1,0 +1,68 @@
+{
+  "scenario": "Q4 2024, five funds, edit weighted average spread only; live OpenAI reviews over previously indexed real SEC filings",
+  "measured_at": "2026-10-12T22:14:34.842625+00:00",
+  "prior_run": "c5c8dee861bf",
+  "updated_run": "ea84f85f618d",
+  "website_elapsed_seconds": 17.6,
+  "stages": {
+    "source_preparation_seconds": 3.524,
+    "ai_review_seconds": 12.46,
+    "report_generation_seconds": 1.36,
+    "total_seconds": 17.344,
+    "source_mode": "saved_audit",
+    "review_mode": "llm",
+    "incremental": {
+      "changed_metrics": [
+        "custom_weighted_average_spread"
+      ],
+      "changed_funds": [],
+      "documents_parsed": 0,
+      "document_index_hits": 3638,
+      "reviews_planned": 5,
+      "results_reused": 100,
+      "review_concurrency": 3,
+      "decision_checkpoint_hits": 0,
+      "reviews_completed": 5,
+      "model_network_responses": 3
+    },
+    "model_network_responses": 3
+  },
+  "unchanged_website_elapsed_seconds": 2.2,
+  "unchanged_run": {
+    "source_preparation_seconds": 0.317,
+    "ai_review_seconds": 0.002,
+    "report_generation_seconds": 1.632,
+    "total_seconds": 1.951,
+    "source_mode": "saved_audit",
+    "review_mode": "llm",
+    "incremental": {
+      "changed_metrics": [],
+      "changed_funds": [],
+      "documents_parsed": 0,
+      "document_index_hits": 0,
+      "reviews_planned": 0,
+      "results_reused": 105,
+      "review_concurrency": 3,
+      "decision_checkpoint_hits": 0,
+      "reviews_completed": 0,
+      "model_network_responses": 0
+    },
+    "model_network_responses": 0
+  },
+  "dashboard_reload_seconds": 0.118,
+  "word_download_initiated_seconds": 0.295,
+  "preservation_checks": {
+    "results": {
+      "count": 60,
+      "unchanged": true,
+      "sha256": "d411ac3a019cbc7b70ab1ebe9ad5b7ed4de24f0972afba974aec7e0a6c481e3f"
+    },
+    "nav_history": {
+      "count": 40,
+      "unchanged": true,
+      "sha256": "1cd1067906d46fd6599e1d613bf7d806c11db19b623a78e13ca0234a88b6e9f4"
+    }
+  },
+  "outcome": "Three live AI reviews produced validated withholding decisions; two funds had no retrieved evidence and made no AI call. Existing unresolved cells were intentionally preserved.",
+  "measurement_limits": "Warm indexed-fund update; no claim about first-time SEC ingestion. Browser download timing ends at download event, not disk transfer completion. Single local run, not a percentile SLA."
+}
