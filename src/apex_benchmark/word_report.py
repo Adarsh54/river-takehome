@@ -52,7 +52,7 @@ def short_excerpt(text,result):
     return text[:160]+(' [passage omitted] ' if start>160 else '')+text[start:end]+(' [excerpt ends; full passage in companion audit]' if end<len(text) else '')
 
 
-def export_word(run,path):
+def export_evidence_word(run,path):
     doc=Document();sec=doc.sections[0];sec.orientation=WD_ORIENT.LANDSCAPE;sec.page_width=Inches(11.7);sec.page_height=Inches(8.3)
     sec.top_margin=sec.bottom_margin=Inches(.65);sec.left_margin=sec.right_margin=Inches(.65)
     normal=doc.styles['Normal'];normal.font.name='Calibri';normal.font.size=Pt(10);normal.paragraph_format.space_after=Pt(6)
@@ -128,4 +128,113 @@ def export_word(run,path):
     footer=sec.footer.paragraphs[0];footer.text='APEX RIDGE  |  PM and compliance review required  |  '
     field=OxmlElement('w:fldSimple');field.set(qn('w:instr'),'PAGE');footer._p.append(field)
     doc.core_properties.title='Apex Ridge competitor benchmarking';doc.core_properties.author='Apex Ridge benchmarking prototype'
+    doc.save(path)
+
+
+def committee_summary(run):
+    """No relative-performance claim without approved, comparable internal data."""
+    if run['apex']['status'] == 'withheld' or not run['apex'].get('values'):
+        opening = "Apex Ridge's position relative to the competitor set cannot yet be assessed because its internal figures remain withheld pending source approval."
+    else:
+        opening = "Apex Ridge's approved internal figures are shown alongside competitors; relative positioning still requires PM confirmation of matching dates and metric definitions."
+    priority = [f['ticker'] for f in run['config']['funds'] if f['ticker'] in {'CCLFX', 'TAKIX'}]
+    coverage = []
+    for ticker in priority:
+        rows = [r for r in run['results'] if r['ticker'] == ticker]
+        coverage.append(f"{ticker} {sum(r.get('value') is not None for r in rows)} of {len(rows)}")
+    middle = ("Current figures with linked evidence are " + "; ".join(coverage) + "; unresolved figures remain explicitly marked."
+              if coverage else "Only figures with linked evidence are reported; unresolved figures remain explicitly marked.")
+    return opening + ' ' + middle + ' Differences in reporting periods, share classes and calculation methods must be resolved or disclosed before the PM approves comparative language for the LP letter.'
+
+
+def export_word(run, path):
+    """Concise attachment; the separate evidence document retains the full audit."""
+    doc = Document()
+    sec = doc.sections[0]
+    sec.orientation = WD_ORIENT.LANDSCAPE
+    sec.page_width, sec.page_height = Inches(11.7), Inches(8.3)
+    sec.top_margin = sec.bottom_margin = Inches(.65)
+    sec.left_margin = sec.right_margin = Inches(.65)
+    normal = doc.styles['Normal']
+    normal.font.name, normal.font.size = 'Calibri', Pt(10)
+    normal.paragraph_format.space_after = Pt(6)
+    for name, size in [('Title', 24), ('Heading 1', 17), ('Heading 2', 12)]:
+        doc.styles[name].font.name = 'Calibri'
+        doc.styles[name].font.size = Pt(size)
+        doc.styles[name].font.color.rgb = RGBColor(0, 0, 0)
+    cfg = run['config']
+    funds = cfg['funds']
+    labels = {r['metric']: r['label'] for r in run['results']}
+    lookup = {(r['ticker'], r['metric']): r for r in run['results']}
+    supported = [r for r in run['results'] if r.get('value') is not None]
+    refs = {(r['ticker'], r['metric']): n for n, r in enumerate(supported, 1)}
+    doc.add_paragraph('Apex Ridge committee comparison', style='Title')
+    doc.add_paragraph(f"Quarter ended {cfg['target_period']} | Public filings through {cfg['filing_cutoff']}")
+    doc.add_paragraph('Summary for committee review', style='Heading 1')
+    doc.add_paragraph(committee_summary(run))
+    if run['apex']['status'] == 'withheld':
+        doc.add_paragraph('Apex Ridge internal figures remain withheld pending resolution of the supplied data provenance.')
+    doc.add_paragraph('Read the comparison', style='Heading 1')
+    doc.add_paragraph('Each reported competitor figure has a numbered source note in this attachment. Evidence linked means traceable, not approved. Not established means support is unresolved; it does not mean zero or necessarily not disclosed. An asterisk marks a calculation from reported inputs.')
+    doc.add_paragraph('Institutional share classes are the client default where available. The class selected for this run is shown above each comparison column; that selection is an assumption until the filing confirms it. Do not substitute another class when its fees or per-share values differ.')
+    doc.add_paragraph('The separate evidence document includes full selection rationales, unresolved issues, conflicting figures, calculation inputs and NAV history. PM and compliance review remain required before board or LP use.')
+    for f in funds:
+        doc.add_paragraph(f"{f['ticker']}: {f['name']}; {f['structure'].replace('_', ' ')}; selected class {f['share_class']}; return basis {f['return_basis'].replace('_', ' ')}.")
+    for start in range(0, len(funds), 4):
+        doc.add_page_break()
+        group = funds[start:start+4]
+        doc.add_paragraph('Current comparison', style='Heading 1')
+        rows = []
+        for metric, label in labels.items():
+            internal = run['apex']['values'].get(metric)
+            row = [label, (str(internal['value']) + '\n' + internal['period']) if internal else 'Withheld or unavailable']
+            for f in group:
+                r = lookup[f['ticker'], metric]
+                ref = refs.get((f['ticker'], metric))
+                row.append(value(r) + (f' [{ref}]' if ref else '') + (' *' if r.get('calculation') else '') + '\n' + (r.get('period') or 'Period unresolved'))
+            rows.append(row)
+        table(doc, ['Metric', 'Apex Ridge'] + [f["ticker"] + '\n' + f['share_class'] for f in group], rows, [2.2, 1.4] + [6.8/len(group)]*len(group))
+    doc.add_page_break()
+    doc.add_paragraph('Definitions and source notes', style='Heading 1')
+    doc.add_paragraph('Fees distinguish contractual rates from effective rates and waivers. Shareholder returns and net NAV returns measure different outcomes. REIT leverage and book value require their own definitions; matching units alone do not establish comparability. The notes below retain the interpretation recorded for each reported value and require PM review.')
+    for m in cfg.get('custom_metrics', []):
+        doc.add_paragraph(f"{m['label']} ({m['unit']}): {m['definition']} Period: {m['period_basis'].replace('_', ' ')}; scope: {m['scope'].replace('_', ' ')}. Reported values only.")
+    for n, r in enumerate(supported, 1):
+        doc.add_paragraph(f"{n}  {r['ticker']}  {r['label']}  {value(r)}", style='Heading 2')
+        basis = r['label'] if r.get('basis', '').startswith('custom:') else r.get('basis', '').replace('_', ' ')
+        doc.add_paragraph(f"Period {r.get('period') or 'unresolved'}. Definition: {basis}. " + r.get('comparability', ''))
+        if r.get('calculation'):
+            doc.add_paragraph('Calculated from the linked filing inputs; the detailed evidence document gives the formula and reconciliation.')
+        for c in {s['id']: s for s in r.get('sources', [])}.values():
+            p = doc.add_paragraph()
+            link(p, f"SEC {c['form']} filed {c['filing_date']} | {c['accession']}", c['source_url'])
+            p.add_run(f" | Source period {c['period'] or 'unresolved'} | {c['locator']}")
+    if run['apex']['status'] != 'withheld':
+        doc.add_paragraph('Apex Ridge approved source references', style='Heading 1')
+        for metric, item in run['apex']['values'].items():
+            doc.add_paragraph(f"{labels.get(metric, metric)}: {item['value']}; period {item['period']}; source {item['source']}; row {item['row']}; column {item['column']}; SHA-256 {item['sha256']}; approval {item['approval']}.")
+    for error in run.get('errors', []):
+        doc.add_paragraph('Retrieval or extraction issue: ' + error['ticker'] + ' ' + error['error'])
+    footer = sec.footer.paragraphs[0]
+    footer.text = 'APEX RIDGE | PM and compliance review required | '
+    field = OxmlElement('w:fldSimple'); field.set(qn('w:instr'), 'PAGE'); footer._p.append(field)
+    doc.core_properties.title = 'Apex Ridge committee comparison'
+    doc.core_properties.author = 'Apex Ridge benchmarking prototype'
+    # Remove inherited template decorations and make table styling explicit.
+    for style in doc.styles:
+        for border in list(style.element.iter(qn('w:pBdr'))):
+            border.getparent().remove(border)
+    for t in doc.tables:
+        borders = OxmlElement('w:tblBorders')
+        for edge in ('top', 'left', 'bottom', 'right', 'insideH', 'insideV'):
+            node = OxmlElement('w:' + edge)
+            for k, v in {'val':'single', 'sz':'4', 'color':'D9D9D9'}.items(): node.set(qn('w:' + k), v)
+            borders.append(node)
+        t._tbl.tblPr.append(borders)
+        for i, row in enumerate(t.rows):
+            for cell in row.cells:
+                shading = OxmlElement('w:shd'); shading.set(qn('w:fill'), 'E9ECEF' if i == 0 else 'F5F6F7' if i % 2 else 'FFFFFF')
+                cell._tc.get_or_add_tcPr().append(shading)
+                for paragraph in cell.paragraphs:
+                    for run in paragraph.runs: run.font.color.rgb = RGBColor(0, 0, 0)
     doc.save(path)

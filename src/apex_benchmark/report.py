@@ -52,8 +52,9 @@ def export(run, output):
     (output / 'index.html').write_text(html_report(run))
     (output / 'judgments.json').write_text(json.dumps(run.get('llm_judgments', []), indent=2, allow_nan=False))
     pdf_report(run, output / 'benchmark.pdf')
-    from .word_report import export_word
+    from .word_report import export_word, export_evidence_word
     export_word(run, output / 'benchmark.docx')
+    export_evidence_word(run, output / 'benchmark-evidence.docx')
 
 
 def html_report(run):
@@ -111,7 +112,7 @@ def html_report(run):
 Judgment mode: {esc(run.get("judgment_mode", "rules_only"))}. A rules-only report has not been assessed by an LLM.<br>
 Apex Ridge data: {esc(run['apex']['status'])}. {esc(run['apex']['reason'])}<br>
 Blank values are explicit gaps. Retrieval errors do not mean a fund failed to disclose a metric. No synthetic competitor figures.</div>
-<nav class="downloads"><a href="benchmark.docx">Download Word</a><a href="benchmark.pdf">Download PDF</a><a href="benchmark.csv">Download CSV</a><a href="audit.json">Full evidence JSON</a><a href="judgments.json">Model decision records</a></nav>
+<nav class="downloads"><a href="benchmark.docx">Committee Word</a><a href="benchmark-evidence.docx">Detailed evidence Word</a><a href="benchmark.pdf">Download PDF</a><a href="benchmark.csv">Download CSV</a><a href="audit.json">Full evidence JSON</a><a href="judgments.json">Model decision records</a></nav>
 {('<details><summary>Custom metric definitions for this run</summary>'+definitions+'</details>') if definitions else ''}
 <h2>Comparison</h2><p>Listed funds use shareholder returns; interval funds use net NAV returns. KREF book value, leverage and yield are not automatically comparable with the other funds. Fee bases differ; KREF's annualized percentage retains a quarterly dollar minimum. * Calculated from filing values; open the evidence for inputs and formula.</p>
 <div class="scroll"><table><thead><tr><th>Metric</th><th>Apex Ridge</th>{''.join('<th>'+t+'</th>' for t in tickers)}</tr></thead><tbody>{''.join(rows)}</tbody></table></div>

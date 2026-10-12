@@ -17,7 +17,7 @@ from .cli import validate_config
 from .sec import SecClient,RetrievalError
 from .fund_browser import FundBrowser
 
-FILES={'index.html':'text/html','benchmark.docx':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','benchmark.pdf':'application/pdf','benchmark.csv':'text/csv','audit.json':'application/json','judgments.json':'application/json','nport.json':'application/json','nport-holdings.csv':'text/csv'}
+FILES={'benchmark-evidence.docx':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','index.html':'text/html','benchmark.docx':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','benchmark.pdf':'application/pdf','benchmark.csv':'text/csv','audit.json':'application/json','judgments.json':'application/json','nport.json':'application/json','nport-holdings.csv':'text/csv'}
 
 
 class Workspace:
@@ -91,7 +91,7 @@ class Workspace:
             if self.job:
                 p=Path(self.job['log_path']);job['log']=p.read_text()[-8000:] if p.exists() else ''
             return {'config':self.config,'job':job,'csrf':self.token,'has_report':(self.report/'index.html').exists(),
-                    'has_word':(self.report/'benchmark.docx').exists(),'openai_configured':bool(os.environ.get('OPENAI_API_KEY'))}
+                    'has_word':(self.report/'benchmark.docx').exists(),'has_evidence_word':(self.report/'benchmark-evidence.docx').exists(),'openai_configured':bool(os.environ.get('OPENAI_API_KEY'))}
 
 
 def handler(workspace):

@@ -10,7 +10,7 @@ from apex_benchmark.metrics import validate_metrics,metric_labels,extract_custom
 from apex_benchmark.fund_browser import FundBrowser,COMPANIES,FUNDS,NAMES
 from apex_benchmark.judgment import build_packet,validate_decision,JudgmentError
 from apex_benchmark.workspace import Workspace,handler
-from apex_benchmark.word_report import export_word
+from apex_benchmark.word_report import export_word, export_evidence_word, committee_summary
 from apex_benchmark.resolve import resolve_metric
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -114,7 +114,21 @@ def test_word_document_contains_dynamic_funds_custom_metrics_and_source_links(tm
  assert 'TEST' in text and 'Portfolio turnover' in text and '24.50%' in text
  assert 'Apex Ridge internal figures remain withheld' in text
  assert any(rel.target_ref==SOURCE['url'] for rel in doc.part.rels.values() if rel.reltype.endswith('/hyperlink'))
- assert len(doc.tables)>=3  # two groups of funds plus the history table
+ assert len(doc.tables)==2  # concise attachment; history remains in detailed evidence
+ assert 'Institutional' in text and 'Class I' in text
+ assert "position relative to the competitor set cannot yet be assessed" in text
+ assert 'Definitions and source notes' in text and '[1]' in text
+ detailed=tmp_path/'benchmark-evidence.docx';export_evidence_word(run,detailed)
+ detail=Document(detailed)
+ assert any(p.text=='Evidence and review notes' for p in detail.paragraphs)
+ assert len(detail.tables)>=3
+
+
+def test_summary_does_not_invent_relative_performance_after_source_approval():
+ run={'config':CONFIG,'results':[], 'apex':{'status':'approved','values':{'return_1y':{'value':99}}}}
+ summary=committee_summary(run)
+ assert 'relative positioning still requires PM confirmation' in summary
+ assert 'outperform' not in summary and '99' not in summary
 
 
 def test_workspace_run_snapshots_settings_and_reuses_sources(tmp_path,monkeypatch):
