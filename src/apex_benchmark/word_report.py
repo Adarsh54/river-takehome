@@ -1,6 +1,7 @@
 """Portable committee package with per-value decisions and SEC citations."""
 from __future__ import annotations
 from docx import Document
+from .evidence import evidence_label
 from docx.shared import Inches,Pt,RGBColor
 from docx.enum.section import WD_ORIENT
 from docx.oxml import OxmlElement
@@ -17,9 +18,9 @@ def link(paragraph,label,url):
 
 
 def value(result):
-    if result.get('value') is None:return 'Not established'
+    if result.get('value') is None:return evidence_label(result).replace('Reviewed — value not established','Not established')
     v=result['value'];unit=result.get('unit','')
-    return f'{v:,.2f}'+('%' if unit=='%' else 'x' if unit=='x' else ' '+unit)
+    return f'{v:,.2f}'+('%' if unit=='%' else 'x' if unit=='x' else ' '+unit)+(' / quarter' if 'quarter' in result.get('basis','').lower() and 'annual' not in result.get('basis','').lower() else '')
 
 
 def table(doc,headers,rows,widths):
@@ -99,7 +100,7 @@ def export_evidence_word(run,path):
     for r in run['results']+run['nav_history']:
         doc.add_paragraph(f"{r['ticker']}  {r['label']}  {r.get('requested_period') or r.get('period') or 'Current'}",style='Heading 2')
         supported=r.get('value') is not None
-        doc.add_paragraph(value(r)+(' | Evidence linked | '+('Calculated' if r.get('calculation') else 'Directly reported') if supported else ' | Evidence not established'))
+        doc.add_paragraph(value(r)+(' | Evidence linked | '+('Calculated' if r.get('calculation') else 'Directly reported') if supported else ' | '+evidence_label(r)))
         doc.add_paragraph(r['reason'])
         if r.get('basis'):doc.add_paragraph('Definition: '+(r['label'] if r['basis'].startswith('custom:') else r['basis'].replace('_',' '))+'. '+r.get('comparability',''))
         if r.get('calculation'):
@@ -137,7 +138,7 @@ def committee_summary(run):
         opening = "Apex Ridge's position relative to the competitor set cannot yet be assessed because its internal figures remain withheld pending source approval."
     else:
         opening = "Apex Ridge's approved internal figures are shown alongside competitors; relative positioning still requires PM confirmation of matching dates and metric definitions."
-    priority = [f['ticker'] for f in run['config']['funds'] if f['ticker'] in {'CCLFX', 'TAKIX'}]
+    priority = [f['ticker'] for f in run['config']['funds']]
     coverage = []
     for ticker in priority:
         rows = [r for r in run['results'] if r['ticker'] == ticker]
@@ -191,7 +192,7 @@ def export_word(run, path):
             for f in group:
                 r = lookup[f['ticker'], metric]
                 ref = refs.get((f['ticker'], metric))
-                row.append(value(r) + (f' [{ref}]' if ref else '') + (' *' if r.get('calculation') else '') + '\n' + (r.get('period') or 'Period unresolved'))
+                row.append(value(r) + (f' [{ref}]' if ref else '') + (' *' if r.get('calculation') else '') + ('\n'+r['period'] if r.get('period') else ''))
             rows.append(row)
         table(doc, ['Metric', 'Apex Ridge'] + [f["ticker"] + '\n' + f['share_class'] for f in group], rows, [2.2, 1.4] + [6.8/len(group)]*len(group))
     doc.add_page_break()

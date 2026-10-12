@@ -61,7 +61,10 @@ class Workspace:
             config['funds'].append(fund);self.save(config)
         return fund
 
-    def start(self,mode):
+    def start(self,mode,action="update",concurrency=3):
+        if action not in {'update','retry','repair','refresh'}:raise ValueError('Unknown run action')
+        if not isinstance(concurrency,int) or not 1<=concurrency<=4:raise ValueError('Choose 1–4 concurrent reviews')
+        if action=='refresh' and mode=='cached':raise ValueError('Refreshing SEC filings requires network access')
         if mode not in {'on','off','cached'}:raise ValueError('Unknown judgment mode')
         if mode=='on' and not os.environ.get('OPENAI_API_KEY'):raise ValueError('Configure OPENAI_API_KEY locally before running OpenAI judgment.')
         with self.lock:
@@ -70,11 +73,15 @@ class Workspace:
             config_path=folder/'config.json';config_path.write_text(json.dumps(self.config,indent=2))
             result=folder/'report';log=folder/'run.log'
             args=[sys.executable,'-m','apex_benchmark.cli','--config',str(config_path),'--output',str(result),'--llm',mode]
+            args+=['--review-concurrency',str(concurrency)]
+            if action=='retry':args+=['--retry-unfinished']
+            if action=='repair':args+=['--repair-gaps']
+            if action=='refresh':args+=['--refresh']
             audit=self.report/'audit.json'
             if audit.exists():
                 prior=json.loads(audit.read_text())['config']
                 from .incremental import compatible_audit
-                if compatible_audit(prior,self.config):
+                if action=='refresh' or compatible_audit(prior,self.config):
                     args+=['--from-audit',str(audit)]
             if mode=='cached':args+=['--offline']
             self.job={'id':uid,'status':'running','mode':mode,'output':str(result),'log_path':str(log),'config':copy.deepcopy(self.config),'started_at':time.time()}
@@ -157,7 +164,7 @@ def handler(workspace):
                         for k in ('target_period','filing_cutoff'):config[k]=data[k]
                         workspace.save(config)
                     return self.send({'saved':True})
-                if self.path=='/api/run':return self.send(workspace.start(data.get('mode','on')))
+                if self.path=='/api/run':return self.send(workspace.start(data.get('mode','on'),data.get('action','update'),data.get('concurrency',3)))
                 return self.send({'error':'Not found'},404)
             except (ValueError,KeyError,TypeError,RetrievalError) as exc:self.send({'error':str(exc)},400)
         def log_message(self,*args):pass

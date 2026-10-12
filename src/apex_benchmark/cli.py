@@ -41,7 +41,7 @@ def validate_config(config):
         raise ValueError('Duplicate fund ticker')
 
 
-def run_pipeline(config, client, internal_path, decisions=None, progress=print, ocr_mode='auto'):
+def run_pipeline(config, client, internal_path, decisions=None, progress=print, ocr_mode='auto', filing_selection=None):
     validate_config(config)
     from .pdf_extract import ocr_environment
     ocr_runtime = ocr_environment()
@@ -57,16 +57,18 @@ def run_pipeline(config, client, internal_path, decisions=None, progress=print, 
         ticker = fund['ticker']
         progress(f'{ticker}: discovering SEC filings through {config["filing_cutoff"]}', flush=True)
         try:
-            inventory = discover(client, fund['cik'], config['filing_cutoff'])
+            inventory = discover(client, fund['cik'], config['filing_cutoff']) if filing_selection is None else filing_selection.get(ticker,[])
         except RetrievalError as exc:
             run['errors'].append({'ticker': ticker, 'stage': 'discovery', 'error': str(exc)})
             progress(f'{ticker}: {exc}', flush=True)
             continue
-        selected = select_filings(inventory, config['target_period'])
+        selected = select_filings(inventory, config['target_period']) if filing_selection is None else inventory
         run['filings'].extend([dict(f, ticker=ticker) for f in selected])
         if not selected:
             run['errors'].append({'ticker': ticker, 'stage': 'discovery', 'error': 'No eligible relevant filings discovered; verify CIK and coverage.'})
         for index, filing in enumerate(selected):
+            if hasattr(client,'refresh_accessions'):
+                client.refresh=filing['accessionNumber'] in client.refresh_accessions
             primary, full = filing_documents(client, fund['cik'], filing)
             progress(f'{ticker}: {index+1}/{len(selected)} {filing["form"]} {filing["filingDate"]}', flush=True)
             try:
@@ -83,10 +85,13 @@ def run_pipeline(config, client, internal_path, decisions=None, progress=print, 
                               'retrieved_at': meta['retrieved_at'], 'submission_url': full}
                     # Cache each parsed exhibit exactly as inspected; keep original submission too.
                     (client.cache / digest).write_bytes(content)
-                    parse_key = hashlib.sha256(json.dumps([digest, source, fund, filing, PARSER_VERSION, ocr_mode, ocr_runtime], sort_keys=True).encode()).hexdigest()
+                    parse_key = hashlib.sha256(json.dumps([digest, {'url':url,'sha256':digest}, fund, filing, PARSER_VERSION, ocr_mode, ocr_runtime], sort_keys=True).encode()).hexdigest()
                     parsed_dir = client.cache / 'parsed'
                     parsed_dir.mkdir(exist_ok=True)
                     parsed_path = parsed_dir / (parse_key + '.json')
+                    legacy_key=hashlib.sha256(json.dumps([digest,source,fund,filing,PARSER_VERSION,ocr_mode,ocr_runtime],sort_keys=True).encode()).hexdigest()
+                    legacy_path=parsed_dir/(legacy_key+'.json')
+                    if not parsed_path.exists() and legacy_path.exists():parsed_path.write_bytes(legacy_path.read_bytes())
                     if parsed_path.exists():
                         parsed = json.loads(parsed_path.read_text())
                     else:
@@ -139,6 +144,7 @@ def run_pipeline(config, client, internal_path, decisions=None, progress=print, 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description='Auditable SEC benchmarking; no synthetic competitor fallback.')
+    parser.add_argument('--repair-gaps',action='store_true',help='Explicitly re-review unresolved cells with corrected dates and complete table context')
     parser.add_argument('--retry-unfinished',action='store_true',help='Explicitly retry unfinished AI cells in addition to configuration changes')
     parser.add_argument('--render-audit',type=Path,help='Generate reports from saved decisions only; no source or AI calls')
     parser.add_argument('--from-audit', type=Path, help='Update only changed metrics/funds against a saved audit; preserve other decisions')
@@ -159,8 +165,6 @@ def main(argv=None):
     if args.render_audit:
         export(json.loads(args.render_audit.read_text()),args.output)
         return 0
-    if args.from_audit and args.refresh:
-        parser.error('--refresh requires fresh source discovery; omit --from-audit')
     if args.offline and args.refresh:
         parser.error('--offline and --refresh cannot be combined')
     from dotenv import load_dotenv
@@ -193,7 +197,14 @@ def main(argv=None):
             if decisions:
                 raise ValueError('Explicit manual decisions require a source rebuild; omit --from-audit.')
             print('Reusing saved decisions; retrieving evidence only for changed dependencies',flush=True)
-            affected=prepare(run,config,args.cache,pull_funds=pull_funds)
+            if args.refresh:
+                from .refresh import refresh_saved
+                client=SecClient(ua or 'offline-cache-only',args.cache)
+                def pull_selected(funds,selection):
+                    return run_pipeline(dict(config,funds=funds),client,args.apex_data,decisions,ocr_mode=args.ocr,filing_selection=selection)
+                affected=refresh_saved(run,config,client,args.apex_data,pull_selected)
+            else:
+                affected=prepare(run,config,args.cache,pull_funds=pull_funds)
             run['reprocessed_from_run_id'] = run['run_id']
             run['source_run_mode'] = run.get('source_run_mode', run['mode'])
             run['mode'] = 'reprocessed_audit'
@@ -203,10 +214,14 @@ def main(argv=None):
         else:
             client = SecClient(ua or 'offline-cache-only', args.cache, args.offline, args.refresh)
             run = run_pipeline(config, client, args.apex_data, decisions, ocr_mode=args.ocr)
+        if args.repair_gaps and affected is not None:
+            affected.update((r['ticker'],r['metric'],r.get('requested_period') or r['period'] if history else None)
+                for history,items in ((False,run['results']),(True,run['nav_history'])) for r in items
+                if r.get('value') is None)
         if args.retry_unfinished and affected is not None:
             affected.update((r['ticker'],r['metric'],r['period'] if history else None)
                 for history,items in ((False,run['results']),(True,run['nav_history'])) for r in items
-                if r.get('decision_author','rules_only') in {'llm_not_completed','rules_only'})
+                if r.get('decision_author','rules_only') in {'llm_not_completed','rules_only'} or r.get('judgment',{}).get('packet_complete') is False)
         timings['source_preparation_seconds']=round(time.perf_counter()-source_started,3)
         print('Stage: AI review',flush=True)
         review_started=time.perf_counter()
@@ -215,6 +230,8 @@ def main(argv=None):
             adjudicate_run(run, judge, args.cache, concurrency=args.review_concurrency, affected=affected)
         else:
             run['judgment_mode'] = 'rules_only' if affected is None else 'saved_decisions_with_rules_only_updates'
+            run.setdefault('incremental',{}).update(model_network_responses=0,reviews_planned=0,
+                rules_results_updated=len(affected) if affected is not None else len(run['results'])+len(run['nav_history']))
             if affected is None:
                 run.pop('llm_judgments', None)
                 run.pop('rule_results', None)

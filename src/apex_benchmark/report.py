@@ -11,7 +11,7 @@ from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
 from .extract import METRICS
 from .metrics import metric_labels
-from .evidence import evidence_label, migrate_evidence_contract
+from .evidence import evidence_label, migrate_evidence_contract, gap_kind, GAP_LABELS
 
 
 def esc(value):
@@ -20,8 +20,8 @@ def esc(value):
 
 def display(result):
     if result is None or result.get('value') is None:
-        return 'Not available'
-    return f"{result['value']:,.2f}{'%' if result.get('unit') == '%' else 'x' if result.get('unit') == 'x' else ''}"
+        return evidence_label(result) if result else 'Not available'
+    return f"{result['value']:,.2f}{'%' if result.get('unit') == '%' else 'x' if result.get('unit') == 'x' else ''}"+(' / quarter' if 'quarter' in result.get('basis','').lower() and 'annual' not in result.get('basis','').lower() else '')
 
 
 def export(run, output):
@@ -62,6 +62,13 @@ def html_report(run):
     cfg = run['config']
     tickers = [f['ticker'] for f in cfg['funds']]
     lookup = {(r['ticker'], r['metric']): r for r in run['results']}
+    from collections import Counter
+    coverage=[]
+    for label,items in [('Current comparison',run['results']),('Historical per-share values',run['nav_history'])]:
+        counts=Counter(gap_kind(r) for r in items)
+        summary=' · '.join(f'{counts[k]} {GAP_LABELS[k].lower()}' for k in GAP_LABELS if counts[k])
+        coverage.append('<p><strong>'+label+'</strong>: '+esc(summary)+'</p>')
+    coverage_html='<section class=metric><h2>Coverage and unresolved work</h2>'+''.join(coverage)+'<p>Evidence not found is a search gap, not proof that the fund did not disclose the metric. Failed or pending AI reviews are system work still to complete. Reviewed gaps retain the model rationale and source passages for human review.</p></section>'
     rows = []
     for metric, label in metric_labels(run['config']).items():
         internal = run['apex']['values'].get(metric)
@@ -104,10 +111,11 @@ def html_report(run):
 :root{{font-family:system-ui,sans-serif;color:#18313d;background:#f4f6f5}}body{{margin:0}}main{{max-width:1400px;margin:auto;padding:40px}}h1{{font-size:38px;margin:12px 0}}h2{{margin-top:36px}}.eyebrow{{text-transform:uppercase;letter-spacing:2px;font-size:12px;color:#46766c}}.banner{{padding:20px;background:#fff3db;border-left:4px solid #bd791f;margin:20px 0}}.downloads a{{display:inline-block;background:#183f3a;color:white;padding:10px 16px;margin:4px;text-decoration:none;border-radius:5px}}.scroll{{overflow:auto}}table{{border-collapse:collapse;width:100%;background:white;font-size:13px}}th,td{{padding:12px;border-bottom:1px solid #dce5e2;text-align:left;vertical-align:top;min-width:110px}}th{{background:#e6eeeb}}small{{display:block;font-size:11px;color:#586c72;margin-top:6px}}a{{color:#166957}}.metric,details{{background:white;padding:20px;margin:12px 0;border:1px solid #dce5e2;border-radius:6px}}blockquote{{border-left:3px solid #9ab5ae;padding:12px;background:#f4f7f6;white-space:pre-wrap;overflow-wrap:anywhere}}.meta{{font-size:12px;overflow-wrap:anywhere}}summary{{cursor:pointer}}input{{padding:12px;width:min(500px,90%);font:inherit}}.supported,.reviewed{{background:#edf6f0}}.conflict,.retrieval_incomplete,.extraction_incomplete{{background:#fff6e7}}@media print{{.downloads,input{{display:none}}main{{padding:0}}details{{break-inside:avoid}}}}
 </style><main><div class="eyebrow">Apex Ridge Capital · Research review</div><h1>Competitor benchmarking</h1>
 <p>Quarter ended {cfg['target_period']} · filings through {cfg['filing_cutoff']} · target period {cfg['target_period']}</p>
+{coverage_html}
 <div class="banner"><strong>REVIEW DRAFT — PM and compliance approval required.</strong><br>
 Judgment mode: {esc(run.get("judgment_mode", "rules_only"))}. A rules-only report has not been assessed by an LLM.<br>
 Apex Ridge data: {esc(run['apex']['status'])}. {esc(run['apex']['reason'])}<br>
-Blank values are explicit gaps. Retrieval errors do not mean a fund failed to disclose a metric. No synthetic competitor figures.</div>
+Blank values distinguish evidence not found, pending/failed AI review, and reviewed but unestablished values. None is proof of non-disclosure. No synthetic competitor figures.</div>
 <nav class="downloads"><a href="benchmark.docx">Committee Word</a><a href="benchmark-evidence.docx">Detailed evidence Word</a><a href="benchmark.pdf">Download PDF</a><a href="benchmark.csv">Download CSV</a><a href="audit.json">Full evidence JSON</a><a href="judgments.json">Model decision records</a></nav>
 {('<details><summary>Custom metric definitions for this run</summary>'+definitions+'</details>') if definitions else ''}
 <h2>Comparison</h2><p>Listed funds use shareholder returns; interval funds use net NAV returns. KREF book value, leverage and yield are not automatically comparable with the other funds. Fee bases differ; KREF's annualized percentage retains a quarterly dollar minimum. * Calculated from filing values; open the evidence for inputs and formula.</p>

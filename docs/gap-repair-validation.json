@@ -1,0 +1,184 @@
+{
+  "scenario": "Repair saved five-fund Q4 2024 comparison; real SEC evidence and OpenAI decisions",
+  "before": {
+    "results": {
+      "total": 65,
+      "populated": 18
+    },
+    "nav_history": {
+      "total": 40,
+      "populated": 17
+    }
+  },
+  "after": {
+    "results": {
+      "total": 65,
+      "populated": 41,
+      "gap_categories": {
+        "supported": 41,
+        "not_established": 18,
+        "not_searched": 5,
+        "context_incomplete": 1
+      }
+    },
+    "nav_history": {
+      "total": 40,
+      "populated": 32,
+      "gap_categories": {
+        "supported": 32,
+        "not_established": 8
+      }
+    }
+  },
+  "original_supported_results_preserved": 35,
+  "original_supported_results_corrected": [],
+  "repair_runs": {
+    "interrupted_initial_run_seconds": 86.6,
+    "resumed_63_cell_run": {
+      "source_preparation_seconds": 0.319,
+      "ai_review_seconds": 172.478,
+      "report_generation_seconds": 1.727,
+      "total_seconds": 174.524,
+      "source_mode": "saved_audit",
+      "review_mode": "llm",
+      "incremental": {
+        "changed_metrics": [],
+        "changed_funds": [],
+        "documents_parsed": 0,
+        "document_index_hits": 0,
+        "reviews_planned": 63,
+        "results_reused": 42,
+        "review_concurrency": 4,
+        "decision_checkpoint_hits": 0,
+        "reviews_completed": 63,
+        "model_network_responses": 60
+      },
+      "model_network_responses": 60
+    },
+    "targeted_retry": {
+      "source_preparation_seconds": 0.368,
+      "ai_review_seconds": 46.143,
+      "report_generation_seconds": 1.829,
+      "total_seconds": 48.341,
+      "source_mode": "saved_audit",
+      "review_mode": "llm",
+      "incremental": {
+        "changed_metrics": [],
+        "changed_funds": [],
+        "documents_parsed": 0,
+        "document_index_hits": 0,
+        "reviews_planned": 17,
+        "results_reused": 88,
+        "review_concurrency": 2,
+        "decision_checkpoint_hits": 0,
+        "reviews_completed": 17,
+        "model_network_responses": 12
+      },
+      "model_network_responses": 12
+    },
+    "one_return_correction": {
+      "seconds": 7.931,
+      "incremental": {
+        "changed_metrics": [],
+        "changed_funds": [],
+        "documents_parsed": 0,
+        "document_index_hits": 0,
+        "reviews_planned": 1,
+        "results_reused": 104,
+        "review_concurrency": 1,
+        "decision_checkpoint_hits": 0,
+        "reviews_completed": 1,
+        "model_network_responses": 1
+      }
+    },
+    "one_fee_correction": {
+      "seconds": 9.894,
+      "incremental": {
+        "changed_metrics": [],
+        "changed_funds": [],
+        "documents_parsed": 0,
+        "document_index_hits": 0,
+        "reviews_planned": 1,
+        "results_reused": 104,
+        "review_concurrency": 1,
+        "decision_checkpoint_hits": 0,
+        "reviews_completed": 1,
+        "model_network_responses": 1
+      }
+    }
+  },
+  "live_website_refresh": {
+    "elapsed_seconds": 4.8,
+    "stages": {
+      "source_preparation_seconds": 2.672,
+      "ai_review_seconds": 0.002,
+      "report_generation_seconds": 1.936,
+      "total_seconds": 4.61,
+      "source_mode": "saved_audit",
+      "review_mode": "llm",
+      "incremental": {
+        "documents_parsed": 0,
+        "document_index_hits": 0,
+        "unchanged_filings_reused": 267,
+        "new_or_changed_filings": 0,
+        "reviews_planned": 0,
+        "results_reused": 105,
+        "review_concurrency": 3,
+        "decision_checkpoint_hits": 0,
+        "reviews_completed": 0,
+        "model_network_responses": 0
+      },
+      "model_network_responses": 0
+    }
+  },
+  "report_reload_seconds": 0.145,
+  "word_download_initiation_seconds": 0.259,
+  "limitations": [
+    "Repair work involved multiple runs, including an interrupted run; this is not a claim the entire repair was completed in five minutes.",
+    "Five current cells have no retrieved evidence; one has incomplete model context; the other gaps were reviewed but not established from the retrieved passages.",
+    "Eight historical interval-fund NAV observations lack exact-date per-share evidence in retrieved passages. This is not proof of non-disclosure.",
+    "Apex data remains withheld pending client provenance approval.",
+    "Cold fund ingestion and provider delays are not covered by the warm-update timing."
+  ],
+  "targeted_semantic_correction": {
+    "cell": [
+      "ARCC",
+      "incentive_fee",
+      null
+    ],
+    "during_repair_before": 1.75,
+    "final": 20,
+    "reason": "Quarterly hurdle was mistakenly selected as the incentive participation rate. One targeted LLM decision corrected it; a basis check and regression test now reject that mix-up."
+  },
+  "final_normal_website_rerun": {
+    "elapsed_seconds": 2.5,
+    "stages": {
+      "source_preparation_seconds": 0.359,
+      "ai_review_seconds": 0.002,
+      "report_generation_seconds": 1.882,
+      "total_seconds": 2.243,
+      "source_mode": "saved_audit",
+      "review_mode": "llm",
+      "incremental": {
+        "changed_metrics": [],
+        "changed_funds": [],
+        "documents_parsed": 0,
+        "document_index_hits": 0,
+        "reviews_planned": 0,
+        "results_reused": 105,
+        "review_concurrency": 3,
+        "decision_checkpoint_hits": 0,
+        "reviews_completed": 0,
+        "model_network_responses": 0
+      },
+      "model_network_responses": 0
+    }
+  },
+  "regression_tests_passed": 121,
+  "document_qa": {
+    "committee_word_pages": 13,
+    "technical_approach_pages": 3,
+    "solution_brief_pages": 2,
+    "rendered_and_visually_checked": true
+  }
+}

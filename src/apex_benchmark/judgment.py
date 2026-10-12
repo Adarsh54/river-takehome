@@ -23,6 +23,8 @@ Select net NAV returns for interval funds and total shareholder returns (price p
 distributions) for listed funds. Returns must match 1/3/5-year periods and annualization requirements.
 Match share class, units and reporting dates. Keep contractual/effective fees separate, preserve fee
 bases, waiver expiry, hurdles and catch-up conditions. Do not confuse portfolio yield with distributions.
+Incentive fee means the manager's participation percentage of eligible income or gains, never the
+hurdle rate or catch-up threshold. Hurdle is a separate metric; preserve its annual or quarterly basis.
 KREF book value is not fund NAV; leverage definitions differ. N-PORT net assets are not per-share NAV.
 An extracted candidate is not an endorsed answer. Interpret the cited text and choose the correct
 figure, including a different explicitly quoted figure when the parser chose the wrong one.
@@ -108,7 +110,8 @@ not a requirement that every current observation has that exact date. Do not cal
         if packet.get('numbered_passages'):
             instructions = instructions.replace('Every supplied candidate must be accounted\nfor in assessments, including historical values, duplicate passages and different definitions.',
                 'Give concise assessments for selected evidence and material competing figures; do not enumerate duplicates.')
-            instructions += '\nNUMBERED CITATION CONTRACT: select selected_passage and citations using supplied passage_number integers only.\nNever copy source quotes or candidate IDs. Cite enough passages to establish the value, definition and context.\nComparison context uses passage_number, or null with value Not established. No quote field.\nWithhold means selected_passage null, value null, directly_reported false.\nKeep rationales concise. The application restores exact original source text and checks every selection.\n'
+            instructions += '\nMEASUREMENT CONTRACT: '+packet.get('measurement_request','')+'\nInterpret only the requested metric. Distribution yield is not shareholder total return. For history, target_period is the requested historical observation, not the current board quarter. A newer quarterly return does not supersede an older trailing annual return. Preserve the older observation date; never carry it forward. Candidate periods are parser hints: do not use a figure in a comparative column as a current observation. Native HTML text is not OCR. Use contractual:<basis> for management fees; effective:<basis> for effective fees; debt_to_equity:<basis> for leverage; annualized:<basis> for distribution yield. Use nav or book_value for per-share value. Respect supplied calculation output and mark directly_reported false.\n'
+            instructions += '\nNUMBERED CITATION CONTRACT: select selected_passage and citations using supplied passage_number integers only.\nA published period must be an ISO calendar date, never empty. Use the date explicitly attached to the selected table value; a missing parser period can be resolved from a full source date. Never copy source quotes or candidate IDs. Cite enough passages to establish the value, definition and context.\nComparison context uses passage_number, or null with value Not established. No quote field.\nWithhold means selected_passage null, value null, directly_reported false.\nKeep rationales concise. The application restores exact original source text and checks every selection.\n'
         payload = {'model':self.model, 'store':False, 'instructions':PROMPT,
             'input':json.dumps(input_data,sort_keys=True,allow_nan=False),
             'text':{'format':{'type':'json_schema','name':'financial_judgment','strict':True,'schema':decision_schema(packet)}},
@@ -174,7 +177,7 @@ not a requirement that every current observation has that exact date. Do not cal
         return decision, provenance
 
 
-def build_packet(run, result, max_chars=600000):
+def build_packet(run, result, max_chars=600000, source_cache=None):
     fund = next(f for f in run['config']['funds'] if f['ticker']==result['ticker'])
     cfg=run['config']
     custom=custom_metrics(cfg).get(result['metric'])
@@ -183,8 +186,19 @@ def build_packet(run, result, max_chars=600000):
         and c.get('review',{}).get('action')!='reject']
     # Historical cells use their own observation date. Unscoped passages remain for judgment.
     exact = result.get('requested_period')
+    excluded_unscoped=0
     if exact:
-        candidates=[c for c in candidates if c['period'] in {'',exact}]
+        dated=[c for c in candidates if c['period']==exact]
+        accessions={c['accession'] for c in dated}
+        unscoped=[c for c in candidates if not c['period']]
+        contextual=[c for c in unscoped if c['accession'] in accessions or exact in source_dates(c['quote'])]
+        excluded_unscoped=len(unscoped)-len(contextual)
+        candidates=dated+contextual
+    elif result['metric']=='nav':
+        unscoped=[c for c in candidates if not c['period'] and not c.get('eligible') and not source_dates(c['quote'])]
+        excluded_unscoped=len(unscoped)
+        excluded_ids={c['id'] for c in unscoped}
+        candidates=[c for c in candidates if c['id'] not in excluded_ids]
     if not exact and candidates:
         reports = [f for f in run['filings'] if f['ticker']==fund['ticker']
             and f['form'].removesuffix('/A') in {'10-K','10-Q','N-CSR','N-CSRS'}
@@ -202,9 +216,17 @@ def build_packet(run, result, max_chars=600000):
             eligible=[c for c in candidates if c['eligible'] and c['value'] is not None]
             baseline=max(eligible,key=lambda c:(c['period'],c['filing_date']))['accession'] if eligible else newest
             candidates=[c for c in candidates if c['filing_date']>=start or c['accession'] in {newest,baseline}]
+    excluded_nav_context=0
+    if result['metric']=='nav':
+        useful=[c for c in candidates if nav_observation_candidate(c)]
+        excluded_nav_context=len(candidates)-len(useful)
+        candidates=useful
+    if source_cache is not None:
+        from .passages import expand_candidate
+        candidates=[expand_candidate(c,source_cache) for c in candidates]
     passages=[]
     for c in candidates:
-        if len(c['quote'])<=12000 or c.get('eligible') or c.get('calculation'):
+        if len(c['quote'])<=12000 or c.get('table_rows') or c.get('eligible') or c.get('calculation'):
             passages.append(c); continue
         # Long wrapper blocks often contain an entire report. Retrieve complete, overlapping
         # 3,000-character contexts around metric labels, retaining offsets into the parent quote.
@@ -230,16 +252,22 @@ def build_packet(run, result, max_chars=600000):
         if key in groups:
             groups[key]['equivalent_candidate_ids'].append(c['id']);continue
         record={k:c.get(k) for k in ('id','metric','value','unit','period','basis','share_class','filing_date',
-            'parent_candidate_id','form','accession','source_url','source_sha256','locator','quote','method','eligible','reasons','calculation','review')}
+            'table_rows','table_format','section_headings','parent_candidate_id','form','accession','source_url','source_sha256','locator','quote','method','eligible','reasons','calculation','review')}
         record['equivalent_candidate_ids']=[]
         groups[key]=record
     packet={'fund':fund,'metric':result['metric'],'metric_label':result['label'],
-            'target_period':cfg['target_period'],'filing_cutoff':cfg['filing_cutoff'],
-            'retrieval_scope':'Latest annual/interim reports plus subsequent filings; latest available and baseline metric sources retained. Long unqualified blocks use label-centered excerpts with parent offsets; referenced footnotes outside those excerpts may require further retrieval. History uses exact observation date.',
-            'requested_period':exact,'packet_complete':True,'omitted_candidates':0,'evidence':[]}
+            'target_period':exact or cfg['target_period'],'filing_cutoff':cfg['filing_cutoff'],
+            'measurement_request':('Historical observation exactly at '+exact if exact else
+                'Latest available observation on or before '+cfg['target_period']+'; earlier disclosed periods are valid when clearly dated. Do not demand exact quarter-end for current metrics.'),
+            'retrieval_scope':'Latest annual/interim reports plus subsequent filings; latest available and baseline metric sources retained. Long unqualified blocks use label-centered excerpts with parent offsets; referenced footnotes outside those excerpts may require further retrieval. History uses exact observation date and context from matching accessions or explicitly dated passages; unrelated undated prospectus boilerplate is excluded.',
+            'excluded_nav_definitions_or_examples':excluded_nav_context,'excluded_undated_unrelated_passages':excluded_unscoped,'requested_period':exact,'packet_complete':True,'omitted_candidates':0,'evidence':[]}
     if custom:
         packet['custom_metric_definition']=custom
         packet['custom_metric_contract']={'basis':'custom:'+custom['id'], 'unit':custom['unit'], 'reported_only':True, 'instructions':'Match the full user definition, scope and period basis. These are criteria, not permission to relax source checks. No new formulas or unit conversions. For fund scope use share_class Fund. Keep disclosure date and actual measurement period distinct; withhold if period cannot be matched.'}
+    if not exact and result['metric'] in {'return_1y','return_3y','return_5y'}:
+        packet['measurement_request'] += (' This is a trailing '+result['metric'][7:-1]+'-year return. '
+            'A later three-month return is a different metric, not a replacement for this observation. '
+            'Use the latest supported trailing observation with its actual date and disclose any lag.')
     size=len(json.dumps(packet))
     for c in groups.values():
         length=len(json.dumps(c))
@@ -248,6 +276,32 @@ def build_packet(run, result, max_chars=600000):
         else:
             packet['evidence'].append(c);size+=length
     return packet
+
+
+def nav_observation_candidate(candidate):
+    """Retrieve reported per-share observations, not portfolio NAV or dilution examples."""
+    if candidate.get('eligible') or candidate.get('calculation'):return True
+    text=candidate['quote']
+    if re.search(r'hypothetical|examples? assum|following chart illustrates|for illustrative purposes',text,re.I):return False
+    pattern=r'(?:net asset value|net assets|nav|book value)(?:.{0,55}per (?:common )?share|.{0,25}(?:beginning|end) of period)'
+    return any(re.search(r'\d+\.\d+|\$\s*\d',text[max(0,m.start()-40):m.end()+150])
+               for m in re.finditer(pattern,text,re.I))
+
+
+def numeric_tokens(text):
+    # Keep % as a delimiter: stripping it joins a rate to its footnote number.
+    # Only consume parentheses when balanced around the number, not a prose clause.
+    return re.findall(r'\(-?\d[\d,]*(?:\.\d+)?%?\)|-?\d[\d,]*(?:\.\d+)?',
+                      text.replace('$','').replace('−','-'))
+
+
+def source_dates(text):
+    """Explicit full calendar dates only; never infer a date from an isolated year."""
+    found=set(re.findall(r'\b\d{4}-\d{2}-\d{2}\b',text))
+    for token in re.findall(r'\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}\b',text,re.I):
+        try:found.add(datetime.strptime(re.sub(r',?\s+', ' ',token),'%B %d %Y').date().isoformat())
+        except ValueError:pass
+    return found
 
 
 def validate_decision(decision, packet):
@@ -307,13 +361,17 @@ def validate_decision(decision, packet):
         date.fromisoformat(decision['period'])
     except ValueError:
         raise JudgmentError('Selected period must be an ISO date') from None
-    if decision['period']!=selected['period'] or decision['period']>packet['target_period']:
+    explicit_dates=source_dates(selected['quote'])
+    date_matches=decision['period']==selected['period'] or (not selected.get('eligible') and not selected.get('calculation') and decision['period'] in explicit_dates)
+    if not date_matches or decision['period']>packet['target_period']:
         raise JudgmentError('Selected reporting date does not match the source context')
     if packet['requested_period'] and decision['period']!=packet['requested_period']:
         raise JudgmentError('Historical observation does not match requested quarter')
     if decision['unit']!=selected['unit']:
         raise JudgmentError('Unit changes require an implemented conversion')
     interpreted=dict(selected,basis=decision['basis'],share_class=decision['share_class'])
+    if packet['metric']=='incentive_fee' and re.search(r'hurdle|catch.up.threshold',decision['basis'],re.I):
+        raise JudgmentError('Incentive fee cannot use a hurdle or catch-up threshold basis')
     custom=packet.get('custom_metric_definition')
     if custom and (decision['basis']!='custom:'+custom['id'] or decision['unit']!=custom['unit'] or decision['share_class']!=(packet['fund']['share_class'] if custom['scope']=='share_class' else 'Fund') or not decision['directly_reported']):
         raise JudgmentError('Custom metric must match its registered basis, unit, scope and reported-only contract')
@@ -324,7 +382,7 @@ def validate_decision(decision, packet):
         if calc:
             raise JudgmentError('A calculated value cannot be described as directly reported')
         quotes=' '.join(x['quote'] for x in decision['citations'] if x['candidate_id']==selected['id'])
-        tokens=re.findall(r'\(?-?\d[\d,]*(?:\.\d+)?\)?',quotes.replace('%',''))
+        tokens=numeric_tokens(quotes)
         if not any(number(t)==value for t in tokens):
             raise JudgmentError('Selected number is absent from its cited excerpt')
     elif not (calc and selected['eligible'] and value==selected['value'] and value==calc.get('output')):
@@ -343,7 +401,7 @@ def _adjudicate_cells(run, judge, source_cache, progress=print):
     for result, is_history in [(r,False) for r in run['results']] + [(r,True) for r in run['nav_history']]:
         if is_history:
             result['requested_period']=result['period']
-        packet=build_packet(run,result)
+        packet=build_packet(run,result,source_cache=source_cache)
         record={'ticker':result['ticker'],'metric':result['metric'], 'requested_period':packet['requested_period'],
                 'packet_complete':packet['packet_complete'],'omitted_candidates':packet['omitted_candidates'],
                 'retrieval_scope':packet['retrieval_scope'],'evidence_considered':packet['evidence']}
@@ -405,6 +463,7 @@ def _adjudicate_cells(run, judge, source_cache, progress=print):
             result.update(value=None,status='needs_review',reason=str(exc),sources=[],
                           unresolved_issues=[str(exc)],decision_author='llm_not_completed')
             result.pop('calculation',None)
+            result['judgment']=record
         annotate_result(result)
         run['llm_judgments'].append(record)
     return run
@@ -499,7 +558,7 @@ def adjudicate_run(run, judge, source_cache, progress=print, concurrency=1, affe
         original,history=job
         result=copy.deepcopy(original)
         if history:result['requested_period']=result['period']
-        packet=build_packet(run,result)
+        packet=build_packet(run,result,source_cache=source_cache)
         key=hashlib.sha256(json.dumps([packet,getattr(judge,'model','test'),getattr(judge,'protocol','legacy'),
             hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
             [e for e in run['errors'] if e['ticker']==result['ticker']]],sort_keys=True).encode()).hexdigest()
@@ -516,14 +575,19 @@ def adjudicate_run(run, judge, source_cache, progress=print, concurrency=1, affe
         if isinstance(judge,NumberedJudge):
             local_judge=NumberedJudge(judge.api_key,judge.model,judge.cache,offline=judge.offline)
         if stopped.is_set():
+            stopped_offline=judge.offline
             class Stopped:
-                offline=judge.offline
+                offline=stopped_offline
                 def judge(self,p):raise JudgmentError('Provider failure paused remaining reviews; retry explicitly.')
             local_judge=Stopped()
         _adjudicate_cells(local,local_judge,source_cache,progress)
         record=local['llm_judgments'][0]
-        if record.get('error','').startswith('LLM API HTTP'):
+        if record.get('error','').startswith('LLM API HTTP') and any(code in record['error'] for code in ('401','403','credit_balance','insufficient_quota')):
             stopped.set()
+        if record['validation']!='passed':
+            progress(f"Review incomplete: {result['ticker']} {result['metric']}: {record.get('error')}",flush=True)
+            failures=folder/'failures';failures.mkdir(exist_ok=True)
+            (failures/(key+'.json')).write_text(json.dumps({'result':result,'record':record},allow_nan=False))
         if record['validation']=='passed':
             tmp=path.with_suffix('.tmp');tmp.write_text(json.dumps({'result':result,'record':record},allow_nan=False));tmp.replace(path)
         return original,result,record,False

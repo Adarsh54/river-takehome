@@ -181,7 +181,7 @@ def derive_report_metrics(documents,filings,config,cache):
         if doc['ticker']=='GBDC' and filing['form'].removesuffix('/A')!='10-K':continue
         source={k:doc[k] for k in ['url','sha256','submission_sha256','retrieved_at','submission_url']}
         fund=funds[doc['ticker']]
-        key=hashlib.sha256(json.dumps([source,filing,fund,version],sort_keys=True).encode()).hexdigest()
+        key=hashlib.sha256(json.dumps([{'url':source['url'],'sha256':source['sha256']},filing,fund,version],sort_keys=True).encode()).hexdigest()
         path=directory/(key+'.json')
         if path.exists():found=json.loads(path.read_text())
         else:
