@@ -194,3 +194,22 @@ The decision path uses **one evidence-grounded LLM decision per affected cell**,
 The gap-repair audit improved the saved five-fund comparison from 18/65 to 41/65 current values and from 17/40 to 32/40 historical NAV observations. During repair, an Ares incentive rate was corrected from its 1.75% quarterly hurdle to the 20% participation rate. The remaining quarterly hurdle is labeled explicitly. Gaps still include five searches without retrieved evidence and one oversized evidence context, alongside reviewed but unestablished values; none is automatically called non-disclosure. These are coverage counts, not certified accuracy scores.
 
 A live website SEC refresh took 4.8 seconds, reused 267 unchanged filings and all 105 decisions, and made zero model calls with zero documents parsed. Dashboard reload took 0.145 seconds; Word download initiation took 0.259 seconds. The main resumed repair took 175.5 seconds, followed by targeted retries and corrections. The entire development/repair session was not a single five-minute run. See `docs/gap-repair-validation.json` for stages, preserved results, corrections and remaining limitations; `docs/incremental-validation.json` records the earlier 17.6-second spread-only edit. Cold ingestion remains separately measured.
+
+### Conflicts and comparison rules
+
+The initial LLM review distinguishes different arrangements (contractual versus effective fees, waivers and different classes) from a disagreement about the same measure, date and class. A newer filing alone is not an authoritative correction. An unresolved disagreement has no accepted value and is labeled **Unresolved conflict — PM review required**. HTML, committee Word and the evidence Word retain both candidate figures, explanations, SEC links and passage locations; CSV/JSON retain the structured alternatives. The code checks each quoted candidate number, its date/unit, and citation. Conflict handling does not add a second model call.
+
+Rules can be versioned per metric in the configuration. For example:
+
+```json
+"comparison_policies": {
+  "management_fee": {
+    "version": "2",
+    "instructions": "Show the contractual fee as primary. Preserve any disclosed waiver expiration and effective-fee distinction."
+  }
+}
+```
+
+Changing a rule's version or instructions reassesses only that metric across the selected funds, reusing saved passages; changing a NAV rule also reassesses its history. Use `"*"` for a deliberately shared rule affecting all metrics. Policies are passed to the model, included in request/checkpoint identities, and snapshotted in the audit. A changed policy clears the affected accepted values until reassessment completes, including when AI is disabled. It does not trigger filing downloads or reparsing. A source refresh with an unchanged inventory also honors these rule changes. Code citation/date/calculation checks cannot be overridden by a policy.
+
+Older audits without policy snapshots retain their saved decisions; their prior configuration supplies the initial comparison baseline. Use explicit reassessment to revisit older decisions under the new conflict contract. This preserves earlier evidence and avoids silently re-reviewing the entire saved comparison. New reviews use the versioned contract; later policy changes invalidate the corresponding saved decisions automatically.

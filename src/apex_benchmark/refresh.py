@@ -30,6 +30,7 @@ def filing_identity(filing):
 
 
 def refresh_saved(run,config,client,internal_path,pull,progress=print):
+    from .policy import snapshot
     old_config=run['config'];old_funds={f['ticker']:f for f in old_config['funds']}
     old_filings={(f['ticker'],f['accessionNumber']):f for f in run['filings']}
     selected=[];new_by_fund={};keep=set();discovery_errors=[]
@@ -52,11 +53,13 @@ def refresh_saved(run,config,client,internal_path,pull,progress=print):
             if old and filing_identity(old)==filing_identity(f) and old_funds.get(ticker)==fund and not failed:
                 keep.add(key)
             else:new_by_fund.setdefault(ticker,[]).append(f)
-    if not new_by_fund and keep==set(old_filings) and config==old_config and not discovery_errors and not run['errors']:
-        run['incremental']={'documents_parsed':0,'document_index_hits':0,'unchanged_filings_reused':len(keep),'new_or_changed_filings':0}
-        progress(f'Source refresh: {len(keep)} unchanged filings; no parsing or review needed',flush=True)
+    from .incremental import prepare,compatible_audit
+    if not new_by_fund and keep==set(old_filings) and compatible_audit(old_config,config) and not discovery_errors and not run['errors']:
+        affected=prepare(run,config,client.cache)
+        run['incremental'].update(unchanged_filings_reused=len(keep),new_or_changed_filings=0)
+        progress(f'Source refresh: {len(keep)} unchanged filings; {len(affected)} changed policy/metric cells',flush=True)
         client.refresh=False
-        return set()
+        return affected
     before={cell_key(r,h):(copy.deepcopy(r),dependencies(run,r,h))
         for h,rows in ((False,run['results']),(True,run['nav_history'])) for r in rows}
     # SEC accessions are immutable identities; amendments are new accessions. Recheck
@@ -89,7 +92,8 @@ def refresh_saved(run,config,client,internal_path,pull,progress=print):
         for metric,period,h in [(m,None,False) for m in metric_labels(config)]+[('nav',p,True) for p in run['quarters']]:
             result=resolve_metric(run['candidates'],fund,metric,config,exact_period=period,retrieval_errors=errors)
             key=cell_key(result,h);old=before.get(key)
-            if old and old[1]==dependencies(run,result,h):result=old[0]
+            saved_policy=run.get('comparison_policy_snapshot',snapshot(old_config)).get(metric)
+            if old and old[1]==dependencies(run,result,h) and saved_policy==snapshot(config).get(metric):result=old[0]
             else:affected.add(key)
             (history if h else results).append(result)
     run['results']=results;run['nav_history']=history

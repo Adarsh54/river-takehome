@@ -11,6 +11,7 @@ def annotate_result(result):
 
 
 GAP_LABELS = {
+    'conflict':'Unresolved conflict — PM review required',
     'not_searched':'Evidence not found', 'review_pending':'AI review pending',
     'review_failed':'AI review failed', 'source_incomplete':'Source retrieval incomplete',
     'context_incomplete':'Evidence context incomplete', 'not_established':'Reviewed — value not established', 'needs_interpretation':'Interpretation needed',
@@ -20,13 +21,14 @@ GAP_LABELS = {
 
 def gap_kind(result):
     if result.get('value') is not None and result.get('sources'):return 'supported'
+    if result.get('unresolved_conflict'):return 'conflict'
     if result.get('judgment',{}).get('packet_complete') is False:return 'context_incomplete'
     reason=result.get('reason','')
     if result.get('status') in {'retrieval_incomplete','extraction_incomplete'} or 'coverage is incomplete' in reason:
         return 'source_incomplete'
     if 'No retrieved passages' in reason or result.get('status')=='not_found':return 'not_searched'
     if result.get('decision_author')=='llm_not_completed':
-        return 'review_pending' if 'No matching cached' in reason else 'review_failed'
+        return 'review_pending' if 'No matching cached' in reason or 'AI review pending' in reason else 'review_failed'
     if result.get('decision_author')=='llm':return 'not_established'
     return 'needs_interpretation'
 

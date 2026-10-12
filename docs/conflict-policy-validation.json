@@ -1,0 +1,31 @@
+{
+  "regression_tests_passed": 139,
+  "initial_live_review_seconds": 9.947,
+  "initial_live_model_responses": 1,
+  "unrelated_results_preserved": 104,
+  "final_targeted_replay": {
+    "seconds": 0.733,
+    "incremental": {
+      "changed_metrics": [],
+      "changed_funds": [],
+      "documents_parsed": 0,
+      "document_index_hits": 0,
+      "reviews_planned": 1,
+      "results_reused": 104,
+      "review_concurrency": 1,
+      "decision_checkpoint_hits": 0,
+      "reviews_completed": 1,
+      "model_network_responses": 0
+    }
+  },
+  "conflict_contract_test": "Synthetic unit fixture only: contradictory same-date/class fees produce no accepted value and two validated source-linked alternatives, after one review. No test data enters live reports.",
+  "render_validation": "Three-page committee Word fixture rendered and all pages visually inspected. Both candidate figures, quotes and SEC locators appear together.",
+  "policy_invalidation_tests": [
+    "Fee rule changes only fee cells without source retrieval",
+    "NAV rule changes current NAV and its history only",
+    "Unchanged SEC inventory plus policy change does not rederive documents",
+    "Stored policy version changes invalidate corresponding decisions",
+    "Invalid rule definitions are rejected"
+  ],
+  "legacy_audits": "Preserved; explicit reassessment applies the new contract to older decisions. Subsequent versioned policy changes invalidate affected decisions."
+}

@@ -31,6 +31,12 @@ figure, including a different explicitly quoted figure when the parser chose the
 For calculated values select an existing eligible calculation exactly; never invent a formula.
 Explain which competing figures you rejected and why. Every supplied candidate must be accounted
 for in assessments, including historical values, duplicate passages and different definitions.
+A newer filing alone does not make its figure correct. Resolve same-measure contradictions only
+with an explicit correction, amendment or supported explanation. Apply the supplied comparison_policy.
+When conflict_contract is present, set unresolved_conflict true only for an unresolved disagreement
+about the same measure, period and share class. Withhold and list at least two differing numeric
+conflict_candidates with their basis, unit, period, share_class, explanation and source passage.
+For all other decisions use unresolved_conflict false and an empty conflict_candidates list.
 Do not silently choose older evidence over newer unresolved evidence. Withhold if ambiguity remains
 material, the packet is incomplete, dates/classes cannot be supported, or OCR needs visual checking.
 No numerical confidence scores or high/medium/low grades. Explain the evidence and unresolved issues.
@@ -56,8 +62,14 @@ SCHEMA = obj({
 
 def legacy_decision_schema(packet):
     fields=packet.get('custom_metric_definition',{}).get('context_fields',[])
-    if not fields:return SCHEMA
     schema=copy.deepcopy(SCHEMA)
+    if packet.get('conflict_contract'):
+        schema['properties']['unresolved_conflict']={'type':'boolean'}
+        schema['properties']['conflict_candidates']={'type':'array','items':obj({
+            'candidate_id':S,'value':{'type':'number'},'unit':S,'period':S,
+            'basis':S,'share_class':S,'explanation':S})}
+        # Legacy saved decisions may omit conflict fields; the live numbered schema requires them.
+    if not fields:return schema
     schema['properties']['comparison_context']={'type':'array','items':obj({
         'field':{'type':'string','enum':fields}, 'value':S,
         'candidate_id':{'type':['string','null']}, 'quote':S})}
@@ -178,6 +190,7 @@ not a requirement that every current observation has that exact date. Do not cal
 
 
 def build_packet(run, result, max_chars=600000, source_cache=None):
+    from .policy import policy_for
     fund = next(f for f in run['config']['funds'] if f['ticker']==result['ticker'])
     cfg=run['config']
     custom=custom_metrics(cfg).get(result['metric'])
@@ -215,7 +228,16 @@ def build_packet(run, result, max_chars=600000, source_cache=None):
             newest=max(candidates,key=lambda c:(c['filing_date'],c['accession']))['accession']
             eligible=[c for c in candidates if c['eligible'] and c['value'] is not None]
             baseline=max(eligible,key=lambda c:(c['period'],c['filing_date']))['accession'] if eligible else newest
-            candidates=[c for c in candidates if c['filing_date']>=start or c['accession'] in {newest,baseline}]
+            retained={newest,baseline}
+            # Keep original and amended reports for the anchor periods. Publication date
+            # alone cannot settle a same-period disagreement.
+            anchor_periods={f['reportDate'] for f in anchors}
+            retained.update(f['accessionNumber'] for f in reports if f['reportDate'] in anchor_periods)
+            if result['metric'] in {'management_fee','effective_fee','incentive_fee','hurdle'}:
+                prospectus=[c for c in candidates if c['form'].startswith(('424','497','485')) or c['form'].removesuffix('/A') in {'N-1A','N-2'}]
+                if prospectus:
+                    retained.add(max(prospectus,key=lambda c:c['filing_date'])['accession'])
+            candidates=[c for c in candidates if c['filing_date']>=start or c['accession'] in retained]
     excluded_nav_context=0
     if result['metric']=='nav':
         useful=[c for c in candidates if nav_observation_candidate(c)]
@@ -255,7 +277,7 @@ def build_packet(run, result, max_chars=600000, source_cache=None):
             'table_rows','table_format','section_headings','parent_candidate_id','form','accession','source_url','source_sha256','locator','quote','method','eligible','reasons','calculation','review')}
         record['equivalent_candidate_ids']=[]
         groups[key]=record
-    packet={'fund':fund,'metric':result['metric'],'metric_label':result['label'],
+    packet={'comparison_policy':policy_for(cfg,result['metric']),'conflict_contract':True,'fund':fund,'metric':result['metric'],'metric_label':result['label'],
             'target_period':exact or cfg['target_period'],'filing_cutoff':cfg['filing_cutoff'],
             'measurement_request':('Historical observation exactly at '+exact if exact else
                 'Latest available observation on or before '+cfg['target_period']+'; earlier disclosed periods are valid when clearly dated. Do not demand exact quarter-end for current metrics.'),
@@ -339,6 +361,26 @@ def validate_decision(decision, packet):
                 if not item['value'].strip() or c is None or not item['quote'].strip() or item['quote'] not in c['quote']:
                     raise JudgmentError('Comparison context needs a verbatim source citation')
                 sources.append(c)
+    if decision.get('unresolved_conflict'):
+        alternatives=decision.get('conflict_candidates',[])
+        if decision['decision']!='withhold' or len(alternatives)<2 or len({x['value'] for x in alternatives})<2:
+            raise JudgmentError('An unresolved conflict requires withholding and two differing figures')
+        identities={(x['period'],x['unit'],x['basis'],x['share_class']) for x in alternatives}
+        if len(identities)!=1:raise JudgmentError('Conflict figures must describe the same measure, period and share class')
+        for x in alternatives:
+            c=evidence.get(x['candidate_id'])
+            if c is None or c not in sources or not x['explanation'].strip():
+                raise JudgmentError('Every conflict figure needs a citation and explanation')
+            if not any(math.isclose(x['value'],number(n),rel_tol=1e-8,abs_tol=1e-8) for n in numeric_tokens(c['quote']) if number(n) is not None):
+                raise JudgmentError('Conflict figure does not appear in cited evidence')
+            try:date.fromisoformat(x['period'])
+            except ValueError:raise JudgmentError('Conflict date must be an ISO date') from None
+            if c['filing_date']>packet['filing_cutoff'] or x['unit']!=c['unit'] or x['period']>packet['target_period'] or (packet.get('requested_period') and x['period']!=packet['requested_period']):
+                raise JudgmentError('Conflict figure has incompatible date or unit')
+            if x['period']!=c['period'] and x['period'] not in source_dates(c['quote']):
+                raise JudgmentError('Conflict date is not established by its source')
+    elif decision.get('conflict_candidates'):
+        raise JudgmentError('Competing conflict figures require an explicit unresolved conflict')
     if decision['decision']=='withhold':
         if decision['value'] is not None or decision['selected_candidate_id'] is not None or decision['directly_reported']:
             raise JudgmentError('Withheld decisions cannot contain a selected value')
@@ -443,6 +485,9 @@ def _adjudicate_cells(run, judge, source_cache, progress=print):
                 result['comparison_context']=decision['comparison_context']
                 context='; '.join(x['field']+': '+x['value'] for x in decision['comparison_context'])
                 result['comparability']+=' Comparison context: '+context+'. Cross-fund comparability is not established automatically.'
+            result['unresolved_conflict']=decision.get('unresolved_conflict',False)
+            result['conflict_candidates']=[dict(x,source=next(c for c in sources if c['id']==x['candidate_id'])) for x in decision.get('conflict_candidates',[])]
+            if result['unresolved_conflict']:result['status']='conflict'
             result.pop('calculation',None)
             result.pop('nav_return_comparison',None)
             result.pop('unresolved_candidate_ids',None)
@@ -464,6 +509,7 @@ def _adjudicate_cells(run, judge, source_cache, progress=print):
                           unresolved_issues=[str(exc)],decision_author='llm_not_completed')
             result.pop('calculation',None)
             result['judgment']=record
+            result.update(unresolved_conflict=False,conflict_candidates=[])
         annotate_result(result)
         run['llm_judgments'].append(record)
     return run
@@ -471,7 +517,7 @@ def _adjudicate_cells(run, judge, source_cache, progress=print):
 
 class NumberedJudge(OpenAIJudge):
     """Compact wire contract; source quotes are restored locally, never generated."""
-    protocol='numbered-passages-v1'
+    protocol='numbered-passages-v2-conflicts'
 
     def judge(self, packet, correction=None):
         wire=copy.deepcopy(packet)
@@ -492,9 +538,11 @@ class NumberedJudge(OpenAIJudge):
         def candidate(n):
             if n not in originals:raise JudgmentError('Unknown numbered source passage')
             return originals[n]
-        d={k:v for k,v in raw.items() if k not in {'selected_passage','citations','assessments','comparison_context'}}
+        d={k:v for k,v in raw.items() if k not in {'selected_passage','citations','assessments','comparison_context','conflict_candidates'}}
         d['selected_candidate_id']=candidate(raw['selected_passage'])['id'] if raw['selected_passage'] is not None else None
         d['citations']=[{'candidate_id':candidate(n)['id'],'quote':candidate(n)['quote']} for n in raw['citations']]
+        if 'conflict_candidates' in raw:
+            d['conflict_candidates']=[dict({k:v for k,v in x.items() if k!='passage_number'},candidate_id=candidate(x['passage_number'])['id']) for x in raw['conflict_candidates']]
         explanations={}
         for a in raw['assessments']:
             cid=candidate(a['passage_number'])['id']
@@ -516,6 +564,10 @@ def decision_schema(packet):
     if not packet.get('numbered_passages'):return schema
     schema=copy.deepcopy(schema)
     props=schema['properties']
+    if 'conflict_candidates' in props:
+        item=props['conflict_candidates']['items']
+        item['properties'].pop('candidate_id');item['properties']['passage_number']={'type':'integer'}
+        item['required']=list(item['properties'])
     props.pop('selected_candidate_id')
     props['selected_passage']={'type':['integer','null']}
     props['citations']={'type':'array','items':{'type':'integer'}}
@@ -598,6 +650,8 @@ def adjudicate_run(run, judge, source_cache, progress=print, concurrency=1, affe
             original.clear();original.update(result);records.append(record)
             stats['decision_checkpoint_hits']+=int(cached)
             if not cached:network_records.append(record)
+    from .policy import snapshot
+    run['comparison_policy_snapshot']=snapshot(run['config'])
     run['llm_judgments']=retained+records
     stats['reviews_completed']=len(records)
     stats['model_network_responses']=sum(not p.get('cache_hit',True) for j in network_records

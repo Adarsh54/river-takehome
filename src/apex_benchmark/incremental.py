@@ -4,13 +4,16 @@ from .resolve import resolve_metric
 
 
 def compatible_audit(prior, current):
-    return {k:v for k,v in prior.items() if k not in {'custom_metrics','funds'}} == {
-        k:v for k,v in current.items() if k not in {'custom_metrics','funds'}}
+    return {k:v for k,v in prior.items() if k not in {'custom_metrics','funds','comparison_policies'}} == {
+        k:v for k,v in current.items() if k not in {'custom_metrics','funds','comparison_policies'}}
 
 
 def prepare(run, config, cache, pull_funds=None):
     prior=run['config']
     if not compatible_audit(prior,config):raise ValueError('Period or source policy changed; rebuild source discovery.')
+    from .policy import snapshot
+    old_policy=run.get('comparison_policy_snapshot',snapshot(prior));new_policy=snapshot(config)
+    policy_changes={m for m in new_policy if old_policy.get(m)!=new_policy[m]}
     old=custom_metrics(prior);new=custom_metrics(config)
     changed={k for k in old.keys()|new.keys() if old.get(k)!=new.get(k)}
     oldfunds={f['ticker']:f for f in prior['funds']}
@@ -28,7 +31,16 @@ def prepare(run, config, cache, pull_funds=None):
     if 'rule_results' in run:run['rule_results']=[r for r in run['rule_results'] if r['metric'] not in changed]
     run['llm_judgments']=[r for r in run.get('llm_judgments',[]) if r['metric'] not in changed]
     augment_custom(run,cache,affected=changed)
-    affected=set()
+    affected={(r['ticker'],r['metric'],r.get('requested_period') or r['period'] if h else None)
+        for h,rows in ((False,run['results']),(True,run['nav_history'])) for r in rows if r['metric'] in policy_changes}
+    run['incremental']['changed_policies']=sorted(policy_changes)
+    for rows in (run['results'],run['nav_history']):
+        for r in rows:
+            if r['metric'] in policy_changes:
+                r.update(value=None,sources=[],status='needs_review',decision_author='llm_not_completed',
+                    reason='Comparison policy changed; AI review pending.',unresolved_conflict=False,conflict_candidates=[])
+                for k in ('judgment','calculation','nav_return_comparison'):r.pop(k,None)
+    run['llm_judgments']=[j for j in run.get('llm_judgments',[]) if j['metric'] not in policy_changes]
     for fund in config['funds']:
         if fund['ticker'] in changed_funds:continue
         errors=[e for e in run['errors'] if e['ticker']==fund['ticker']]

@@ -23,6 +23,19 @@ def value(result):
     return f'{v:,.2f}'+('%' if unit=='%' else 'x' if unit=='x' else ' '+unit)+(' / quarter' if 'quarter' in result.get('basis','').lower() and 'annual' not in result.get('basis','').lower() else '')
 
 
+def conflict_note(doc,result):
+    if not result.get('unresolved_conflict'):return
+    doc.add_paragraph('Unresolved conflict — PM review required',style='Heading 2')
+    doc.add_paragraph(result['reason'])
+    for x in result.get('conflict_candidates',[]):
+        c=x['source']
+        doc.add_paragraph(f"Candidate {x['value']} {x['unit']} | {x['period']} | {x['basis']} | {x['share_class']}. {x['explanation']}")
+        p=doc.add_paragraph();link(p,f"SEC {c['form']} filed {c['filing_date']} | {c['accession']}",c['source_url'])
+        p.add_run(' | '+c['locator'])
+        doc.add_paragraph(short_excerpt(c['quote'],dict(result,value=x['value'])))
+    doc.add_paragraph('Neither candidate is an accepted comparison value.')
+
+
 def table(doc,headers,rows,widths):
     t=doc.add_table(rows=1, cols=len(headers));t.autofit=False;t.style='Light Shading Accent 1'
     for col,width in zip(t.columns,widths):col.width=Inches(width)
@@ -102,6 +115,7 @@ def export_evidence_word(run,path):
         supported=r.get('value') is not None
         doc.add_paragraph(value(r)+(' | Evidence linked | '+('Calculated' if r.get('calculation') else 'Directly reported') if supported else ' | '+evidence_label(r)))
         doc.add_paragraph(r['reason'])
+        conflict_note(doc,r)
         if r.get('basis'):doc.add_paragraph('Definition: '+(r['label'] if r['basis'].startswith('custom:') else r['basis'].replace('_',' '))+'. '+r.get('comparability',''))
         if r.get('calculation'):
             import json
@@ -196,6 +210,12 @@ def export_word(run, path):
             rows.append(row)
         table(doc, ['Metric', 'Apex Ridge'] + [f["ticker"] + '\n' + f['share_class'] for f in group], rows, [2.2, 1.4] + [6.8/len(group)]*len(group))
     doc.add_page_break()
+    conflicts=[r for r in run['results']+run['nav_history'] if r.get('unresolved_conflict')]
+    if conflicts:
+        doc.add_paragraph('Unresolved conflicts',style='Heading 1')
+        for r in conflicts:
+            doc.add_paragraph(r['ticker']+' | '+r['label']+' | '+(r.get('requested_period') or 'Current'))
+            conflict_note(doc,r)
     doc.add_paragraph('Definitions and source notes', style='Heading 1')
     doc.add_paragraph('Fees distinguish contractual rates from effective rates and waivers. Shareholder returns and net NAV returns measure different outcomes. REIT leverage and book value require their own definitions; matching units alone do not establish comparability. The notes below retain the interpretation recorded for each reported value and require PM review.')
     for m in cfg.get('custom_metrics', []):

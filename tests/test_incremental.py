@@ -60,7 +60,7 @@ def test_bounded_concurrency_and_checkpoint_reuse(tmp_path):
 
 
 def numbered():
-    d=decision();d.pop('selected_candidate_id');d.update(selected_passage=1,citations=[1],assessments=[{'passage_number':1,'reason':'Explicit stated fee.'}]);return d
+    d=decision();d.pop('selected_candidate_id');d.update(unresolved_conflict=False,conflict_candidates=[],selected_passage=1,citations=[1],assessments=[{'passage_number':1,'reason':'Explicit stated fee.'}]);return d
 
 
 def test_numbered_citations_are_restored_and_verified(tmp_path):

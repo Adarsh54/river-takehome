@@ -22,6 +22,8 @@ PARSER_VERSION = hashlib.sha256(b''.join(Path(__file__).with_name(name).read_byt
 
 def validate_config(config):
     validate_metrics(config)
+    from .policy import validate_policies
+    validate_policies(config)
     if not isinstance(config.get('funds'),list) or not config['funds']:
         raise ValueError('At least one fund is required')
     for fund in config['funds']:

@@ -31,11 +31,12 @@ def export(run, output):
     (output / 'audit.json').write_text(json.dumps(run, indent=2, allow_nan=False))
     export_nport(run.get('nport_reports', []), output)
     with (output / 'benchmark.csv').open('w', newline='') as file:
-        fields = ['ticker', 'metric', 'value', 'unit', 'period', 'basis', 'status', 'has_verifiable_evidence', 'directly_reported', 'decision_author', 'evidence_rationale', 'reason', 'comparability', 'sources']
+        fields = ['ticker', 'metric', 'value', 'unit', 'period', 'basis', 'status', 'has_verifiable_evidence', 'directly_reported', 'decision_author', 'evidence_rationale', 'reason', 'comparability', 'conflict_candidates', 'sources']
         writer = csv.DictWriter(file, fieldnames=fields)
         writer.writeheader()
         for result in run['results'] + run['nav_history']:
             record = {k: result.get(k, '') for k in fields}
+            record['conflict_candidates']=json.dumps(result.get('conflict_candidates',[]))
             record['sources'] = json.dumps([{'url': c['source_url'], 'locator': c['locator'], 'quote': c['quote'],
                 'filing_date': c['filing_date'], 'sha256': c['source_sha256'], 'calculation': c.get('calculation'),
                 'selection_notes': c.get('reasons', []), 'extraction_meta': c.get('extraction_meta', {})} for c in result['sources']])
@@ -87,10 +88,14 @@ def html_report(run):
         issues = '<ul>' + ''.join('<li>'+esc(x)+'</li>' for x in r.get('unresolved_issues', [])) + '</ul>' if r.get('unresolved_issues') else ''
         assessments = r.get('judgment', {}).get('decision', {}).get('assessments', [])
         alternatives = '<details><summary>Model assessment of candidate figures</summary><ul>' + ''.join('<li>'+esc(a['reason'])+'</li>' for a in assessments) + '</ul></details>' if assessments else ''
+        conflict = '<h4>Competing figures — neither accepted</h4><ul>' + ''.join(
+            f'<li><strong>{esc(x["value"])} {esc(x["unit"])}</strong> · {esc(x["period"])} · {esc(x["basis"])} · {esc(x["share_class"])} — {esc(x["explanation"])} '
+            f'<a href="{esc(x["source"]["source_url"])}">SEC {esc(x["source"]["form"])} filed {esc(x["source"]["filing_date"])}</a> · {esc(x["source"]["locator"])}</li>'
+            for x in r.get('conflict_candidates',[]))+'</ul>' if r.get('unresolved_conflict') else ''
         ident = f'{r["ticker"]}-{r["metric"]}' + (f'-{r["period"]}' if is_history else '')
         evidence.append(f'<section class="metric" id="{ident}"><h3>{r["ticker"]} · {esc(r["label"])} · {esc(r["period"])}</h3>'
             f'<p><strong>{display(r)}</strong> · {evidence_label(r)} · {"Directly reported" if r.get("directly_reported") else "Calculated from cited inputs" if r.get("calculation") else "No supported value"}</p>'
-            f'<p>{esc(r["reason"])} {esc(r["comparability"])}</p><p>Basis: {esc(r["basis"] or "Unconfirmed")}</p>' + issues + alternatives + ''.join(snippets) + '</section>')
+            f'<p>{esc(r["reason"])} {esc(r["comparability"])}</p><p>Basis: {esc(r["basis"] or "Unconfirmed")}</p>' + conflict + issues + alternatives + ''.join(snippets) + '</section>')
     history = []
     for ticker in tickers:
         items = [r for r in run['nav_history'] if r['ticker'] == ticker]

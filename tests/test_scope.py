@@ -187,7 +187,7 @@ def test_custom_context_keeps_adjacent_footnotes():
 def test_context_schema_is_opt_in_and_invalidates_only_relevant_requests():
  from apex_benchmark.judgment import SCHEMA,decision_schema
  p=custom_packet()
- assert decision_schema(p) is SCHEMA
+ assert 'comparison_context' not in decision_schema(p)['properties']
  p['custom_metric_definition']['context_fields']=['Reference rate']
  schema=decision_schema(p)
  assert 'comparison_context' in schema['required']
