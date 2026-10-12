@@ -172,6 +172,7 @@ def main(argv=None):
                 raise ValueError('Saved audit configuration differs; rebuild sources for the new configuration')
             validate_config(config)
             run['config'] = config
+            print('Reusing the source audit and gathering evidence for the saved metric definitions',flush=True)
             augment_custom(run, args.cache)
             run['reprocessed_from_run_id'] = run['run_id']
             run['source_run_mode'] = run.get('source_run_mode', run['mode'])

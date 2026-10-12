@@ -257,3 +257,14 @@ def test_failed_correction_never_publishes(tmp_path):
     assert len(s.calls)==2 and r['results'][0]['value'] is None
     assert r['llm_judgments'][0]['validation']=='not_accepted'
     assert 'initial_attempt' in r['llm_judgments'][0]
+
+
+def test_changed_quarter_updates_model_instructions_without_invalidating_original_prompt(tmp_path):
+    from apex_benchmark.judgment import PROMPT
+    s=Session();j=OpenAIJudge('test-secret','model-test',tmp_path,session=s)
+    j.judge(packet())
+    assert s.calls[-1][1]['json']['instructions']==PROMPT
+    changed=dict(packet(),target_period='2025-03-31',filing_cutoff='2025-05-31')
+    j.judge(changed)
+    instructions=s.calls[-1][1]['json']['instructions']
+    assert '2025-03-31' in instructions and 'Q4 2024' not in instructions

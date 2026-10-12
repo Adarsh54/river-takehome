@@ -72,6 +72,8 @@ class OpenAIJudge:
 
     def judge(self, packet, correction=None):
         instructions = PROMPT
+        if packet.get('target_period','2024-12-31')!='2024-12-31':
+            instructions = PROMPT.replace('Q4 2024 benchmarking', 'benchmarking for the quarter ended '+packet['target_period'])
         input_data = packet
         if correction:
             instructions += '''\nCorrect the previous decision using the validator feedback. Return the complete schema.
