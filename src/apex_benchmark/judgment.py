@@ -125,7 +125,7 @@ not a requirement that every current observation has that exact date. Do not cal
             instructions += '\nMEASUREMENT CONTRACT: '+packet.get('measurement_request','')+'\nInterpret only the requested metric. Distribution yield is not shareholder total return. For history, target_period is the requested historical observation, not the current board quarter. A newer quarterly return does not supersede an older trailing annual return. Preserve the older observation date; never carry it forward. Candidate periods are parser hints: do not use a figure in a comparative column as a current observation. Native HTML text is not OCR. Use contractual:<basis> for management fees; effective:<basis> for effective fees; debt_to_equity:<basis> for leverage; annualized:<basis> for distribution yield. Use nav or book_value for per-share value. Respect supplied calculation output and mark directly_reported false.\n'
             instructions += '\nNUMBERED CITATION CONTRACT: select selected_passage and citations using supplied passage_number integers only.\nA published period must be an ISO calendar date, never empty. Use the date explicitly attached to the selected table value; a missing parser period can be resolved from a full source date. Never copy source quotes or candidate IDs. Cite enough passages to establish the value, definition and context.\nComparison context uses passage_number, or null with value Not established. No quote field.\nWithhold means selected_passage null, value null, directly_reported false.\nKeep rationales concise. The application restores exact original source text and checks every selection.\n'
         payload = {'model':self.model, 'store':False, 'instructions':PROMPT,
-            'input':json.dumps(input_data,sort_keys=True,allow_nan=False),
+            'input':json.dumps(input_data,sort_keys=True,allow_nan=False,separators=(',',':')),
             'text':{'format':{'type':'json_schema','name':'financial_judgment','strict':True,'schema':decision_schema(packet)}},
             'max_output_tokens':8192 if packet.get('numbered_passages') else 32768}
         if packet.get('numbered_passages'):
@@ -194,7 +194,7 @@ def build_packet(run, result, max_chars=600000, source_cache=None):
     fund = next(f for f in run['config']['funds'] if f['ticker']==result['ticker'])
     cfg=run['config']
     custom=custom_metrics(cfg).get(result['metric'])
-    candidates = [c for c in run['candidates'] if c['ticker']==result['ticker'] and c['metric']==result['metric']
+    candidates = [c for c in run['candidates'] if c['ticker']==result['ticker'] and c['metric'] in ({'effective_fee','management_fee'} if result['metric']=='effective_fee' and source_cache is not None else {result['metric']})
         and c['filing_date'] <= cfg['filing_cutoff'] and (not c['period'] or c['period'] <= cfg['target_period'])
         and c.get('review',{}).get('action')!='reject']
     # Historical cells use their own observation date. Unscoped passages remain for judgment.
@@ -243,12 +243,16 @@ def build_packet(run, result, max_chars=600000, source_cache=None):
         useful=[c for c in candidates if nav_observation_candidate(c)]
         excluded_nav_context=len(candidates)-len(useful)
         candidates=useful
-    if source_cache is not None:
+    retrieval_audit=None
+    if source_cache is not None and result['metric']=='effective_fee':
+        from .fee_retrieval import retrieve_fee_passages
+        candidates,retrieval_audit=retrieve_fee_passages(candidates,source_cache)
+    elif source_cache is not None:
         from .passages import expand_candidate
         candidates=[expand_candidate(c,source_cache) for c in candidates]
     passages=[]
     for c in candidates:
-        if len(c['quote'])<=12000 or c.get('table_rows') or c.get('eligible') or c.get('calculation'):
+        if c.get('method')=='indexed_fee_evidence' or len(c['quote'])<=12000 or c.get('table_rows') or c.get('eligible') or c.get('calculation'):
             passages.append(c); continue
         # Long wrapper blocks often contain an entire report. Retrieve complete, overlapping
         # 3,000-character contexts around metric labels, retaining offsets into the parent quote.
@@ -269,7 +273,7 @@ def build_packet(run, result, max_chars=600000, source_cache=None):
     # Retain deterministic calculations separately and record all equivalent candidate IDs.
     groups={}
     for c in sorted(candidates,key=lambda c:(bool(c.get('review')),c['eligible'],c['filing_date'],c['accession']),reverse=True):
-        key=json.dumps([c['quote'],c['period'],c.get('calculation'),c.get('review'),
+        key=json.dumps([c['source_url'],c['accession'],c['quote'],c['period'],c.get('calculation'),c.get('review'),
                         c['method'] if c['method'] in {'ocr_evidence','nport_borrowings_ratio'} else 'text'],sort_keys=True)
         if key in groups:
             groups[key]['equivalent_candidate_ids'].append(c['id']);continue
@@ -283,6 +287,11 @@ def build_packet(run, result, max_chars=600000, source_cache=None):
                 'Latest available observation on or before '+cfg['target_period']+'; earlier disclosed periods are valid when clearly dated. Do not demand exact quarter-end for current metrics.'),
             'retrieval_scope':'Latest annual/interim reports plus subsequent filings; latest available and baseline metric sources retained. Long unqualified blocks use label-centered excerpts with parent offsets; referenced footnotes outside those excerpts may require further retrieval. History uses exact observation date and context from matching accessions or explicitly dated passages; unrelated undated prospectus boilerplate is excluded.',
             'excluded_nav_definitions_or_examples':excluded_nav_context,'excluded_undated_unrelated_passages':excluded_unscoped,'requested_period':exact,'packet_complete':True,'omitted_candidates':0,'evidence':[]}
+    if retrieval_audit is not None:
+        packet['retrieval_audit']=retrieval_audit
+        packet['retrieval_scope']='Search saved passages for management/advisory fees, fee or expense waivers/reductions and expense caps; retain whole matched tables and neighboring headings, footnotes and continuations. Merge overlapping neighborhoods within each document; preserve separate filings and dates. No source reparsing.'
+    if result['metric']=='effective_fee':
+        packet['measurement_request'] += (' An older explicitly dated effective-fee observation is valid even when the newest filing provides only contractual rates or dollar amounts; retain its actual period and disclose the lag. Requested cell: EFFECTIVE management fee only, separately from the contractual management-fee cell. Select an explicitly reported management/advisory fee percentage after waivers or a clearly identified actual management-fee expense ratio, preserving its denominator and period. A contractual rate alone is not an effective rate. Total expenses, incentive fees and dollar expense amounts are different measures. Do not derive an unimplemented ratio or substitute the contractual rate; if no effective management-fee percentage is established, explain the precise disclosure gap and cite the relevant disclosures.')
     if custom:
         packet['custom_metric_definition']=custom
         packet['custom_metric_contract']={'basis':'custom:'+custom['id'], 'unit':custom['unit'], 'reported_only':True, 'instructions':'Match the full user definition, scope and period basis. These are criteria, not permission to relax source checks. No new formulas or unit conversions. For fund scope use share_class Fund. Keep disclosure date and actual measurement period distinct; withhold if period cannot be matched.'}
@@ -290,9 +299,9 @@ def build_packet(run, result, max_chars=600000, source_cache=None):
         packet['measurement_request'] += (' This is a trailing '+result['metric'][7:-1]+'-year return. '
             'A later three-month return is a different metric, not a replacement for this observation. '
             'Use the latest supported trailing observation with its actual date and disclose any lag.')
-    size=len(json.dumps(packet))
+    size=len(json.dumps(packet,separators=(',',':')))
     for c in groups.values():
-        length=len(json.dumps(c))
+        length=len(json.dumps(c,separators=(',',':')))+1
         if size+length > max_chars:
             packet['packet_complete']=False;packet['omitted_candidates']+=1
         else:
@@ -446,7 +455,7 @@ def _adjudicate_cells(run, judge, source_cache, progress=print):
         packet=build_packet(run,result,source_cache=source_cache)
         record={'ticker':result['ticker'],'metric':result['metric'], 'requested_period':packet['requested_period'],
                 'packet_complete':packet['packet_complete'],'omitted_candidates':packet['omitted_candidates'],
-                'retrieval_scope':packet['retrieval_scope'],'evidence_considered':packet['evidence']}
+                'retrieval_scope':packet['retrieval_scope'],'retrieval_audit':packet.get('retrieval_audit'),'evidence_considered':packet['evidence']}
         # No client data is in packet: only fund config and public SEC candidates.
         result['decision_author']='llm'
         try:

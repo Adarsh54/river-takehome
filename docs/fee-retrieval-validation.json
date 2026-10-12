@@ -1,0 +1,43 @@
+{
+  "seconds": 12.626,
+  "unchanged_other_cells": 104,
+  "documents_parsed": 0,
+  "incremental": {
+    "changed_metrics": [],
+    "changed_funds": [],
+    "documents_parsed": 0,
+    "document_index_hits": 0,
+    "reviews_planned": 1,
+    "results_reused": 104,
+    "review_concurrency": 1,
+    "decision_checkpoint_hits": 0,
+    "reviews_completed": 1,
+    "model_network_responses": 1
+  },
+  "scenario": "GBDC effective management fee only; live OpenAI review over cached SEC passage indexes",
+  "packet_complete": true,
+  "omitted_candidates": 0,
+  "passages": 165,
+  "retrieval": {
+    "strategy": "indexed-fee-context-v1",
+    "documents_searched": 30,
+    "indexed_passages_searched": 12720,
+    "matched_passages": 141,
+    "context_passages": 289,
+    "nonmatching_passages": 12290,
+    "index_unavailable": [],
+    "contained_duplicate_passages": 23
+  },
+  "validation": "passed",
+  "value": null,
+  "gap_kind": "not_established",
+  "rationale": "The packet establishes contractual/base management fee terms and dollar management-fee expense amounts, but it does not explicitly report an effective management-fee percentage after waivers or a clearly identified actual management-fee expense ratio for the fund. The closest percentages are contractual rates of 1.0% on average adjusted gross assets and prospectus-style/fees-table management-fee percentages of 1.56% or 2.75% based on net assets attributable to common stock; those are not the requested effective management-fee metric for this cell.",
+  "source_links": [
+    "https://www.sec.gov/Archives/edgar/data/1476765/000147676525000016/R12.htm",
+    "https://www.sec.gov/Archives/edgar/data/1476765/000147676524000132/R12.htm",
+    "https://www.sec.gov/Archives/edgar/data/1476765/000147676524000132/gbdc-20240930.htm",
+    "https://www.sec.gov/Archives/edgar/data/1476765/000147676524000132/gbdc-20240930.htm",
+    "https://www.sec.gov/Archives/edgar/data/1476765/000147676524000132/gbdc-20240930.htm"
+  ],
+  "limitation": "This measures one warm fee decision, not cold fund ingestion. Retrieval completeness means no selected evidence omitted by the packet budget, not guaranteed disclosure recall."
+}
