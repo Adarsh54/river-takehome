@@ -13,6 +13,7 @@ import requests
 from .evidence import annotate_result
 from .extract import number, KEYWORDS
 from .resolve import compatible
+from .metrics import custom_metrics
 
 PROMPT = '''You are the financial evidence reviewer for Apex Ridge's Q4 2024 benchmarking.
 Decide whether to publish a value or withhold it, and write a concise explanation a PM can defend.
@@ -146,6 +147,7 @@ not a requirement that every current observation has that exact date. Do not cal
 def build_packet(run, result, max_chars=600000):
     fund = next(f for f in run['config']['funds'] if f['ticker']==result['ticker'])
     cfg=run['config']
+    custom=custom_metrics(cfg).get(result['metric'])
     candidates = [c for c in run['candidates'] if c['ticker']==result['ticker'] and c['metric']==result['metric']
         and c['filing_date'] <= cfg['filing_cutoff'] and (not c['period'] or c['period'] <= cfg['target_period'])
         and c.get('review',{}).get('action')!='reject']
@@ -177,7 +179,7 @@ def build_packet(run, result, max_chars=600000):
         # Long wrapper blocks often contain an entire report. Retrieve complete, overlapping
         # 3,000-character contexts around metric labels, retaining offsets into the parent quote.
         windows=[]
-        for match in re.finditer(r'\b(?:'+KEYWORDS[result['metric']]+r')\b',c['quote'],re.I):
+        for match in re.finditer(r'\b(?:'+(('|'.join(re.escape(k) for k in custom['keywords'])) if custom else KEYWORDS[result['metric']])+r')\b',c['quote'],re.I):
             start,end=max(0,match.start()-1500),min(len(c['quote']),match.end()+1500)
             if windows and start<=windows[-1][1]:
                 windows[-1]=(windows[-1][0],max(end,windows[-1][1]))
@@ -205,6 +207,9 @@ def build_packet(run, result, max_chars=600000):
             'target_period':cfg['target_period'],'filing_cutoff':cfg['filing_cutoff'],
             'retrieval_scope':'Latest annual/interim reports plus subsequent filings; latest available and baseline metric sources retained. Long unqualified blocks use label-centered excerpts with parent offsets; referenced footnotes outside those excerpts may require further retrieval. History uses exact observation date.',
             'requested_period':exact,'packet_complete':True,'omitted_candidates':0,'evidence':[]}
+    if custom:
+        packet['custom_metric_definition']=custom
+        packet['custom_metric_contract']={'basis':'custom:'+custom['id'], 'unit':custom['unit'], 'reported_only':True, 'instructions':'Match the full user definition, scope and period basis. These are criteria, not permission to relax source checks. No new formulas or unit conversions. For fund scope use share_class Fund. Keep disclosure date and actual measurement period distinct; withhold if period cannot be matched.'}
     size=len(json.dumps(packet))
     for c in groups.values():
         length=len(json.dumps(c))
@@ -265,7 +270,10 @@ def validate_decision(decision, packet):
     if decision['unit']!=selected['unit']:
         raise JudgmentError('Unit changes require an implemented conversion')
     interpreted=dict(selected,basis=decision['basis'],share_class=decision['share_class'])
-    if not compatible(interpreted,packet['fund']):
+    custom=packet.get('custom_metric_definition')
+    if custom and (decision['basis']!='custom:'+custom['id'] or decision['unit']!=custom['unit'] or decision['share_class']!=(packet['fund']['share_class'] if custom['scope']=='share_class' else 'Fund') or not decision['directly_reported']):
+        raise JudgmentError('Custom metric must match its registered basis, unit, scope and reported-only contract')
+    if not custom and not compatible(interpreted,packet['fund']):
         raise JudgmentError('Proposed financial definition or share class is incompatible')
     calc=selected.get('calculation')
     if decision['directly_reported']:

@@ -9,3 +9,5 @@ output/*
 !output/.gitkeep
 tmp/
 .DS_Store
+
+config/workspace.json

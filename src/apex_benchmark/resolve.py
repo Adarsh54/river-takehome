@@ -8,6 +8,7 @@ import math
 from datetime import date
 from pathlib import Path
 from .extract import METRICS
+from .metrics import metric_labels, custom_metrics
 
 
 def quarter_ends(target, count):
@@ -96,8 +97,8 @@ def _resolve_metric(candidates, fund, metric, config, exact_period=None, retriev
                 and c['period'] and c['period'] <= config['target_period']]
     if exact_period:
         eligible = [c for c in eligible if c['period'] == exact_period]
-    result = {'ticker': fund['ticker'], 'metric': metric, 'label': METRICS[metric], 'value': None,
-        'unit': 'USD/share' if metric == 'nav' else 'x' if metric == 'leverage' else '%',
+    result = {'ticker': fund['ticker'], 'metric': metric, 'label': metric_labels(config)[metric], 'value': None,
+        'unit': custom_metrics(config).get(metric, {}).get('unit', 'USD/share' if metric == 'nav' else 'x' if metric == 'leverage' else '%'),
         'period': exact_period or '', 'status': 'needs_review' if relevant else 'not_found',
         'reason': 'Relevant evidence requires interpretation.' if relevant else
         'No supported value extracted from inspected documents; this does not establish non-disclosure.',

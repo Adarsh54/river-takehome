@@ -10,6 +10,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
 from .extract import METRICS
+from .metrics import metric_labels
 from .evidence import evidence_label, migrate_evidence_contract
 
 
@@ -51,6 +52,8 @@ def export(run, output):
     (output / 'index.html').write_text(html_report(run))
     (output / 'judgments.json').write_text(json.dumps(run.get('llm_judgments', []), indent=2, allow_nan=False))
     pdf_report(run, output / 'benchmark.pdf')
+    from .word_report import export_word
+    export_word(run, output / 'benchmark.docx')
 
 
 def html_report(run):
@@ -58,7 +61,7 @@ def html_report(run):
     tickers = [f['ticker'] for f in cfg['funds']]
     lookup = {(r['ticker'], r['metric']): r for r in run['results']}
     rows = []
-    for metric, label in METRICS.items():
+    for metric, label in metric_labels(run['config']).items():
         internal = run['apex']['values'].get(metric)
         cells = [f'<th>{esc(label)}</th>', f'<td>{esc(internal["value"]) if internal else "Withheld / unavailable"}</td>']
         for ticker in tickers:
@@ -97,17 +100,19 @@ def html_report(run):
         f'<td>{r["holdings_summary"]["count"]}</td><td>{esc(r["checks"][0]["status"])}</td>'
         f'<td><a href="{esc(r["source_url"])}">XML source</a></td></tr>' for r in run.get('nport_reports', []))
     ocr_pages = [d for d in run.get('extraction_diagnostics', []) if d['stage'] == 'ocr']
+    definitions = ''.join('<p><strong>'+esc(m['label'])+'</strong> ('+esc(m['unit'])+'): '+esc(m['definition'])+' Measurement period: '+esc(m['period_basis'])+'; scope: '+esc(m['scope'])+'. Reported values only.</p>' for m in cfg.get('custom_metrics',[]))
     inventory = ''.join(f'<tr><td>{esc(f["ticker"])}</td><td>{esc(f["form"])}</td><td>{esc(f["filingDate"])}</td><td>{esc(f.get("reportDate", ""))}</td><td>{esc(f["accessionNumber"])}</td></tr>' for f in run['filings'])
     return f'''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Apex Ridge | Q4 2024 review</title><style>
+<title>Apex Ridge | {cfg['target_period']} review</title><style>
 :root{{font-family:system-ui,sans-serif;color:#18313d;background:#f4f6f5}}body{{margin:0}}main{{max-width:1400px;margin:auto;padding:40px}}h1{{font-size:38px;margin:12px 0}}h2{{margin-top:36px}}.eyebrow{{text-transform:uppercase;letter-spacing:2px;font-size:12px;color:#46766c}}.banner{{padding:20px;background:#fff3db;border-left:4px solid #bd791f;margin:20px 0}}.downloads a{{display:inline-block;background:#183f3a;color:white;padding:10px 16px;margin:4px;text-decoration:none;border-radius:5px}}.scroll{{overflow:auto}}table{{border-collapse:collapse;width:100%;background:white;font-size:13px}}th,td{{padding:12px;border-bottom:1px solid #dce5e2;text-align:left;vertical-align:top;min-width:110px}}th{{background:#e6eeeb}}small{{display:block;font-size:11px;color:#586c72;margin-top:6px}}a{{color:#166957}}.metric,details{{background:white;padding:20px;margin:12px 0;border:1px solid #dce5e2;border-radius:6px}}blockquote{{border-left:3px solid #9ab5ae;padding:12px;background:#f4f7f6;white-space:pre-wrap;overflow-wrap:anywhere}}.meta{{font-size:12px;overflow-wrap:anywhere}}summary{{cursor:pointer}}input{{padding:12px;width:min(500px,90%);font:inherit}}.supported,.reviewed{{background:#edf6f0}}.conflict,.retrieval_incomplete,.extraction_incomplete{{background:#fff6e7}}@media print{{.downloads,input{{display:none}}main{{padding:0}}details{{break-inside:avoid}}}}
 </style><main><div class="eyebrow">Apex Ridge Capital · Research review</div><h1>Competitor benchmarking</h1>
-<p>Q4 2024 board cycle · filings through {cfg['filing_cutoff']} · target period {cfg['target_period']}</p>
+<p>Quarter ended {cfg['target_period']} · filings through {cfg['filing_cutoff']} · target period {cfg['target_period']}</p>
 <div class="banner"><strong>REVIEW DRAFT — PM and compliance approval required.</strong><br>
 Judgment mode: {esc(run.get("judgment_mode", "rules_only"))}. A rules-only report has not been assessed by an LLM.<br>
 Apex Ridge data: {esc(run['apex']['status'])}. {esc(run['apex']['reason'])}<br>
 Blank values are explicit gaps. Retrieval errors do not mean a fund failed to disclose a metric. No synthetic competitor figures.</div>
-<nav class="downloads"><a href="benchmark.pdf">Download PDF</a><a href="benchmark.csv">Download CSV</a><a href="audit.json">Full evidence JSON</a><a href="judgments.json">Model decision records</a></nav>
+<nav class="downloads"><a href="benchmark.docx">Download Word</a><a href="benchmark.pdf">Download PDF</a><a href="benchmark.csv">Download CSV</a><a href="audit.json">Full evidence JSON</a><a href="judgments.json">Model decision records</a></nav>
+{('<details><summary>Custom metric definitions for this run</summary>'+definitions+'</details>') if definitions else ''}
 <h2>Comparison</h2><p>Listed funds use shareholder returns; interval funds use net NAV returns. KREF book value, leverage and yield are not automatically comparable with the other funds. Fee bases differ; KREF's annualized percentage retains a quarterly dollar minimum. * Calculated from filing values; open the evidence for inputs and formula.</p>
 <div class="scroll"><table><thead><tr><th>Metric</th><th>Apex Ridge</th>{''.join('<th>'+t+'</th>' for t in tickers)}</tr></thead><tbody>{''.join(rows)}</tbody></table></div>
 <h2>NAV history</h2><p>Eight competitor quarter-ends; no interpolation or carry-forward. KREF uses book value per common share. Apex history starts Q1 2024 and is withheld pending approval.</p>
@@ -152,30 +157,34 @@ def pdf_report(run, path):
     p = lambda text, style='BodyText': Paragraph(esc(text), styles[style])
     doc = SimpleDocTemplate(str(path), pagesize=landscape(A4), leftMargin=32, rightMargin=32, topMargin=32, bottomMargin=40)
     story = [p('Apex Ridge | Competitor benchmarking', 'Title'),
-        p(f"Q4 2024 board cycle | Filings through {run['config']['filing_cutoff']} | REVIEW DRAFT", 'Heading2'),
+        p(f"Quarter ended {run['config']['target_period']} | Filings through {run['config']['filing_cutoff']} | REVIEW DRAFT", 'Heading2'),
         p('Judgment mode: ' + run.get('judgment_mode', 'rules_only') + '. Evidence linked means traceable support; interpretation still requires PM/compliance review.', 'SmallNote'),
         p('Apex Ridge figures withheld pending provenance approval.' if run['apex']['status'] == 'withheld' else run['apex']['reason']),
         p('Listed vehicles: shareholder returns. Interval funds: net NAV returns. KREF is a mortgage REIT; book value, leverage and yield require separate interpretation.'), Spacer(1, 12)]
     tickers = [f['ticker'] for f in run['config']['funds']]
     lookup = {(r['ticker'], r['metric']): r for r in run['results']}
-    table = [[p(t, 'Cell') for t in ['Metric', 'Apex Ridge'] + tickers]]
-    for metric, label in METRICS.items():
-        internal = run['apex']['values'].get(metric)
-        row = [p(label, 'Cell'), p(str(internal['value']) if internal else 'Withheld / unavailable', 'Cell')]
-        for ticker in tickers:
-            r = lookup[ticker, metric]
-            row.append(p(f"{display(r)}{'*' if r.get('calculation') else ''} | {evidence_label(r)} | {r['period'] or 'period unconfirmed'}", 'Cell'))
-        table.append(row)
-    tbl = Table(table, colWidths=[155, 91, 132, 132, 132, 132], repeatRows=1, hAlign='LEFT')
-    tbl.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.HexColor('#dce9e3')), ('VALIGN',(0,0),(-1,-1),'TOP'),
-        ('ROWBACKGROUNDS',(0,1),(-1,-1),[colors.white,colors.HexColor('#f3f6f5')]),('BOTTOMPADDING',(0,0),(-1,-1),6),('TOPPADDING',(0,0),(-1,-1),6)]))
-    story.extend([tbl, Spacer(1,10), p('Unavailable means unresolved or not retrieved, not necessarily undisclosed. * Calculated: see evidence for inputs and formula. Fee bases differ; KREF retains a quarterly dollar minimum. Source support and selection rationales are explained per value.', 'SmallNote'), PageBreak(), p('NAV history and coverage', 'Title')])
+    for start in range(0,len(tickers),4):
+        group=tickers[start:start+4]
+        if start:story.append(PageBreak())
+        table = [[p(t, 'Cell') for t in ['Metric', 'Apex Ridge'] + group]]
+        for metric, label in metric_labels(run['config']).items():
+            internal = run['apex']['values'].get(metric)
+            row = [p(label, 'Cell'), p(str(internal['value']) if internal else 'Withheld / unavailable', 'Cell')]
+            for ticker in group:
+                r = lookup[ticker, metric]
+                row.append(p(f"{display(r)}{'*' if r.get('calculation') else ''} | {evidence_label(r)} | {r['period'] or 'period unconfirmed'}", 'Cell'))
+            table.append(row)
+        tbl = Table(table, colWidths=[155, 91]+[(doc.width-246)/len(group)]*len(group), repeatRows=1, hAlign='LEFT')
+        tbl.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.HexColor('#dce9e3')), ('VALIGN',(0,0),(-1,-1),'TOP'),
+            ('ROWBACKGROUNDS',(0,1),(-1,-1),[colors.white,colors.HexColor('#f3f6f5')]),('BOTTOMPADDING',(0,0),(-1,-1),6),('TOPPADDING',(0,0),(-1,-1),6)]))
+        story.extend([tbl, Spacer(1,10), p('Unavailable means unresolved or not retrieved, not necessarily undisclosed. * Calculated: see evidence for inputs and formula. Fee bases differ; KREF retains a quarterly dollar minimum. Source support and selection rationales are explained per value.', 'SmallNote')])
+    story.extend([PageBreak(), p('NAV history and coverage', 'Title')])
     hist = [[p(t, 'Cell') for t in ['Fund'] + run['quarters']]]
     for ticker in tickers:
         hist.append([p(ticker, 'Cell')] + [p(display(r) + ' | ' + evidence_label(r), 'Cell') for r in run['nav_history'] if r['ticker'] == ticker])
-    t = Table(hist, colWidths=[70]+[88]*8, repeatRows=1)
+    t = Table(hist, colWidths=[70]+[(doc.width-70)/len(run['quarters'])]*len(run['quarters']), repeatRows=1)
     t.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('BACKGROUND',(0,0),(-1,0),colors.HexColor('#dce9e3')),('BOTTOMPADDING',(0,0),(-1,-1),12)]))
-    story.extend([t, Spacer(1,12), p('No interpolation or carry-forward. Apex history starts Q1 2024; only approved rows through Q4 2024 can be used.')])
+    story.extend([t, Spacer(1,12), p(f"No interpolation or carry-forward. Apex history starts {run['config'].get('apex_history_start','2024-03-31')}; only approved rows through {run['config']['target_period']} can be used.")])
     if run['apex']['nav_history']:
         story.append(p('Apex Ridge approved history: ' + ' | '.join(f'{r["period"]}: ${r["value"]:,.2f} (input row {r["row"]})' for r in run['apex']['nav_history']), 'SmallNote'))
     for error in run['errors']:

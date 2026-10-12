@@ -13,12 +13,21 @@ from .resolve import apply_decisions, resolve_metric, quarter_ends, internal_dat
 from .report import export
 from .normalize import qualify_disclosures
 from .structured_reports import derive_report_metrics
+from .metrics import metric_labels, validate_metrics, augment_custom
 
 PARSER_VERSION = hashlib.sha256(b''.join(Path(__file__).with_name(name).read_bytes()
     for name in ('extract.py', 'nport.py', 'pdf_extract.py'))).hexdigest()
 
 
 def validate_config(config):
+    validate_metrics(config)
+    if not isinstance(config.get('funds'),list) or not config['funds']:
+        raise ValueError('At least one fund is required')
+    for fund in config['funds']:
+        if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]{0,23}',fund.get('ticker','')) or not re.fullmatch(r'\d{1,10}',fund.get('cik','')):
+            raise ValueError('Each fund needs a safe comparison label and a numeric CIK')
+        if fund.get('structure') not in {'interval','bdc','mortgage_reit','other'} or fund.get('return_basis') not in {'shareholder','net_nav'} or not fund.get('share_class'):
+            raise ValueError('Each fund needs structure, return basis and share class')
     target = date.fromisoformat(config['target_period'])
     cutoff = date.fromisoformat(config['filing_cutoff'])
     if target > cutoff:
@@ -111,10 +120,13 @@ def run_pipeline(config, client, internal_path, decisions=None, progress=print, 
     if run['documents']:
         run['candidates'].extend(derive_report_metrics(run['documents'], run['filings'], config, client.cache))
     run['candidates'].extend(qualify_disclosures(run['candidates'], run['filings'], config))
+    if config.get('custom_metrics'):
+        progress('Gathering source passages for custom metric definitions',flush=True)
+        augment_custom(run, client.cache)
     run['applied_decisions'] = apply_decisions(run['candidates'], decisions or [], config['filing_cutoff'])
     for fund in config['funds']:
         errors = [e for e in run['errors'] if e['ticker'] == fund['ticker']]
-        for metric in METRICS:
+        for metric in metric_labels(config):
             run['results'].append(resolve_metric(run['candidates'], fund, metric, config, retrieval_errors=errors))
         for period in run['quarters']:
             run['nav_history'].append(resolve_metric(run['candidates'], fund, 'nav', config, exact_period=period, retrieval_errors=errors))
@@ -156,8 +168,11 @@ def main(argv=None):
                                 args.cache / 'judgments', offline=args.llm=='cached')
         if args.from_audit:
             run = json.loads(args.from_audit.read_text())
-            if run['config'] != config:
+            if {k:v for k,v in run['config'].items() if k != 'custom_metrics'} != {k:v for k,v in config.items() if k != 'custom_metrics'}:
                 raise ValueError('Saved audit configuration differs; rebuild sources for the new configuration')
+            validate_config(config)
+            run['config'] = config
+            augment_custom(run, args.cache)
             run['reprocessed_from_run_id'] = run['run_id']
             run['source_run_mode'] = run.get('source_run_mode', run['mode'])
             run['mode'] = 'reprocessed_audit'
@@ -168,7 +183,7 @@ def main(argv=None):
             run['applied_decisions'] = apply_decisions(run['candidates'], decisions, config['filing_cutoff'])
             for fund in config['funds']:
                 errors = [e for e in run['errors'] if e['ticker']==fund['ticker']]
-                for metric in METRICS:
+                for metric in metric_labels(config):
                     run['results'].append(resolve_metric(run['candidates'],fund,metric,config,retrieval_errors=errors))
                 for period in run['quarters']:
                     run['nav_history'].append(resolve_metric(run['candidates'],fund,'nav',config,exact_period=period,retrieval_errors=errors))

@@ -1,0 +1,119 @@
+{
+  "validation_date": "2026-10-12",
+  "historical_target": "2024-12-31",
+  "filing_cutoff": "2025-02-28",
+  "live_fund_added": {
+    "ticker": "ARCC",
+    "name": "Ares Capital Corporation",
+    "cik": "0001287750",
+    "structure": "bdc",
+    "share_class": "Common",
+    "return_basis": "shareholder"
+  },
+  "filings_retrieved": 100,
+  "documents_parsed": 1554,
+  "retrieval_or_extraction_errors": 0,
+  "custom_metrics": [
+    {
+      "definition": {
+        "id": "custom_weighted_average_spread",
+        "label": "Weighted average spread",
+        "definition": "Reported principal-weighted contractual spread above the reference rate on the debt portfolio. Exclude all-in yield, base rates and fees.",
+        "unit": "bps",
+        "scope": "fund",
+        "period_basis": "point_in_time",
+        "keywords": [
+          "weighted average spread",
+          "weighted-average spread"
+        ],
+        "calculation": "reported_only"
+      },
+      "value": null,
+      "period": "",
+      "rationale": "Withhold. None of the supplied passages reports the requested fund-level principal-weighted contractual spread above the reference rate on Ares Capital Corporation\u2019s debt portfolio. Instead, all three excerpts describe interest rates charged on specific CLO financing liabilities or their combined borrowing spread. That is an asset-versus-liability scope mismatch relative to the custom metric definition, so no publishable fund-scope weighted average spread is supported from this evidence.",
+      "validation": "passed",
+      "correction_required": true,
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1287750/000128775025000007/arcc-20241231.htm",
+          "locator": "Custom text block 2359",
+          "filing_date": "2025-02-05",
+          "source_sha256": "42b323732b14c07520492c3af47f775b1c7696d7556ac1f0b8fce4a8bcefe430"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1287750/000128775025000007/arcc-20241231.htm",
+          "locator": "Custom text block 2371",
+          "filing_date": "2025-02-05",
+          "source_sha256": "42b323732b14c07520492c3af47f775b1c7696d7556ac1f0b8fce4a8bcefe430"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1287750/000128775025000007/arcc-20241231.htm",
+          "locator": "Custom text block 5419",
+          "filing_date": "2025-02-05",
+          "source_sha256": "42b323732b14c07520492c3af47f775b1c7696d7556ac1f0b8fce4a8bcefe430"
+        }
+      ]
+    },
+    {
+      "definition": {
+        "id": "custom_portfolio_turnover",
+        "label": "Portfolio turnover",
+        "definition": "Reported annual portfolio turnover rate for the fiscal year, preserving the issuer definition and denominator. Exclude origination volumes.",
+        "unit": "%",
+        "scope": "fund",
+        "period_basis": "fiscal_year",
+        "keywords": [
+          "portfolio turnover",
+          "turnover rate"
+        ],
+        "calculation": "reported_only"
+      },
+      "value": 39,
+      "period": "2024-12-31",
+      "rationale": "Publish 39% for the fund\u2019s reported annual portfolio turnover rate for the fiscal year ended 2024-12-31. The cleanest verbatim support in the supplied evidence is the financial-highlights detail table showing the annual observation line item and date series together: 12 months ended Dec. 31, 2024 with Portfolio turnover rate 39.00%. This matches the custom metric definition requiring the reported annual portfolio turnover rate for the fund, preserving the issuer\u2019s definition and excluding origination volumes. I rejected the 424B2 value of 51% because that table explicitly applies to the three months ended March 31, 2024 for the first column, so it is an interim-period turnover figure rather than the requested fiscal-year 2024 measure. I also rejected older 2019-and-prior tables because they do not provide the 2024 value. The 10-K annual table and alternate SEC-rendered 10-K table both corroborate the same 39% fiscal-year figure, but the selected citation is the safest exact contiguous passage after the validator flagged the prior citation formatting.",
+      "validation": "passed",
+      "correction_required": true,
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1287750/000128775025000007/R95.htm",
+          "locator": "HTML table 1",
+          "filing_date": "2025-02-05",
+          "source_sha256": "b35620dba0ff1dd70d8da1eb1dc00f428a464bb4ba48bcd12d12cbdccd3b25da"
+        }
+      ]
+    },
+    {
+      "definition": {
+        "id": "custom_default_rate",
+        "label": "Default rate",
+        "definition": "Reported trailing twelve month principal-weighted portfolio default rate. Non-accrual balances and realized credit losses are different measures.",
+        "unit": "%",
+        "scope": "fund",
+        "period_basis": "trailing_12_months",
+        "keywords": [
+          "default rate",
+          "rate of default"
+        ],
+        "calculation": "reported_only"
+      },
+      "value": null,
+      "period": "",
+      "rationale": "Withhold because the supplied evidence does not directly report the requested trailing twelve month principal-weighted portfolio default rate for the fund as of 2024-12-31. The only supplied passage is a generic risk disclosure that mentions default rates as one factor affecting results, but it gives no numerical percentage, no trailing-twelve-month measurement period, and no principal-weighted fund-level definition. Under the custom metric contract, reported-only evidence is required and related credit measures cannot be substituted.",
+      "validation": "passed",
+      "correction_required": true,
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1287750/000128775025000007/arcc-20241231.htm",
+          "locator": "Custom text block 1381",
+          "filing_date": "2025-02-05",
+          "source_sha256": "42b323732b14c07520492c3af47f775b1c7696d7556ac1f0b8fce4a8bcefe430"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Prototype review evidence, not approved financial reporting.",
+    "All three initial model responses needed correction to make citations verbatim.",
+    "A blank custom value means the retrieved evidence did not establish it, not proof that no filing disclosed it."
+  ]
+}
