@@ -1,49 +1,30 @@
-"""Readable, three-page technical handoff. Build without network or model calls."""
+"""Build the technical handoff as a plain 12-point Times New Roman Word document."""
 from pathlib import Path
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle, KeepTogether
+import shutil
+import os
+import subprocess
+import sys
+import tempfile
+import xml.etree.ElementTree as ET
+from docx import Document
+from docx.shared import Inches, Pt, RGBColor
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.table import WD_TABLE_ALIGNMENT, WD_CELL_VERTICAL_ALIGNMENT
+from docx.opc.constants import RELATIONSHIP_TYPE as RT
 
 ROOT = Path(__file__).resolve().parents[1]
-INK = colors.HexColor('#172C3A')
-MUTED = colors.HexColor('#526572')
-ACCENT = colors.HexColor('#22675D')
-LINE = colors.HexColor('#D8E1E4')
-WIDTH = A4[0] - 108
-S = {
-    'title': ParagraphStyle('ReportTitle', fontName='Helvetica-Bold', fontSize=25, leading=29, textColor=INK, spaceAfter=10),
-    'sub': ParagraphStyle('ReportSubtitle', fontName='Helvetica', fontSize=10, leading=14, textColor=MUTED, spaceAfter=16),
-    'heading': ParagraphStyle('ReportHeading', fontName='Helvetica-Bold', fontSize=11.5, leading=15, textColor=INK, spaceBefore=12, spaceAfter=5),
-    'body': ParagraphStyle('ReportBody', fontName='Helvetica', fontSize=10.5, leading=15, textColor=INK, spaceAfter=8),
-    'small': ParagraphStyle('ReportSmall', fontName='Helvetica', fontSize=8.5, leading=12, textColor=MUTED, spaceAfter=7),
-    'cell': ParagraphStyle('ReportCell', fontName='Helvetica', fontSize=9.5, leading=13, textColor=INK),
-    'headcell': ParagraphStyle('ReportHeadCell', fontName='Helvetica-Bold', fontSize=9, leading=12, textColor=INK),
-}
+WIDTH = 451.28
 
+def para(text, style='body'): return ('paragraph', text, style)
+def section(title, text): return ('section', title, text)
+def grid(headers, rows, widths): return ('table', headers, rows, widths)
+def Spacer(width, height): return ('space',)
+def PageBreak(): return ('break',)
 
-def para(text, style='body'):
-    return Paragraph(text, S[style])
-
-
-def section(title, text):
-    return KeepTogether([para(title, 'heading'), para(text)])
-
-
-def grid(headers, rows, widths):
-    table = Table([[para(x, 'headcell') for x in headers]] + [[para(x, 'cell') for x in row] for row in rows], colWidths=widths, hAlign='LEFT')
-    table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#EDF2F3')),
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('LEFTPADDING', (0, 0), (-1, -1), 9), ('RIGHTPADDING', (0, 0), (-1, -1), 9),
-        ('TOPPADDING', (0, 0), (-1, -1), 9), ('BOTTOMPADDING', (0, 0), (-1, -1), 9),
-        ('LINEBELOW', (0, 0), (-1, -1), .5, LINE),
-    ]))
-    return table
-
-
-def build_technical(path=ROOT/'docs/technical-approach.pdf'):
-    story = [
+def content():
+    return [
         para('Technical approach', 'title'),
         para('Apex Ridge Capital  |  Prototype handoff  |  Updated October 12, 2026', 'sub'),
         para('I built a local application that turns SEC filings into a reviewable fund comparison. It automates finding and interpreting disclosures; the PM still decides whether the comparison is ready, and compliance can follow each accepted number back to its source.'),
@@ -100,18 +81,116 @@ def build_technical(path=ROOT/'docs/technical-approach.pdf'):
             'Resolve Apex Ridge\'s data with Dana, then run a quarter alongside the analyst with Sol. Have the PM and compliance check sampled values and material exceptions to measure accuracy and review effort. Before routine use, add authenticated approvals, versioned source storage and failure alerts. Today, review decisions are recorded locally.'),
         para('Reproduce the runs using README.md. Timing and validation records: docs/incremental-validation.json, docs/gap-repair-validation.json and docs/sol61-model-trial.json.', 'small'),
     ]
-    doc = SimpleDocTemplate(str(path), pagesize=A4, leftMargin=54, rightMargin=54, topMargin=55, bottomMargin=48)
-    def frame(canvas, doc):
-        canvas.setStrokeColor(ACCENT); canvas.setLineWidth(2)
-        canvas.line(54, A4[1]-34, A4[0]-54, A4[1]-34)
-        canvas.setStrokeColor(LINE); canvas.setLineWidth(.5)
-        canvas.line(54, 35, A4[0]-54, 35)
-        canvas.setFont('Helvetica', 8); canvas.setFillColor(MUTED)
-        canvas.drawString(54, 22, 'APEX RIDGE CAPITAL  /  TECHNICAL APPROACH')
-        canvas.drawRightString(A4[0]-54, 22, f'{doc.page} / 3')
-    doc.build(story, onFirstPage=frame, onLaterPages=frame)
+
+def font(run, bold=False):
+    run.font.name = 'Times New Roman'
+    run.font.size = Pt(12)
+    run.font.bold = bold
+    run.font.italic = False
+    run.font.color.rgb = RGBColor(0, 0, 0)
+    fonts = run._element.get_or_add_rPr().get_or_add_rFonts()
+    for kind in ('ascii', 'hAnsi', 'eastAsia', 'cs'):
+        fonts.set(qn('w:' + kind), 'Times New Roman')
+
+
+def text_runs(paragraph, text, bold=False):
+    root = ET.fromstring('<root>' + text.replace('&', '&amp;') + '</root>')
+    if root.text: font(paragraph.add_run(root.text), bold)
+    for child in root:
+        if child.tag == 'link':
+            link = OxmlElement('w:hyperlink')
+            link.set(qn('r:id'), paragraph.part.relate_to(child.attrib['href'], RT.HYPERLINK, is_external=True))
+            run = paragraph.add_run(''.join(child.itertext()));font(run, bold)
+            run.font.underline = True
+            link.append(run._element);paragraph._p.append(link)
+        else: font(paragraph.add_run(''.join(child.itertext())), bold)
+        if child.tail: font(paragraph.add_run(child.tail), bold)
+
+
+def build_docx(path=ROOT/'docs/technical-approach.docx'):
+    doc = Document()
+    sec = doc.sections[0]
+    sec.page_width = Inches(8.2677);sec.page_height = Inches(11.6929)
+    sec.top_margin = sec.bottom_margin = sec.left_margin = sec.right_margin = Inches(1)
+    sec.footer_distance = Inches(.5)
+    for style in doc.styles:
+        for node in list(style.element.iter()):
+            if node.tag == qn('w:pBdr') or (node.tag == qn('w:spacing') and node.getparent().tag == qn('w:rPr')):
+                node.getparent().remove(node)
+    for name in ('Normal', 'Title', 'Subtitle', 'Heading 1', 'Heading 2'):
+        style = doc.styles[name]
+        style.font.name = 'Times New Roman';style.font.size = Pt(12)
+        style.font.color.rgb = RGBColor(0,0,0)
+        style.font.bold = name in ('Title','Heading 1','Heading 2')
+        style.font.italic = False
+        style.paragraph_format.line_spacing = 1
+        style.paragraph_format.space_before = Pt(0)
+        style.paragraph_format.space_after = Pt(6)
+    doc.styles['Heading 2'].paragraph_format.space_before = Pt(5)
+    doc.styles['Heading 2'].paragraph_format.keep_with_next = True
+    for item in content():
+        if item[0] == 'break': doc.add_page_break()
+        elif item[0] == 'space': continue
+        elif item[0] == 'section':
+            text_runs(doc.add_paragraph(style='Heading 2'), item[1], True)
+            text_runs(doc.add_paragraph(), item[2])
+        elif item[0] == 'paragraph':
+            kind = item[2]
+            style = {'title':'Title','heading':'Heading 2','sub':'Subtitle'}.get(kind,'Normal')
+            p = doc.add_paragraph(style=style)
+            text_runs(p,item[1],kind in ('title','heading'))
+        elif item[0] == 'table':
+            headers, rows, widths = item[1:]
+            t = doc.add_table(rows=1, cols=len(headers));t.alignment = WD_TABLE_ALIGNMENT.CENTER;t.autofit=False
+            for col,w in zip(t.columns,widths):col.width=Pt(w)
+            for ri, values in enumerate([headers]+rows):
+                cells = t.rows[0].cells if ri==0 else t.add_row().cells
+                for ci,(cell, txt) in enumerate(zip(cells,values)):
+                    cell.width = Pt(widths[ci]);cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
+                    p=cell.paragraphs[0];p.paragraph_format.space_after=Pt(0)
+                    if ci==1:p.alignment=WD_ALIGN_PARAGRAPH.CENTER
+                    text_runs(p,txt,ri==0)
+                    tcpr=cell._tc.get_or_add_tcPr()
+                    borders=OxmlElement('w:tcBorders')
+                    for edge in ('top','left','bottom','right'):
+                        b=OxmlElement('w:'+edge);b.set(qn('w:val'),'single');b.set(qn('w:sz'),'4');b.set(qn('w:color'),'D9D9D9');borders.append(b)
+                    tcpr.append(borders)
+                    margin=OxmlElement('w:tcMar')
+                    for side in ('top','left','bottom','right'):
+                        m=OxmlElement('w:'+side);m.set(qn('w:w'),'75');m.set(qn('w:type'),'dxa');margin.append(m)
+                    tcpr.append(margin)
+                    if ri==0:
+                        shade=OxmlElement('w:shd');shade.set(qn('w:fill'),'F2F2F2');tcpr.append(shade)
+                rowpr=t.rows[ri]._tr.get_or_add_trPr();rowpr.append(OxmlElement('w:cantSplit'))
+                if ri==0:rowpr.append(OxmlElement('w:tblHeader'))
+            doc.add_paragraph().paragraph_format.space_after=Pt(0)
+    p=sec.footer.paragraphs[0];p.alignment=WD_ALIGN_PARAGRAPH.CENTER
+    r=p.add_run('1');font(r)
+    f=OxmlElement('w:fldSimple');f.set(qn('w:instr'),'PAGE');f.append(r._r);p._p.append(f)
+    doc.core_properties.title='Apex Ridge Capital Technical Approach'
+    doc.core_properties.author=''
+    doc.save(path)
+    return Path(path)
+
+
+def build_technical(path=ROOT/'docs/technical-approach.pdf'):
+    """Regenerate editable Word and its matching PDF; requires LibreOffice."""
+    path=Path(path);docx=build_docx(path.with_suffix('.docx'))
+    bundled=Path(sys.executable).parents[2]/'bin/override/soffice'
+    soffice=str(bundled) if bundled.exists() else shutil.which('soffice')
+    if not soffice:raise RuntimeError('Word saved. Install LibreOffice to export the matching PDF.')
+    with tempfile.TemporaryDirectory() as directory:
+        tmp=Path(directory)
+        env=os.environ.copy()
+        if bundled.exists() and Path('/System/Library/Fonts/Supplemental/Times New Roman.ttf').exists():
+            config=tmp/'fonts.conf'
+            config.write_text('<fontconfig><dir>/System/Library/Fonts/Supplemental</dir><cachedir>'+str(tmp/'font-cache')+'</cachedir></fontconfig>')
+            env['FONTCONFIG_FILE']=str(config)
+        subprocess.run([soffice,'-env:UserInstallation='+ (tmp/'profile').as_uri(), '--headless', '--convert-to', 'pdf', '--outdir', str(tmp), str(docx.resolve())],check=True,capture_output=True,env=env)
+        shutil.copy2(tmp/(docx.stem+'.pdf'),path)
 
 
 if __name__ == '__main__':
-    build_technical()
-    print('Wrote docs/technical-approach.pdf')
+    if '--word-only' in sys.argv: build_docx()
+    else: build_technical()
+    print('Wrote technical approach')
