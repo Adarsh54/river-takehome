@@ -1,13 +1,13 @@
 {
-  "generated_at": "2026-10-12T20:57:43.564171+00:00",
+  "generated_at": "2026-10-12T21:02:12.998804+00:00",
   "model": "gpt-5.4",
   "target_period": "2024-12-31",
   "filing_cutoff": "2025-02-28",
   "current_values": 17,
-  "historical_values": 15,
+  "historical_values": 17,
   "decision_validation": {
-    "passed": 56,
-    "not_accepted": 16
+    "passed": 59,
+    "not_accepted": 13
   },
   "failure_reasons": {
     "No retrieved passages available for model assessment.": 1,
@@ -15,43 +15,16 @@
     "A calculated value cannot be described as directly reported": 1,
     "Proposed financial definition or share class is incompatible": 3,
     "Selected number is absent from its cited excerpt": 1,
-    "Withheld decisions cannot contain a selected value": 1,
-    "LLM API HTTP 429 (credit_balance_exhausted); response body omitted to avoid exposing credentials or request text.": 5
+    "Withheld decisions cannot contain a selected value": 3
   },
-  "billing_blocked_cells": [
-    {
-      "ticker": "KREF",
-      "metric": "nav",
-      "period": "2023-12-31"
-    },
-    {
-      "ticker": "KREF",
-      "metric": "nav",
-      "period": "2024-03-31"
-    },
-    {
-      "ticker": "KREF",
-      "metric": "nav",
-      "period": "2024-06-30"
-    },
-    {
-      "ticker": "KREF",
-      "metric": "nav",
-      "period": "2024-09-30"
-    },
-    {
-      "ticker": "KREF",
-      "metric": "nav",
-      "period": "2024-12-31"
-    }
-  ],
+  "billing_blocked_cells": [],
   "tests_passed": 80,
   "human_approval": "Not performed; Apex input remains withheld.",
   "limitations": [
     "A successful local validation establishes traceability and structural checks, not independent financial correctness.",
     "Table headings and linked footnotes can be absent from excerpts.",
     "Some model responses fail exact citation, calculation/direct-reporting or definition checks even after one correction.",
-    "Five KREF historical cells were blocked by exhausted API credits."
+    "Observed semantic errors include confusing target quarter with requested historical quarter and confusing shareholder-return basis with book-value metrics. Structurally valid withholding rationales may still be wrong; missing output is not proof of missing disclosure."
   ],
   "selected_values": [
     {
@@ -657,6 +630,41 @@
           "locator": "HTML block 2110"
         }
       ]
+    },
+    {
+      "ticker": "KREF",
+      "metric": "nav",
+      "period": "2024-03-31",
+      "value": 15.18,
+      "basis": "book_value",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1631596/000163159624000017/kref-20240331.htm",
+          "locator": "HTML table 50; row 10; column 8"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1631596/000163159624000017/kref-20240331.htm",
+          "locator": "HTML block 1949"
+        }
+      ]
+    },
+    {
+      "ticker": "KREF",
+      "metric": "nav",
+      "period": "2024-09-30",
+      "value": 14.84,
+      "basis": "book_value",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1631596/000163159624000039/kref-20240930.htm",
+          "locator": "HTML table 49; row 9; column 8"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1631596/000163159624000039/kref-20240930.htm",
+          "locator": "HTML block 1937"
+        }
+      ]
     }
-  ]
+  ],
+  "execution_status": "Completed requests; financial review and validation gaps remain."
 }
