@@ -123,6 +123,10 @@ def run_pipeline(config, client, internal_path, decisions=None, progress=print, 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description='Auditable SEC benchmarking; no synthetic competitor fallback.')
+    parser.add_argument('--from-audit', type=Path, help='Reuse a saved source audit and re-run selection/judgment without rediscovery')
+    parser.add_argument('--llm', choices=['on', 'cached', 'off'], default='on',
+                        help='Model judgment (default), cache-only replay, or explicitly labeled parser-only review')
+    parser.add_argument('--model', help='Override OPENAI_MODEL for judgment')
     parser.add_argument('--config', type=Path, default=Path('config/engagement.json'))
     parser.add_argument('--apex-data', type=Path, default=Path('data/apex_ridge_fund_data.csv'))
     parser.add_argument('--cache', type=Path, default=Path('.cache/sec'))
@@ -135,14 +139,52 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.offline and args.refresh:
         parser.error('--offline and --refresh cannot be combined')
+    from dotenv import load_dotenv
+    load_dotenv(Path('.env'), override=False)
+    if args.offline and args.llm == 'on':
+        parser.error('--offline requires --llm cached or --llm off; no model network calls in offline mode')
     ua = os.environ.get('SEC_USER_AGENT', '')
-    if not ua and not args.offline:
+    if not ua and not args.offline and not args.from_audit:
         parser.error('Set SEC_USER_AGENT to your app name and real contact email; see README.')
     try:
         config = json.loads(args.config.read_text())
         decisions = json.loads(args.decisions.read_text()) if args.decisions else []
-        client = SecClient(ua or 'offline-cache-only', args.cache, args.offline, args.refresh)
-        run = run_pipeline(config, client, args.apex_data, decisions, ocr_mode=args.ocr)
+        judge = None
+        if args.llm != 'off':
+            from .judgment import OpenAIJudge
+            judge = OpenAIJudge(os.environ.get('OPENAI_API_KEY'), args.model or os.environ.get('OPENAI_MODEL', 'gpt-5.4'),
+                                args.cache / 'judgments', offline=args.llm=='cached')
+        if args.from_audit:
+            run = json.loads(args.from_audit.read_text())
+            if run['config'] != config:
+                raise ValueError('Saved audit configuration differs; rebuild sources for the new configuration')
+            run['reprocessed_from_run_id'] = run['run_id']
+            run['source_run_mode'] = run.get('source_run_mode', run['mode'])
+            run['mode'] = 'reprocessed_audit'
+            run['generated_at'] = datetime.now(timezone.utc).isoformat()
+            run['run_id'] = hashlib.sha256(run['generated_at'].encode()).hexdigest()[:16]
+            run['results'], run['nav_history'] = [], []
+            run['apex'] = internal_data(args.apex_data, config)
+            run['applied_decisions'] = apply_decisions(run['candidates'], decisions, config['filing_cutoff'])
+            for fund in config['funds']:
+                errors = [e for e in run['errors'] if e['ticker']==fund['ticker']]
+                for metric in METRICS:
+                    run['results'].append(resolve_metric(run['candidates'],fund,metric,config,retrieval_errors=errors))
+                for period in run['quarters']:
+                    run['nav_history'].append(resolve_metric(run['candidates'],fund,'nav',config,exact_period=period,retrieval_errors=errors))
+        else:
+            client = SecClient(ua or 'offline-cache-only', args.cache, args.offline, args.refresh)
+            run = run_pipeline(config, client, args.apex_data, decisions, ocr_mode=args.ocr)
+        if judge:
+            from .judgment import adjudicate_run
+            adjudicate_run(run, judge, args.cache)
+        else:
+            run['judgment_mode'] = 'rules_only'
+            run.pop('llm_judgments', None)
+            run.pop('rule_results', None)
+            run.pop('rule_nav_history', None)
+        from .evidence import migrate_evidence_contract
+        migrate_evidence_contract(run)
         export(run, args.output)
     except (ValueError, OSError, KeyError) as exc:
         parser.error(str(exc))
@@ -151,8 +193,11 @@ def main(argv=None):
         counts[result['status']] = counts.get(result['status'], 0) + 1
     print(json.dumps({'output': str(args.output.resolve()), 'statuses': counts,
         'retrieval_errors': sum(e['stage'] not in {'ocr', 'parse'} for e in run['errors']),
-        'extraction_errors': sum(e['stage'] in {'ocr', 'parse'} for e in run['errors']), 'apex': run['apex']['status']}, indent=2))
-    return 2 if run['errors'] else 0
+        'extraction_errors': sum(e['stage'] in {'ocr', 'parse'} for e in run['errors']), 'apex': run['apex']['status'],
+        'judgment_mode': run.get('judgment_mode'),
+        'llm_decisions_accepted': sum(j.get('validation')=='passed' for j in run.get('llm_judgments', [])),
+        'llm_decisions_not_completed': sum(j.get('validation')=='not_accepted' for j in run.get('llm_judgments', []))}, indent=2))
+    return 2 if run['errors'] or any(j.get('validation')=='not_accepted' for j in run.get('llm_judgments', [])) else 0
 
 
 if __name__ == '__main__':

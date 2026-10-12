@@ -10,6 +10,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
 from .extract import METRICS
+from .evidence import evidence_label, migrate_evidence_contract
 
 
 def esc(value):
@@ -23,12 +24,13 @@ def display(result):
 
 
 def export(run, output):
+    migrate_evidence_contract(run)
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
     (output / 'audit.json').write_text(json.dumps(run, indent=2, allow_nan=False))
     export_nport(run.get('nport_reports', []), output)
     with (output / 'benchmark.csv').open('w', newline='') as file:
-        fields = ['ticker', 'metric', 'value', 'unit', 'period', 'basis', 'status', 'confidence', 'reason', 'comparability', 'sources']
+        fields = ['ticker', 'metric', 'value', 'unit', 'period', 'basis', 'status', 'has_verifiable_evidence', 'directly_reported', 'decision_author', 'evidence_rationale', 'reason', 'comparability', 'sources']
         writer = csv.DictWriter(file, fieldnames=fields)
         writer.writeheader()
         for result in run['results'] + run['nav_history']:
@@ -44,9 +46,10 @@ def export(run, output):
         for metric, value in run['apex']['values'].items():
             writer.writerow({'ticker': 'APEX', 'metric': metric, 'value': value['value'],
                 'unit': 'USD/share' if metric == 'nav' else 'x' if metric == 'leverage' else '%',
-                'period': value['period'], 'status': 'client_approved', 'confidence': value['confidence'],
+                'period': value['period'], 'status': 'client_approved', 'evidence_rationale': value['evidence_rationale'],
                 'basis': 'Client supplied; confirm definitions', 'sources': json.dumps(value)})
     (output / 'index.html').write_text(html_report(run))
+    (output / 'judgments.json').write_text(json.dumps(run.get('llm_judgments', []), indent=2, allow_nan=False))
     pdf_report(run, output / 'benchmark.pdf')
 
 
@@ -61,7 +64,7 @@ def html_report(run):
         for ticker in tickers:
             r = lookup[ticker, metric]
             cells.append(f'<td class="{esc(r["status"])}"><a href="#{ticker}-{metric}">{display(r)}{"*" if r.get("calculation") else ""}</a>'
-                         f'<small>{esc(r["status"].replace("_", " "))} · {esc(r["confidence"])}</small>'
+                         f'<small>{evidence_label(r)}</small>'
                          f'<small>{esc(r["period"] or "Period unconfirmed")}</small></td>')
         rows.append('<tr>' + ''.join(cells) + '</tr>')
     evidence = []
@@ -69,10 +72,13 @@ def html_report(run):
         snippets = []
         for c in r['sources']:
             snippets.append(source_html(c))
+        issues = '<ul>' + ''.join('<li>'+esc(x)+'</li>' for x in r.get('unresolved_issues', [])) + '</ul>' if r.get('unresolved_issues') else ''
+        assessments = r.get('judgment', {}).get('decision', {}).get('assessments', [])
+        alternatives = '<details><summary>Model assessment of candidate figures</summary><ul>' + ''.join('<li>'+esc(a['reason'])+'</li>' for a in assessments) + '</ul></details>' if assessments else ''
         ident = f'{r["ticker"]}-{r["metric"]}' + (f'-{r["period"]}' if is_history else '')
         evidence.append(f'<section class="metric" id="{ident}"><h3>{r["ticker"]} · {esc(r["label"])} · {esc(r["period"])}</h3>'
-            f'<p><strong>{display(r)}</strong> · {esc(r["status"])} · confidence: {esc(r["confidence"])}</p>'
-            f'<p>{esc(r["reason"])} {esc(r["comparability"])}</p><p>Basis: {esc(r["basis"] or "Unconfirmed")}</p>' + ''.join(snippets) + '</section>')
+            f'<p><strong>{display(r)}</strong> · {evidence_label(r)} · {"Directly reported" if r.get("directly_reported") else "Calculated from cited inputs" if r.get("calculation") else "No supported value"}</p>'
+            f'<p>{esc(r["reason"])} {esc(r["comparability"])}</p><p>Basis: {esc(r["basis"] or "Unconfirmed")}</p>' + issues + alternatives + ''.join(snippets) + '</section>')
     candidates = []
     for c in run['candidates']:
         candidates.append(f'<details class="candidate" data-search="{esc(c["ticker"] + " " + c["metric"])}">'
@@ -81,7 +87,7 @@ def html_report(run):
     history = []
     for ticker in tickers:
         items = [r for r in run['nav_history'] if r['ticker'] == ticker]
-        history.append('<tr><th>' + ticker + '</th>' + ''.join(f'<td><a href="#{ticker}-nav-{r["period"]}">{display(r)}</a><small>{esc(r["status"])}</small></td>' for r in items) + '</tr>')
+        history.append('<tr><th>' + ticker + '</th>' + ''.join(f'<td><a href="#{ticker}-nav-{r["period"]}">{display(r)}</a><small>{evidence_label(r)}</small></td>' for r in items) + '</tr>')
     apex_history = ''
     if run['apex']['nav_history']:
         apex_history = '<h3>Apex Ridge approved history · starts Q1 2024</h3><p>' + ' · '.join(
@@ -98,9 +104,10 @@ def html_report(run):
 </style><main><div class="eyebrow">Apex Ridge Capital · Research review</div><h1>Competitor benchmarking</h1>
 <p>Q4 2024 board cycle · filings through {cfg['filing_cutoff']} · target period {cfg['target_period']}</p>
 <div class="banner"><strong>REVIEW DRAFT — PM and compliance approval required.</strong><br>
+Judgment mode: {esc(run.get("judgment_mode", "rules_only"))}. A rules-only report has not been assessed by an LLM.<br>
 Apex Ridge data: {esc(run['apex']['status'])}. {esc(run['apex']['reason'])}<br>
 Blank values are explicit gaps. Retrieval errors do not mean a fund failed to disclose a metric. No synthetic competitor figures.</div>
-<nav class="downloads"><a href="benchmark.pdf">Download PDF</a><a href="benchmark.csv">Download CSV</a><a href="audit.json">Full evidence JSON</a></nav>
+<nav class="downloads"><a href="benchmark.pdf">Download PDF</a><a href="benchmark.csv">Download CSV</a><a href="audit.json">Full evidence JSON</a><a href="judgments.json">Model decision records</a></nav>
 <h2>Comparison</h2><p>Listed funds use shareholder returns; interval funds use net NAV returns. KREF book value, leverage and yield are not automatically comparable with the other funds. Fee bases differ; KREF's annualized percentage retains a quarterly dollar minimum. * Calculated from filing values; open the evidence for inputs and formula.</p>
 <div class="scroll"><table><thead><tr><th>Metric</th><th>Apex Ridge</th>{''.join('<th>'+t+'</th>' for t in tickers)}</tr></thead><tbody>{''.join(rows)}</tbody></table></div>
 <h2>NAV history</h2><p>Eight competitor quarter-ends; no interpolation or carry-forward. KREF uses book value per common share. Apex history starts Q1 2024 and is withheld pending approval.</p>
@@ -116,7 +123,7 @@ Blank values are explicit gaps. Retrieval errors do not mean a fund failed to di
 <h2>Values and selection explanations</h2>{''.join(evidence)}
 <h2>Extraction review queue</h2><p>These passages are evidence candidates, not accepted values. Reviewer decisions are recorded in a separate JSON file and validated on rerun.</p>
 <input id="filter" aria-label="Filter evidence" placeholder="Filter by ticker or metric"><div id="queue">{''.join(candidates) or '<p>No source passages retrieved.</p>'}</div>
-<p class="meta">Run {esc(run['run_id'])} · generated {esc(run['generated_at'])}. Confidence is an evidence status, not a statistical probability.</p>
+<p class="meta">Run {esc(run['run_id'])} · generated {esc(run['generated_at'])}. Evidence support is explained per value. Model judgment is separate from PM and compliance approval.</p>
 </main><script>document.getElementById('filter').addEventListener('input',e=>{{for(const d of document.querySelectorAll('.candidate'))d.hidden=!d.dataset.search.toLowerCase().includes(e.target.value.toLowerCase());}});</script></html>'''
 
 
@@ -146,6 +153,7 @@ def pdf_report(run, path):
     doc = SimpleDocTemplate(str(path), pagesize=landscape(A4), leftMargin=32, rightMargin=32, topMargin=32, bottomMargin=40)
     story = [p('Apex Ridge | Competitor benchmarking', 'Title'),
         p(f"Q4 2024 board cycle | Filings through {run['config']['filing_cutoff']} | REVIEW DRAFT", 'Heading2'),
+        p('Judgment mode: ' + run.get('judgment_mode', 'rules_only') + '. Evidence linked means traceable support; interpretation still requires PM/compliance review.', 'SmallNote'),
         p('Apex Ridge figures withheld pending provenance approval.' if run['apex']['status'] == 'withheld' else run['apex']['reason']),
         p('Listed vehicles: shareholder returns. Interval funds: net NAV returns. KREF is a mortgage REIT; book value, leverage and yield require separate interpretation.'), Spacer(1, 12)]
     tickers = [f['ticker'] for f in run['config']['funds']]
@@ -156,15 +164,15 @@ def pdf_report(run, path):
         row = [p(label, 'Cell'), p(str(internal['value']) if internal else 'Withheld / unavailable', 'Cell')]
         for ticker in tickers:
             r = lookup[ticker, metric]
-            row.append(p(f"{display(r)}{'*' if r.get('calculation') else ''} | {r['status']} | {r['confidence']} | {r['period'] or 'period unconfirmed'}", 'Cell'))
+            row.append(p(f"{display(r)}{'*' if r.get('calculation') else ''} | {evidence_label(r)} | {r['period'] or 'period unconfirmed'}", 'Cell'))
         table.append(row)
     tbl = Table(table, colWidths=[155, 91, 132, 132, 132, 132], repeatRows=1, hAlign='LEFT')
     tbl.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.HexColor('#dce9e3')), ('VALIGN',(0,0),(-1,-1),'TOP'),
-        ('ROWBACKGROUNDS',(0,1),(-1,-1),[colors.white,colors.HexColor('#f3f6f5')]),('BOTTOMPADDING',(0,0),(-1,-1),8),('TOPPADDING',(0,0),(-1,-1),8)]))
-    story.extend([tbl, Spacer(1,10), p('Unavailable means unresolved or not retrieved, not necessarily undisclosed. * Calculated: see evidence for inputs and formula. Fee bases differ; KREF retains a quarterly dollar minimum. Confidence labels are not probabilities.', 'SmallNote'), PageBreak(), p('NAV history and coverage', 'Title')])
+        ('ROWBACKGROUNDS',(0,1),(-1,-1),[colors.white,colors.HexColor('#f3f6f5')]),('BOTTOMPADDING',(0,0),(-1,-1),6),('TOPPADDING',(0,0),(-1,-1),6)]))
+    story.extend([tbl, Spacer(1,10), p('Unavailable means unresolved or not retrieved, not necessarily undisclosed. * Calculated: see evidence for inputs and formula. Fee bases differ; KREF retains a quarterly dollar minimum. Source support and selection rationales are explained per value.', 'SmallNote'), PageBreak(), p('NAV history and coverage', 'Title')])
     hist = [[p(t, 'Cell') for t in ['Fund'] + run['quarters']]]
     for ticker in tickers:
-        hist.append([p(ticker, 'Cell')] + [p(display(r) + ' | ' + r['status'], 'Cell') for r in run['nav_history'] if r['ticker'] == ticker])
+        hist.append([p(ticker, 'Cell')] + [p(display(r) + ' | ' + evidence_label(r), 'Cell') for r in run['nav_history'] if r['ticker'] == ticker])
     t = Table(hist, colWidths=[70]+[88]*8, repeatRows=1)
     t.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('BACKGROUND',(0,0),(-1,0),colors.HexColor('#dce9e3')),('BOTTOMPADDING',(0,0),(-1,-1),12)]))
     story.extend([t, Spacer(1,12), p('No interpolation or carry-forward. Apex history starts Q1 2024; only approved rows through Q4 2024 can be used.')])
@@ -176,7 +184,7 @@ def pdf_report(run, path):
     story.extend([PageBreak(), p('Evidence and review decisions', 'Title')])
     for r in run['results'] + [r for r in run['nav_history'] if r['sources']]:
         story.append(p(f"{r['ticker']} | {r['label']} | {r['period']} | {display(r)}", 'Heading3'))
-        story.append(p(f"{r['status']} / {r['confidence']}. {r['reason']} Basis: {r['basis'] or 'unconfirmed'}. {r['comparability']}", 'SmallNote'))
+        story.append(p(f"{evidence_label(r)}. {r['reason']} Basis: {r['basis'] or 'unconfirmed'}. {r['comparability']}", 'SmallNote'))
         for c in r['sources']:
             story.append(p(f"Filed {c['filing_date']} | period {c['period']} | {c['locator']}", 'SmallNote'))
             story.append(Paragraph(f'<link href="{esc(c["source_url"])}" color="#166957">Original SEC source: {esc(c["accession"])}</link>', styles['SmallNote']))
@@ -194,7 +202,7 @@ def export_nport(reports, output):
     (output / 'nport.json').write_text(json.dumps(reports, indent=2, allow_nan=False))
     fields = ['ticker', 'period', 'filing_date', 'accession', 'source_url', 'source_sha256',
               'locator', 'name', 'title', 'cusip', 'curCd', 'units', 'assetCat', 'issuerCat',
-              'payoffProfile', 'fairValLevel', 'balance', 'valUSD', 'pctVal', 'confidence']
+              'payoffProfile', 'fairValLevel', 'balance', 'valUSD', 'pctVal', 'has_verifiable_evidence']
     with (output / 'nport-holdings.csv').open('w', newline='') as file:
         writer = csv.DictWriter(file, fieldnames=fields)
         writer.writeheader()

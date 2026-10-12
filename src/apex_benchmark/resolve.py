@@ -89,7 +89,7 @@ def compatible(c, fund):
     return c['basis'] != 'unconfirmed'
 
 
-def resolve_metric(candidates, fund, metric, config, exact_period=None, retrieval_errors=None):
+def _resolve_metric(candidates, fund, metric, config, exact_period=None, retrieval_errors=None):
     relevant = [c for c in candidates if c['ticker'] == fund['ticker'] and c['metric'] == metric]
     relevant = [c for c in relevant if c['filing_date'] <= config['filing_cutoff']]
     eligible = [c for c in relevant if c['eligible'] and c['value'] is not None and compatible(c, fund)
@@ -99,7 +99,7 @@ def resolve_metric(candidates, fund, metric, config, exact_period=None, retrieva
     result = {'ticker': fund['ticker'], 'metric': metric, 'label': METRICS[metric], 'value': None,
         'unit': 'USD/share' if metric == 'nav' else 'x' if metric == 'leverage' else '%',
         'period': exact_period or '', 'status': 'needs_review' if relevant else 'not_found',
-        'confidence': 'unavailable', 'reason': 'Relevant evidence requires interpretation.' if relevant else
+        'reason': 'Relevant evidence requires interpretation.' if relevant else
         'No supported value extracted from inspected documents; this does not establish non-disclosure.',
         'sources': [], 'candidate_ids': [c['id'] for c in relevant], 'basis': '',
         'comparability': 'Not assessed', 'lag_days': None}
@@ -140,14 +140,14 @@ def resolve_metric(candidates, fund, metric, config, exact_period=None, retrieva
     # against today's comparison quarter; old history is not stale current data.
     lag = (date.fromisoformat(exact_period or config['target_period']) - date.fromisoformat(latest_period)).days
     result.update(value=selected['value'], period=latest_period, basis=selected['basis'], sources=chosen,
-        confidence='medium', status='supported', lag_days=lag,
+        status='supported', lag_days=lag,
         reason='Source, unit, period and basis checks passed; PM and compliance approval still required.',
         comparability='Book value per share; not interchangeable with fund NAV' if fund['structure'] == 'mortgage_reit' and metric == 'nav'
             else 'Definition-specific; compare bases before use' if metric in {'leverage', 'distribution_yield', 'management_fee', 'effective_fee'}
             else 'Shareholder return for listed vehicles; NAV-based return for interval funds' if metric.startswith('return_')
             else 'As labeled')
     if any(c.get('review', {}).get('action') == 'accept' for c in chosen):
-        result['confidence'] = 'reviewed'
+        result['decision_author'] = 'human'
     if precision_selected:
         result['reason'] += (' Source values reconcile within their explicitly reported rounding precision. '
                              f"The most precise figure, {selected['value']:.2f}%, is used; all source versions are retained.")
@@ -198,7 +198,12 @@ def internal_data(path: Path, config):
         if period == config['target_period']:
             values = {metric: {'value': float(row[column]), 'period': period,
                 'source': str(path), 'row': row_number, 'column': column, 'sha256': digest,
-                'confidence': 'client_approved', 'approval': config['apex_approval_note']}
+                'evidence_rationale': 'Client-approved internal input', 'approval': config['apex_approval_note']}
                 for metric, column in APEX_COLUMNS.items()}
     return {'status': 'approved' if values else 'target_period_absent', 'values': values, 'nav_history': history,
         'reason': 'History begins Q1 2024. Later rows excluded from this historical comparison.'}
+
+
+def resolve_metric(candidates, fund, metric, config, exact_period=None, retrieval_errors=None):
+    from .evidence import annotate_result
+    return annotate_result(_resolve_metric(candidates, fund, metric, config, exact_period, retrieval_errors))

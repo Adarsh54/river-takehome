@@ -1,5 +1,5 @@
 {
-  "description": "Observed result from real SEC responses, not a runtime fixture or mock data source.",
+  "description": "Observed parser baseline from real SEC evidence. No live LLM judgment has been validated for this snapshot.",
   "generated_at": "2026-10-12T20:06:00.291590+00:00",
   "filing_cutoff": "2025-02-28",
   "target_period": "2024-12-31",
@@ -24,9 +24,13 @@
       "period": "",
       "basis": "",
       "status": "needs_review",
-      "confidence": "unavailable",
       "reason": "Relevant evidence requires interpretation.",
-      "sources": []
+      "sources": [],
+      "has_verifiable_evidence": false,
+      "directly_reported": false,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Relevant evidence requires interpretation.",
+      "unresolved_issues": []
     },
     {
       "ticker": "CCLFX",
@@ -36,9 +40,13 @@
       "period": "",
       "basis": "",
       "status": "needs_review",
-      "confidence": "unavailable",
       "reason": "Relevant evidence requires interpretation.",
-      "sources": []
+      "sources": [],
+      "has_verifiable_evidence": false,
+      "directly_reported": false,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Relevant evidence requires interpretation.",
+      "unresolved_issues": []
     },
     {
       "ticker": "CCLFX",
@@ -48,9 +56,13 @@
       "period": "",
       "basis": "",
       "status": "needs_review",
-      "confidence": "unavailable",
       "reason": "Relevant evidence requires interpretation.",
-      "sources": []
+      "sources": [],
+      "has_verifiable_evidence": false,
+      "directly_reported": false,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Relevant evidence requires interpretation.",
+      "unresolved_issues": []
     },
     {
       "ticker": "CCLFX",
@@ -60,7 +72,6 @@
       "period": "2024-09-30",
       "basis": "contractual:net_assets",
       "status": "supported_with_review",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. Annual contractual management fee on net assets. Historical expense-limit waivers in the same passage are not substituted for this rate. 8 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
       "sources": [
         {
@@ -70,7 +81,12 @@
           "filing_date": "2024-12-09",
           "locator": "HTML block 51960"
         }
-      ]
+      ],
+      "has_verifiable_evidence": true,
+      "directly_reported": true,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. Annual contractual management fee on net assets. Historical expense-limit waivers in the same passage are not substituted for this rate. 8 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
+      "unresolved_issues": []
     },
     {
       "ticker": "CCLFX",
@@ -80,9 +96,13 @@
       "period": "",
       "basis": "",
       "status": "needs_review",
-      "confidence": "unavailable",
       "reason": "Relevant evidence requires interpretation.",
-      "sources": []
+      "sources": [],
+      "has_verifiable_evidence": false,
+      "directly_reported": false,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Relevant evidence requires interpretation.",
+      "unresolved_issues": []
     },
     {
       "ticker": "CCLFX",
@@ -92,9 +112,13 @@
       "period": "",
       "basis": "",
       "status": "needs_review",
-      "confidence": "unavailable",
       "reason": "Relevant evidence requires interpretation.",
-      "sources": []
+      "sources": [],
+      "has_verifiable_evidence": false,
+      "directly_reported": false,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Relevant evidence requires interpretation.",
+      "unresolved_issues": []
     },
     {
       "ticker": "CCLFX",
@@ -104,9 +128,13 @@
       "period": "",
       "basis": "",
       "status": "not_found",
-      "confidence": "unavailable",
       "reason": "No supported value extracted from inspected documents; this does not establish non-disclosure.",
-      "sources": []
+      "sources": [],
+      "has_verifiable_evidence": false,
+      "directly_reported": false,
+      "decision_author": "rules_only",
+      "evidence_rationale": "No supported value extracted from inspected documents; this does not establish non-disclosure.",
+      "unresolved_issues": []
     },
     {
       "ticker": "CCLFX",
@@ -116,7 +144,6 @@
       "period": "2024-09-30",
       "basis": "nav",
       "status": "supported",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. Class I financial highlights; institutional class label follows the engagement mapping.",
       "sources": [
         {
@@ -126,7 +153,12 @@
           "filing_date": "2024-12-09",
           "locator": "HTML table 212; Class I NAV at end of period"
         }
-      ]
+      ],
+      "has_verifiable_evidence": true,
+      "directly_reported": true,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. Class I financial highlights; institutional class label follows the engagement mapping.",
+      "unresolved_issues": []
     },
     {
       "ticker": "CCLFX",
@@ -136,9 +168,13 @@
       "period": "",
       "basis": "",
       "status": "needs_review",
-      "confidence": "unavailable",
       "reason": "Relevant evidence requires interpretation.",
-      "sources": []
+      "sources": [],
+      "has_verifiable_evidence": false,
+      "directly_reported": false,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Relevant evidence requires interpretation.",
+      "unresolved_issues": []
     },
     {
       "ticker": "CCLFX",
@@ -148,9 +184,13 @@
       "period": "",
       "basis": "",
       "status": "needs_review",
-      "confidence": "unavailable",
       "reason": "Relevant evidence requires interpretation.",
-      "sources": []
+      "sources": [],
+      "has_verifiable_evidence": false,
+      "directly_reported": false,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Relevant evidence requires interpretation.",
+      "unresolved_issues": []
     },
     {
       "ticker": "TAKIX",
@@ -160,7 +200,6 @@
       "period": "2024-12-31",
       "basis": "net_nav",
       "status": "supported",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. Annualized from consecutive disclosed annual total returns, using the stated reinvestment basis. Input percentages are rounded in the filing. Calculation: (product(1 + annual_return_pct / 100) ** (1 / years) - 1) * 100.",
       "sources": [
         {
@@ -179,7 +218,12 @@
         "years": 1,
         "output": 10.80000000000001,
         "note": "Derived from rounded annual percentages; no market-data substitution."
-      }
+      },
+      "has_verifiable_evidence": true,
+      "directly_reported": false,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. Annualized from consecutive disclosed annual total returns, using the stated reinvestment basis. Input percentages are rounded in the filing. Calculation: (product(1 + annual_return_pct / 100) ** (1 / years) - 1) * 100.",
+      "unresolved_issues": []
     },
     {
       "ticker": "TAKIX",
@@ -189,7 +233,6 @@
       "period": "2024-12-31",
       "basis": "net_nav",
       "status": "supported",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. Annualized from consecutive disclosed annual total returns, using the stated reinvestment basis. Input percentages are rounded in the filing. Calculation: (product(1 + annual_return_pct / 100) ** (1 / years) - 1) * 100.",
       "sources": [
         {
@@ -210,7 +253,12 @@
         "years": 3,
         "output": 7.859162046952584,
         "note": "Derived from rounded annual percentages; no market-data substitution."
-      }
+      },
+      "has_verifiable_evidence": true,
+      "directly_reported": false,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. Annualized from consecutive disclosed annual total returns, using the stated reinvestment basis. Input percentages are rounded in the filing. Calculation: (product(1 + annual_return_pct / 100) ** (1 / years) - 1) * 100.",
+      "unresolved_issues": []
     },
     {
       "ticker": "TAKIX",
@@ -220,7 +268,6 @@
       "period": "2024-12-31",
       "basis": "net_nav",
       "status": "supported",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. Annualized from consecutive disclosed annual total returns, using the stated reinvestment basis. Input percentages are rounded in the filing. Calculation: (product(1 + annual_return_pct / 100) ** (1 / years) - 1) * 100.",
       "sources": [
         {
@@ -243,7 +290,12 @@
         "years": 5,
         "output": 7.356492735761688,
         "note": "Derived from rounded annual percentages; no market-data substitution."
-      }
+      },
+      "has_verifiable_evidence": true,
+      "directly_reported": false,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. Annualized from consecutive disclosed annual total returns, using the stated reinvestment basis. Input percentages are rounded in the filing. Calculation: (product(1 + annual_return_pct / 100) ** (1 / years) - 1) * 100.",
+      "unresolved_issues": []
     },
     {
       "ticker": "TAKIX",
@@ -253,7 +305,6 @@
       "period": "2024-12-31",
       "basis": "contractual:month_end_managed_assets",
       "status": "supported_with_review",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. Annual fee on managed assets; the source also caps the fee relative to net assets. Preserve both bases in review. 2 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
       "sources": [
         {
@@ -263,7 +314,12 @@
           "filing_date": "2025-02-28",
           "locator": "HTML block 2858"
         }
-      ]
+      ],
+      "has_verifiable_evidence": true,
+      "directly_reported": true,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. Annual fee on managed assets; the source also caps the fee relative to net assets. Preserve both bases in review. 2 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
+      "unresolved_issues": []
     },
     {
       "ticker": "TAKIX",
@@ -273,9 +329,13 @@
       "period": "",
       "basis": "",
       "status": "needs_review",
-      "confidence": "unavailable",
       "reason": "Relevant evidence requires interpretation.",
-      "sources": []
+      "sources": [],
+      "has_verifiable_evidence": false,
+      "directly_reported": false,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Relevant evidence requires interpretation.",
+      "unresolved_issues": []
     },
     {
       "ticker": "TAKIX",
@@ -285,7 +345,6 @@
       "period": "2024-12-31",
       "basis": "income:pre_incentive_net_income_after_hurdle_and_catchup",
       "status": "supported_with_review",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. Base incentive participation after the disclosed hurdle and catch-up. The catch-up segment is not itself the base incentive rate. 13 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
       "sources": [
         {
@@ -295,7 +354,12 @@
           "filing_date": "2025-02-28",
           "locator": "HTML block 2862"
         }
-      ]
+      ],
+      "has_verifiable_evidence": true,
+      "directly_reported": true,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. Base incentive participation after the disclosed hurdle and catch-up. The catch-up segment is not itself the base incentive rate. 13 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
+      "unresolved_issues": []
     },
     {
       "ticker": "TAKIX",
@@ -305,7 +369,6 @@
       "period": "2024-12-31",
       "basis": "annual:net_assets",
       "status": "supported_with_review",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. Annualized hurdle explicitly disclosed alongside its quarterly equivalent. 5 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
       "sources": [
         {
@@ -315,7 +378,12 @@
           "filing_date": "2025-02-28",
           "locator": "HTML block 2859"
         }
-      ]
+      ],
+      "has_verifiable_evidence": true,
+      "directly_reported": true,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. Annualized hurdle explicitly disclosed alongside its quarterly equivalent. 5 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
+      "unresolved_issues": []
     },
     {
       "ticker": "TAKIX",
@@ -325,7 +393,6 @@
       "period": "2024-12-31",
       "basis": "nav",
       "status": "supported",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. Class I financial highlights; institutional class label follows the engagement mapping.",
       "sources": [
         {
@@ -335,7 +402,12 @@
           "filing_date": "2025-02-28",
           "locator": "HTML table 65; Class I NAV at end of period"
         }
-      ]
+      ],
+      "has_verifiable_evidence": true,
+      "directly_reported": true,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. Class I financial highlights; institutional class label follows the engagement mapping.",
+      "unresolved_issues": []
     },
     {
       "ticker": "TAKIX",
@@ -345,9 +417,13 @@
       "period": "",
       "basis": "",
       "status": "needs_review",
-      "confidence": "unavailable",
       "reason": "Relevant evidence requires interpretation.",
-      "sources": []
+      "sources": [],
+      "has_verifiable_evidence": false,
+      "directly_reported": false,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Relevant evidence requires interpretation.",
+      "unresolved_issues": []
     },
     {
       "ticker": "TAKIX",
@@ -357,7 +433,6 @@
       "period": "2024-12-31",
       "basis": "annualized:reported_class_I_distribution_rate",
       "status": "supported_with_review",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. Disclosed Class I annualized distribution rate; not portfolio yield, another class, or a total-return measure. Review the referenced distribution footnote. 1 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
       "sources": [
         {
@@ -367,7 +442,12 @@
           "filing_date": "2025-02-28",
           "locator": "HTML block 187"
         }
-      ]
+      ],
+      "has_verifiable_evidence": true,
+      "directly_reported": true,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. Disclosed Class I annualized distribution rate; not portfolio yield, another class, or a total-return measure. Review the referenced distribution footnote. 1 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
+      "unresolved_issues": []
     },
     {
       "ticker": "GBDC",
@@ -377,7 +457,6 @@
       "period": "2024-09-30",
       "basis": "shareholder",
       "status": "supported",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. Source values reconcile within their explicitly reported rounding precision. The most precise figure, 15.77%, is used; all source versions are retained. Annualized from consecutive disclosed annual total returns, using the stated reinvestment basis. Input percentages are rounded in the filing. Calculation: (product(1 + annual_return_pct / 100) ** (1 / years) - 1) * 100.",
       "sources": [
         {
@@ -403,7 +482,12 @@
         "years": 1,
         "output": 15.769999999999996,
         "note": "Derived from rounded annual percentages; no market-data substitution."
-      }
+      },
+      "has_verifiable_evidence": true,
+      "directly_reported": false,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. Source values reconcile within their explicitly reported rounding precision. The most precise figure, 15.77%, is used; all source versions are retained. Annualized from consecutive disclosed annual total returns, using the stated reinvestment basis. Input percentages are rounded in the filing. Calculation: (product(1 + annual_return_pct / 100) ** (1 / years) - 1) * 100.",
+      "unresolved_issues": []
     },
     {
       "ticker": "GBDC",
@@ -413,7 +497,6 @@
       "period": "2024-09-30",
       "basis": "shareholder",
       "status": "supported",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. Annualized from consecutive disclosed annual total returns, using the stated reinvestment basis. Input percentages are rounded in the filing. Calculation: (product(1 + annual_return_pct / 100) ** (1 / years) - 1) * 100.",
       "sources": [
         {
@@ -434,7 +517,12 @@
         "years": 3,
         "output": 8.779914529093302,
         "note": "Derived from rounded annual percentages; no market-data substitution."
-      }
+      },
+      "has_verifiable_evidence": true,
+      "directly_reported": false,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. Annualized from consecutive disclosed annual total returns, using the stated reinvestment basis. Input percentages are rounded in the filing. Calculation: (product(1 + annual_return_pct / 100) ** (1 / years) - 1) * 100.",
+      "unresolved_issues": []
     },
     {
       "ticker": "GBDC",
@@ -444,7 +532,6 @@
       "period": "2024-09-30",
       "basis": "shareholder",
       "status": "supported",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. Annualized from consecutive disclosed annual total returns, using the stated reinvestment basis. Input percentages are rounded in the filing. Calculation: (product(1 + annual_return_pct / 100) ** (1 / years) - 1) * 100.",
       "sources": [
         {
@@ -467,7 +554,12 @@
         "years": 5,
         "output": 5.073214691445882,
         "note": "Derived from rounded annual percentages; no market-data substitution."
-      }
+      },
+      "has_verifiable_evidence": true,
+      "directly_reported": false,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. Annualized from consecutive disclosed annual total returns, using the stated reinvestment basis. Input percentages are rounded in the filing. Calculation: (product(1 + annual_return_pct / 100) ** (1 / years) - 1) * 100.",
+      "unresolved_issues": []
     },
     {
       "ticker": "GBDC",
@@ -477,7 +569,6 @@
       "period": "2024-12-31",
       "basis": "contractual:average_adjusted_gross_assets",
       "status": "supported_with_review",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. Current annual rate precedes the parenthetical historical rate. Gross assets are adjusted as stated in the source, including exclusion of cash. 8 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
       "sources": [
         {
@@ -501,7 +592,12 @@
           "filing_date": "2025-02-04",
           "locator": "HTML block 9"
         }
-      ]
+      ],
+      "has_verifiable_evidence": true,
+      "directly_reported": true,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. Current annual rate precedes the parenthetical historical rate. Gross assets are adjusted as stated in the source, including exclusion of cash. 8 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
+      "unresolved_issues": []
     },
     {
       "ticker": "GBDC",
@@ -511,9 +607,13 @@
       "period": "",
       "basis": "",
       "status": "needs_review",
-      "confidence": "unavailable",
       "reason": "Relevant evidence requires interpretation.",
-      "sources": []
+      "sources": [],
+      "has_verifiable_evidence": false,
+      "directly_reported": false,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Relevant evidence requires interpretation.",
+      "unresolved_issues": []
     },
     {
       "ticker": "GBDC",
@@ -523,7 +623,6 @@
       "period": "2024-12-31",
       "basis": "income_and_capital_gains:separate_bases_with_cap",
       "status": "supported_with_review",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. New agreement effective June 3, 2024 lowers both incentive rates. Old agreement percentages are not the current rate; separate bases/cap still apply. 32 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
       "sources": [
         {
@@ -547,7 +646,12 @@
           "filing_date": "2025-02-04",
           "locator": "HTML block 8"
         }
-      ]
+      ],
+      "has_verifiable_evidence": true,
+      "directly_reported": true,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. New agreement effective June 3, 2024 lowers both incentive rates. Old agreement percentages are not the current rate; separate bases/cap still apply. 32 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
+      "unresolved_issues": []
     },
     {
       "ticker": "GBDC",
@@ -557,7 +661,6 @@
       "period": "2024-12-31",
       "basis": "annualized:quarterly_net_assets_hurdle",
       "status": "supported_with_review",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. Simple annual equivalent of the disclosed quarterly hurdle; the quarterly contract and catch-up control. Calculation: quarterly_hurdle_pct * 4. 11 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
       "sources": [
         {
@@ -589,7 +692,12 @@
         },
         "output": 8.0,
         "note": "Not a compounded investment return."
-      }
+      },
+      "has_verifiable_evidence": true,
+      "directly_reported": false,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. Simple annual equivalent of the disclosed quarterly hurdle; the quarterly contract and catch-up control. Calculation: quarterly_hurdle_pct * 4. 11 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
+      "unresolved_issues": []
     },
     {
       "ticker": "GBDC",
@@ -599,7 +707,6 @@
       "period": "2024-12-31",
       "basis": "nav",
       "status": "supported_with_review",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. 16 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
       "sources": [
         {
@@ -616,7 +723,12 @@
           "filing_date": "2025-02-04",
           "locator": "iXBRL us-gaap:NetAssetValuePerShare context=c-9 unit=usdPerShare; anchor #f-20681"
         }
-      ]
+      ],
+      "has_verifiable_evidence": true,
+      "directly_reported": true,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. 16 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
+      "unresolved_issues": []
     },
     {
       "ticker": "GBDC",
@@ -626,7 +738,6 @@
       "period": "2024-12-31",
       "basis": "debt_to_equity:GAAP_as_reported",
       "status": "supported_with_review",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. Actual period-end GAAP debt/equity, not the target range or regulatory asset-coverage percentage in the same passage. 4 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
       "sources": [
         {
@@ -636,7 +747,12 @@
           "filing_date": "2025-02-04",
           "locator": "HTML block 8348"
         }
-      ]
+      ],
+      "has_verifiable_evidence": true,
+      "directly_reported": true,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. Actual period-end GAAP debt/equity, not the target range or regulatory asset-coverage percentage in the same passage. 4 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
+      "unresolved_issues": []
     },
     {
       "ticker": "GBDC",
@@ -646,9 +762,13 @@
       "period": "",
       "basis": "",
       "status": "needs_review",
-      "confidence": "unavailable",
       "reason": "Relevant evidence requires interpretation.",
-      "sources": []
+      "sources": [],
+      "has_verifiable_evidence": false,
+      "directly_reported": false,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Relevant evidence requires interpretation.",
+      "unresolved_issues": []
     },
     {
       "ticker": "KREF",
@@ -658,7 +778,6 @@
       "period": "2024-12-31",
       "basis": "shareholder",
       "status": "supported",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. Annualized from the disclosed cumulative shareholder-return index. Dividends are reinvested; source indices are rounded. Calculation: ((end_index / start_index) ** (1 / years) - 1) * 100.",
       "sources": [
         {
@@ -680,7 +799,12 @@
         },
         "output": -15.879396984924622,
         "note": "Approximate due to rounded source index levels; not a directly reported percentage."
-      }
+      },
+      "has_verifiable_evidence": true,
+      "directly_reported": false,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. Annualized from the disclosed cumulative shareholder-return index. Dividends are reinvested; source indices are rounded. Calculation: ((end_index / start_index) ** (1 / years) - 1) * 100.",
+      "unresolved_issues": []
     },
     {
       "ticker": "KREF",
@@ -690,7 +814,6 @@
       "period": "2024-12-31",
       "basis": "shareholder",
       "status": "supported",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. Annualized from the disclosed cumulative shareholder-return index. Dividends are reinvested; source indices are rounded. Calculation: ((end_index / start_index) ** (1 / years) - 1) * 100.",
       "sources": [
         {
@@ -712,7 +835,12 @@
         },
         "output": -12.042384181318077,
         "note": "Approximate due to rounded source index levels; not a directly reported percentage."
-      }
+      },
+      "has_verifiable_evidence": true,
+      "directly_reported": false,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. Annualized from the disclosed cumulative shareholder-return index. Dividends are reinvested; source indices are rounded. Calculation: ((end_index / start_index) ** (1 / years) - 1) * 100.",
+      "unresolved_issues": []
     },
     {
       "ticker": "KREF",
@@ -722,7 +850,6 @@
       "period": "2024-12-31",
       "basis": "shareholder",
       "status": "supported",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. Annualized from the disclosed cumulative shareholder-return index. Dividends are reinvested; source indices are rounded. Calculation: ((end_index / start_index) ** (1 / years) - 1) * 100.",
       "sources": [
         {
@@ -744,7 +871,12 @@
         },
         "output": -3.4960496004881714,
         "note": "Approximate due to rounded source index levels; not a directly reported percentage."
-      }
+      },
+      "has_verifiable_evidence": true,
+      "directly_reported": false,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. Annualized from the disclosed cumulative shareholder-return index. Dividends are reinvested; source indices are rounded. Calculation: ((end_index / start_index) ** (1 / years) - 1) * 100.",
+      "unresolved_issues": []
     },
     {
       "ticker": "KREF",
@@ -754,7 +886,6 @@
       "period": "2024-12-31",
       "basis": "contractual:annualized_quarterly_adjusted_equity_with_minimum",
       "status": "supported_with_review",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. Annual equivalent of the percentage component only. Each quarterly payment is the greater of $62,500 or the quarterly percentage of weighted average adjusted equity. Calculation: quarterly_management_fee_pct * 4. 4 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
       "sources": [
         {
@@ -786,7 +917,12 @@
         },
         "output": 1.5,
         "note": "Quarterly dollar minimum still applies; this is not a flat effective expense rate."
-      }
+      },
+      "has_verifiable_evidence": true,
+      "directly_reported": false,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. Annual equivalent of the percentage component only. Each quarterly payment is the greater of $62,500 or the quarterly percentage of weighted average adjusted equity. Calculation: quarterly_management_fee_pct * 4. 4 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
+      "unresolved_issues": []
     },
     {
       "ticker": "KREF",
@@ -796,9 +932,13 @@
       "period": "",
       "basis": "",
       "status": "needs_review",
-      "confidence": "unavailable",
       "reason": "Relevant evidence requires interpretation.",
-      "sources": []
+      "sources": [],
+      "has_verifiable_evidence": false,
+      "directly_reported": false,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Relevant evidence requires interpretation.",
+      "unresolved_issues": []
     },
     {
       "ticker": "KREF",
@@ -808,7 +948,6 @@
       "period": "2024-12-31",
       "basis": "income:trailing_12_month_distributable_earnings_over_adjusted_equity_hurdle",
       "status": "supported",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. Participation on trailing distributable earnings above the hurdle, less prior payments; paid with the disclosed lag.",
       "sources": [
         {
@@ -832,7 +971,12 @@
           "filing_date": "2025-02-03",
           "locator": "HTML block 11"
         }
-      ]
+      ],
+      "has_verifiable_evidence": true,
+      "directly_reported": true,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. Participation on trailing distributable earnings above the hurdle, less prior payments; paid with the disclosed lag.",
+      "unresolved_issues": []
     },
     {
       "ticker": "KREF",
@@ -842,7 +986,6 @@
       "period": "2024-12-31",
       "basis": "annual:trailing_12_month_adjusted_equity",
       "status": "supported",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. Trailing twelve-month hurdle on adjusted equity, as defined in the management agreement.",
       "sources": [
         {
@@ -866,7 +1009,12 @@
           "filing_date": "2025-02-03",
           "locator": "HTML block 11"
         }
-      ]
+      ],
+      "has_verifiable_evidence": true,
+      "directly_reported": true,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. Trailing twelve-month hurdle on adjusted equity, as defined in the management agreement.",
+      "unresolved_issues": []
     },
     {
       "ticker": "KREF",
@@ -876,7 +1024,6 @@
       "period": "2024-12-31",
       "basis": "book_value",
       "status": "supported_with_review",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. 4 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
       "sources": [
         {
@@ -886,7 +1033,12 @@
           "filing_date": "2025-02-03",
           "locator": "HTML table 19; row 11; column 8"
         }
-      ]
+      ],
+      "has_verifiable_evidence": true,
+      "directly_reported": true,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. 4 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
+      "unresolved_issues": []
     },
     {
       "ticker": "KREF",
@@ -896,7 +1048,6 @@
       "period": "2024-12-31",
       "basis": "debt_to_equity:reported_corporate_ratio",
       "status": "supported_with_review",
-      "confidence": "medium",
       "reason": "Source, unit, period and basis checks passed; PM and compliance approval still required. Reported debt/equity, distinct from the separately reported total leverage ratio. See source footnote A. 5 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
       "sources": [
         {
@@ -906,7 +1057,12 @@
           "filing_date": "2025-02-03",
           "locator": "HTML table 29; dated debt/equity row"
         }
-      ]
+      ],
+      "has_verifiable_evidence": true,
+      "directly_reported": true,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Source, unit, period and basis checks passed; PM and compliance approval still required. Reported debt/equity, distinct from the separately reported total leverage ratio. See source footnote A. 5 other numeric candidates have unconfirmed context or duplicate source values. The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.",
+      "unresolved_issues": []
     },
     {
       "ticker": "KREF",
@@ -916,9 +1072,13 @@
       "period": "",
       "basis": "",
       "status": "needs_review",
-      "confidence": "unavailable",
       "reason": "Relevant evidence requires interpretation.",
-      "sources": []
+      "sources": [],
+      "has_verifiable_evidence": false,
+      "directly_reported": false,
+      "decision_author": "rules_only",
+      "evidence_rationale": "Relevant evidence requires interpretation.",
+      "unresolved_issues": []
     }
   ],
   "nport_reports": 28,

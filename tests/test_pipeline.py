@@ -34,7 +34,7 @@ def test_xbrl_exact_units_period_and_locator():
     assert c['period'] == '2024-12-31' and 'context=c' in c['locator']
     assert '15.25' in c['quote']
     r = resolve_metric([c], FUND, 'nav', CONFIG)
-    assert r['value'] == 15.25 and r['confidence'] == 'medium'
+    assert r['value'] == 15.25 and r['has_verifiable_evidence'] and r['directly_reported']
 
 
 @pytest.mark.parametrize('kwargs', [{'unit':'iso4217:EUR'}, {'context_extra':'<xbrldi:explicitMember>PreferredStock</xbrldi:explicitMember>'}])

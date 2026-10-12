@@ -75,7 +75,7 @@ def parse_nport(body, fund, filing, source):
               'series_id': series, 'series_name': text(gen, 'seriesName'),
               'source_url': source['url'], 'source_sha256': source['sha256'], 'namespace': NS,
               'fields': {}, 'monthly_returns': [], 'holdings': [], 'checks': [],
-              'confidence_definition': 'Medium: parsed explicit XML field and verified fund/date; not independent financial validation. Low: class scope unresolved. Missing/invalid fields unavailable.',
+              'evidence_note': 'Explicit XML fields with source paths; matching a source does not establish financial comparability. Inspect balance checks and share-class identifiers.',
               'notes': ['Total net assets are fund-level USD, not NAV per share or an AUM definition.',
                         'Monthly returns remain monthly; no annual return or share class is inferred.',
                         'Borrowings under Item B.2.c are not total liabilities or full economic leverage.']}
@@ -86,7 +86,7 @@ def parse_nport(body, fund, filing, source):
         value = decimal_value(raw)
         numeric[field] = value
         report['fields'][field] = {'value': float(value) if value is not None else None,
-            'raw': raw, 'unit': 'USD', 'confidence': 'medium' if value is not None else 'unavailable', 'status': 'extracted' if value is not None else 'missing_or_invalid',
+            'raw': raw, 'unit': 'USD', 'has_verifiable_evidence': value is not None, 'status': 'extracted' if value is not None else 'missing_or_invalid',
             **(evidence(node) if node is not None else {})}
     a, l, n = [numeric[k] for k in TOTALS]
     if all(v is not None for v in (a, l, n)):
@@ -98,7 +98,7 @@ def parse_nport(body, fund, filing, source):
         report['checks'].append({'check': 'assets_minus_liabilities_equals_net_assets', 'status': 'unavailable'})
     for node in info.findall('n:returnInfo/n:monthlyTotReturns/n:monthlyTotReturn', ns):
         record = {'class_id': node.get('classId'), 'values_pct': {}, **evidence(node),
-                  'confidence': 'medium' if node.get('classId') else 'low',
+                  'evidence_rationale': 'XML return attributes; class ID present.' if node.get('classId') else 'XML return attributes; share class is unresolved.',
                   'status': 'class_identified' if node.get('classId') else 'class_unconfirmed'}
         for field in ('rtn1', 'rtn2', 'rtn3'):
             value = decimal_value(node.get(field))
@@ -117,7 +117,7 @@ def parse_nport(body, fund, filing, source):
             e = node.find('n:' + tag, ns)
             if e is not None:
                 record[tag] = dict(e.attrib)
-        record['confidence'] = 'medium' if record['valUSD'] is not None else 'unavailable'
+        record['has_verifiable_evidence'] = record['valUSD'] is not None
         record['identifiers'] = [{etree.QName(e).localname: dict(e.attrib)}
                                 for e in node.findall('n:identifiers/*', ns)]
         record['locator'] = f'XML /n:edgarSubmission/n:formData/n:invstOrSecs/n:invstOrSec[{position_index}]'

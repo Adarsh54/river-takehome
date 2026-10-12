@@ -35,18 +35,15 @@ Create a JSON array in an ignored local output directory. Use actual candidate I
 
 This illustrative JSON is not competitor data and cannot validate as supplied. The application rejects unknown/stale IDs, unsupported values, missing reviewer/rationale, mismatched units, absent verbatim evidence, and future periods. For rejection, supply candidate_id, action `reject`, reviewer and reason. Reject specific conflicting candidates explicitly; a newer filing does not silently win. Accepted definitions must also pass the metric-specific compatibility checks.
 
-Rerun `apex-benchmark --offline --decisions output/decisions.json`. The PDF/CSV/HTML retain qualifications. Review decisions do not authorize board use: the PM and compliance still approve the package separately. Neither authentication nor a multi-user approval service is implemented.
+Rerun `apex-benchmark --offline --llm cached --decisions output/decisions.json`. The PDF/CSV/HTML retain qualifications. Review decisions do not authorize board use: the PM and compliance still approve the package separately. Neither authentication nor a multi-user approval service is implemented.
 
-## Status meanings
+## Evidence and decisions
 
-- `supported` / medium: structured source passed unit, context and temporal checks; human gates outstanding.
-- `supported_with_review`: a dated, definition-matched source supports the value, while other numeric passages have unconfirmed context or duplicate it. Those passages remain explicit review items. This is not a resolved disagreement between comparable facts.
-- `reviewed`: a named reviewer resolved interpretation with verbatim supporting evidence. This is a confidence label, not compliance sign-off.
-- `conflict`: accepted evidence differs for the same period; value withheld.
-- `needs_review`: candidates exist but interpretation or conflicting candidates are unresolved.
-- `not_found`: extraction did not establish a value. This is not a claim of non-disclosure.
-- `retrieval_incomplete`: missing source access prevents reliable coverage/freshness verification.
-- `lagged`: supported period is more than 120 days behind target (configurable review threshold, not a client-approved materiality rule).
+The report has no high/medium/low confidence grades. For each value, read the evidence explanation: source support, whether it is directly reported or calculated, the selection rationale, alternatives considered and unresolved issues. `has_verifiable_evidence` means there is a traceable source for the displayed value; it does not imply that compliance approved the financial interpretation. `directly_reported=false` distinguishes a calculation from a quoted number.
+
+Open `judgments.json` to inspect the model's response, supplied passages, per-candidate assessments, request/prompt hashes and local validation outcome. A model may select a quoted figure from an unqualified narrative passage, explain why another figure uses the wrong class or basis, or withhold a decision. Python rejects invented sources/quotes/numbers, unsupported dates/units/calculations, incomplete packets and unreviewed OCR. Semantic accuracy still needs review against original filings.
+
+Machine statuses remain in the audit for workflow routing: `conflict`, `needs_review`, `not_found`, `retrieval_incomplete`, `extraction_incomplete`, and `lagged` explain an action or gap; they are not confidence ranks. A `rules_only` banner means no LLM judgment has been applied. The 120-day lag flag is a configurable review threshold, not a client-approved materiality rule.
 
 ## Internal figures
 
