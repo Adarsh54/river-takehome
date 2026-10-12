@@ -39,6 +39,11 @@ def export(run, output):
                 if isinstance(value, str) and value.startswith(('=', '+', '-', '@')):
                     record[key] = "'" + value
             writer.writerow(record)
+        for metric, value in run['apex']['values'].items():
+            writer.writerow({'ticker': 'APEX', 'metric': metric, 'value': value['value'],
+                'unit': 'USD/share' if metric == 'nav' else 'x' if metric == 'leverage' else '%',
+                'period': value['period'], 'status': 'client_approved', 'confidence': value['confidence'],
+                'basis': 'Client supplied; confirm definitions', 'sources': json.dumps(value)})
     (output / 'index.html').write_text(html_report(run))
     pdf_report(run, output / 'benchmark.pdf')
 
@@ -58,11 +63,12 @@ def html_report(run):
                          f'<small>{esc(r["period"] or "Period unconfirmed")}</small></td>')
         rows.append('<tr>' + ''.join(cells) + '</tr>')
     evidence = []
-    for r in run['results']:
+    for r, is_history in [(r, False) for r in run['results']] + [(r, True) for r in run['nav_history']]:
         snippets = []
         for c in r['sources']:
             snippets.append(source_html(c))
-        evidence.append(f'<section class="metric" id="{r["ticker"]}-{r["metric"]}"><h3>{r["ticker"]} · {esc(r["label"])}</h3>'
+        ident = f'{r["ticker"]}-{r["metric"]}' + (f'-{r["period"]}' if is_history else '')
+        evidence.append(f'<section class="metric" id="{ident}"><h3>{r["ticker"]} · {esc(r["label"])} · {esc(r["period"])}</h3>'
             f'<p><strong>{display(r)}</strong> · {esc(r["status"])} · confidence: {esc(r["confidence"])}</p>'
             f'<p>{esc(r["reason"])} {esc(r["comparability"])}</p><p>Basis: {esc(r["basis"] or "Unconfirmed")}</p>' + ''.join(snippets) + '</section>')
     candidates = []
@@ -73,7 +79,11 @@ def html_report(run):
     history = []
     for ticker in tickers:
         items = [r for r in run['nav_history'] if r['ticker'] == ticker]
-        history.append('<tr><th>' + ticker + '</th>' + ''.join(f'<td>{display(r)}<small>{esc(r["status"])}</small></td>' for r in items) + '</tr>')
+        history.append('<tr><th>' + ticker + '</th>' + ''.join(f'<td><a href="#{ticker}-nav-{r["period"]}">{display(r)}</a><small>{esc(r["status"])}</small></td>' for r in items) + '</tr>')
+    apex_history = ''
+    if run['apex']['nav_history']:
+        apex_history = '<h3>Apex Ridge approved history · starts Q1 2024</h3><p>' + ' · '.join(
+            f'{esc(r["period"])}: ${r["value"]:,.2f} (input row {r["row"]})' for r in run['apex']['nav_history']) + '</p>'
     errors = ''.join(f'<li><strong>{esc(e["ticker"])}</strong>: {esc(e["error"])}</li>' for e in run['errors'])
     inventory = ''.join(f'<tr><td>{esc(f["ticker"])}</td><td>{esc(f["form"])}</td><td>{esc(f["filingDate"])}</td><td>{esc(f.get("reportDate", ""))}</td><td>{esc(f["accessionNumber"])}</td></tr>' for f in run['filings'])
     return f'''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -89,6 +99,7 @@ Blank values are explicit gaps. Retrieval errors do not mean a fund failed to di
 <div class="scroll"><table><thead><tr><th>Metric</th><th>Apex Ridge</th>{''.join('<th>'+t+'</th>' for t in tickers)}</tr></thead><tbody>{''.join(rows)}</tbody></table></div>
 <h2>NAV history</h2><p>Eight competitor quarter-ends; no interpolation or carry-forward. KREF uses book value per common share. Apex history starts Q1 2024 and is withheld pending approval.</p>
 <div class="scroll"><table><tr><th>Fund</th>{''.join('<th>'+d+'</th>' for d in run['quarters'])}</tr>{''.join(history)}</table></div>
+{apex_history}
 <h2>Retrieval and coverage</h2><ul>{errors or '<li>No retrieval errors recorded.</li>'}</ul><p>{len(run['filings'])} eligible filings inventoried; {len(run['documents'])} source documents parsed; {len(run['candidates'])} evidence candidates. Cache mode: {esc(run['mode'])}.</p>
 <details><summary>Filing inventory</summary><div class="scroll"><table><tr><th>Fund</th><th>Form</th><th>Filed</th><th>Report period</th><th>Accession</th></tr>{inventory}</table></div></details>
 <h2>Values and selection explanations</h2>{''.join(evidence)}
@@ -141,16 +152,21 @@ def pdf_report(run, path):
     t = Table(hist, colWidths=[70]+[88]*8, repeatRows=1)
     t.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('BACKGROUND',(0,0),(-1,0),colors.HexColor('#dce9e3')),('BOTTOMPADDING',(0,0),(-1,-1),12)]))
     story.extend([t, Spacer(1,12), p('No interpolation or carry-forward. Apex history starts Q1 2024; only approved rows through Q4 2024 can be used.')])
+    if run['apex']['nav_history']:
+        story.append(p('Apex Ridge approved history: ' + ' | '.join(f'{r["period"]}: ${r["value"]:,.2f} (input row {r["row"]})' for r in run['apex']['nav_history']), 'SmallNote'))
     for error in run['errors']:
         story.append(p(error['ticker'] + ': ' + error['error'], 'SmallNote'))
     story.append(p(f"Eligible filings: {len(run['filings'])}. Parsed documents: {len(run['documents'])}. Evidence candidates: {len(run['candidates'])}. Full inventory, review queue and source hashes are in audit.json.", 'SmallNote'))
     story.extend([PageBreak(), p('Evidence and review decisions', 'Title')])
-    for r in run['results']:
-        story.append(p(f"{r['ticker']} | {r['label']} | {display(r)}", 'Heading3'))
+    for r in run['results'] + [r for r in run['nav_history'] if r['sources']]:
+        story.append(p(f"{r['ticker']} | {r['label']} | {r['period']} | {display(r)}", 'Heading3'))
         story.append(p(f"{r['status']} / {r['confidence']}. {r['reason']} Basis: {r['basis'] or 'unconfirmed'}. {r['comparability']}", 'SmallNote'))
         for c in r['sources']:
             story.append(p(f"Filed {c['filing_date']} | period {c['period']} | {c['locator']}", 'SmallNote'))
             story.append(Paragraph(f'<link href="{esc(c["source_url"])}" color="#166957">Original SEC source: {esc(c["accession"])}</link>', styles['SmallNote']))
             # Paragraphs split safely across pages; keep the full quoted evidence.
             story.append(p(c['quote'], 'SmallNote'))
+    for metric, value in run['apex']['values'].items():
+        story.append(p(f'Apex Ridge | {METRICS[metric]} | {value["value"]}', 'Heading3'))
+        story.append(p(f'Client-approved source: {value["source"]}, row {value["row"]}, column {value["column"]}. SHA-256: {value["sha256"]}. Approval: {value["approval"]}', 'SmallNote'))
     doc.build(story, onFirstPage=footer, onLaterPages=footer)

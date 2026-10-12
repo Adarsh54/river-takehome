@@ -182,3 +182,26 @@ def test_explicit_shareholder_return_table_and_annualization():
     bad = body.replace(b'Average annual', b'Cumulative')
     found = [c.dict() for c in parse_document(bad, FUND, FILING, SOURCE)]
     assert resolve_metric(found, FUND, 'return_3y', CONFIG)['value'] is None
+
+
+def test_export_history_anchors_and_approved_internal_values(tmp_path):
+    class NoAccess:
+        offline = True
+        refresh = False
+        def json(self, url):
+            raise RetrievalError('Test fixture: no sources')
+    cfg = dict(CONFIG, apex_data_approved=True, apex_approved_by='Unit test', apex_approval_note='Test approval only')
+    run = run_pipeline(cfg, NoAccess(), ROOT/'data/apex_ridge_fund_data.csv', progress=lambda *a,**k:None)
+    c = nav_candidate()
+    r = resolve_metric([c], FUND, 'nav', cfg)
+    run['results'] = [r if x['ticker']=='GBDC' and x['metric']=='nav' else x for x in run['results']]
+    run['nav_history'] = [r if x['ticker']=='GBDC' and x['period']=='2024-12-31' else x for x in run['nav_history']]
+    export(run, tmp_path)
+    from bs4 import BeautifulSoup
+    soup = BeautifulSoup((tmp_path/'index.html').read_text(), 'html.parser')
+    ids = [n['id'] for n in soup.select('[id]')]
+    assert len(ids) == len(set(ids))
+    assert soup.select_one('#GBDC-nav') and soup.select_one('#GBDC-nav-2024-12-31')
+    assert '15.25' in soup.select_one('#GBDC-nav-2024-12-31').get_text()
+    assert 'Apex Ridge approved history' in soup.get_text()
+    assert 'APEX,nav,25.42' in (tmp_path/'benchmark.csv').read_text()

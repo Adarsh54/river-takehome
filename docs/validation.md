@@ -4,7 +4,7 @@ Development validation: October 12, 2026. Historical comparison cutoff remains F
 
 ## Automated checks
 
-`pytest -q`: 19 passing tests at the initial validation checkpoint. Tests cover structured units/scales and locations, ambiguous dimensions/share classes, historical filing discovery, inclusive cutoff, future-period exclusion, conflicts, stale fallback prevention, evidence-bound decisions, waiver-term retention, explicit shareholder-return tables, cache integrity, internal-data gating and complete error-state PDF/HTML/CSV/JSON exports. Synthetic test fixtures are clearly identified and never used as competitor report data.
+`pytest -q`: 20 passing tests at the final local validation checkpoint. Tests cover structured units/scales and locations, ambiguous dimensions/share classes, historical filing discovery, inclusive cutoff, future-period exclusion, conflicts, stale fallback prevention, evidence-bound decisions, waiver-term retention, explicit shareholder-return tables, cache integrity, internal-data gating and complete error-state PDF/HTML/CSV/JSON exports. Synthetic test fixtures are clearly identified and never used as competitor report data.
 
 ## Live SEC smoke run
 
@@ -14,7 +14,7 @@ No financial extraction accuracy, actual source conflict resolution, source reco
 
 ## Document QA
 
-Technical approach: 3 pages. Business solution brief: 2 pages. Benchmark failure report: 6 pages. PDF text extraction confirmed review-draft labels and absence of unapproved internal values. Visual rendering is part of the handoff QA; generated benchmark outputs stay local and ignored by Git.
+Technical approach: 3 pages. Business solution brief: 2 pages. Benchmark failure report: 6 pages. PDF text extraction confirmed review-draft labels and absence of unapproved internal values. All document pages were rendered and visually inspected for clipping, overlap and readability. Generated benchmark outputs stay local and ignored by Git. GitHub Actions also passed on the initial pushed implementation; subsequent export fixes are covered by local regression tests.
 
 ## Remaining acceptance checks
 
