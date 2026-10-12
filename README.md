@@ -1,0 +1,94 @@
+# Apex Ridge - auditable competitor benchmarking
+
+A local Python prototype for the Q4 2024 board cycle. It connects to SEC EDGAR, inventories filings published through **February 28, 2025**, parses source evidence, and exports a comparison plus a review queue. No mock competitor data and no paid/model API key required.
+
+**Current validation status:** unit and integration tests pass, but live requests from the development machine returned SEC HTTP 403. No live competitor values have been validated. The generated development report honestly shows retrieval failures and withheld numbers. This is a prototype requiring a successful live run and extraction calibration before a board-ready populated output can be claimed.
+
+The supplied Apex Ridge file is preserved but **withheld by default**: Dana disputes its provenance and its dates through Q4 2025. Approving the source is a separate client action. Competitor extraction runs independently.
+
+## Install and run
+
+Python 3.11 or newer; run from the repository root:
+
+```sh
+git clone https://github.com/Adarsh54/river-takehome.git
+cd river-takehome
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e '.[dev]'
+export SEC_USER_AGENT='ApexBenchmark/0.1 Your Name your-real-contact-email@your-domain.com'
+apex-benchmark --refresh
+```
+
+Replace the contact with your real details. SEC requests need an identifying User-Agent; a declared contact does not guarantee that SEC will allow a particular network. The application caps requests at four per second, backs off for transient errors, stops a fund's document loop on 403, and never circumvents denial.
+
+The repository is private; cloning requires authorized GitHub access. Installation requires internet. SEC retrieval also requires access to `data.sec.gov` and `www.sec.gov`.
+
+Open `output/latest/index.html` directly or serve it locally:
+
+```sh
+python -m http.server 8000 --bind 127.0.0.1 --directory output/latest
+```
+
+Visit http://127.0.0.1:8000. There is no server-side application, authentication or external upload.
+
+## What you receive
+
+| Output | Purpose |
+| --- | --- |
+| `index.html` | Comparison, eight-quarter competitor NAV table, filing inventory, searchable source review queue |
+| `benchmark.pdf` | Portable review package with the same flags, definitions and source evidence |
+| `benchmark.csv` | Editable long-form data with status, period, definitions and source references |
+| `audit.json` | Full configuration, source hashes, candidates, selection reasons, errors and recorded reviewer decisions |
+
+All formats say REVIEW DRAFT. Publication still requires PM and compliance review. A missing result is not silently replaced by an older value. Retrieval failure is distinguished from unresolved extraction; neither is asserted to be non-disclosure.
+
+## Repeat a run and review evidence
+
+```sh
+# Reuse real downloaded evidence, with zero network calls:
+apex-benchmark --offline
+# Apply evidence-backed reviewer interpretations:
+apex-benchmark --offline --decisions output/decisions.json
+# Check current SEC discovery rather than using cached URL responses:
+apex-benchmark --refresh
+# Verify behavior without contacting SEC:
+pytest -q
+```
+
+Exit codes: 0 = pipeline completed (may still contain review gaps); 2 = retrieval incomplete or invalid inputs. Always inspect the audit coverage and status counts. Offline mode is not a demo fixture: an empty cache produces explicit failures. Raw sources are retained under `.cache/sec`, with SHA-256 verification. Cached runs preserve the original retrieval time.
+
+See [review workflow](docs/review-workflow.md) for decision format, confidence meanings and internal-data approval. Do not paste unsupported values into the report. Reviewer edits bind to immutable evidence IDs and require quoted source text, a named reviewer and a rationale.
+
+## Financial rules from consultation
+
+- Q4 2024 comparison; filings on or before February 28, 2025 (inclusive date-only convention). Filing date and reporting period are both retained. No later filings leak into this historical view.
+- Latest available supported value at or before target period. Eight quarter-end NAV observations for competitors, with explicit gaps and no carry-forward. Approved Apex history starts Q1 2024.
+- Contractual management fee primary; effective rate only when disclosed. Waiver dates and conditions remain in supporting passages and reviewer rationale.
+- Golub (GBDC) and KREF: total shareholder return, including distributions. Interval funds: net NAV return for the intended class. Never label different return bases as identical.
+- KREF is a **mortgage REIT**, not a BDC. Book value per common share is labeled separately from fund NAV. Leverage and distribution definitions are preserved rather than forced into false equivalence.
+
+## How extraction works - and its limits
+
+SEC submissions discovery includes historical filing-list pages, not only recent records. The inventory selects financial reports, portfolio reports, prospectuses/supplements and current reports across the lookback. Complete submissions preserve HTML/text/XML exhibits; PDF exhibits are retrieved separately. Sources are parsed into reproducible locations and complete relevant passages.
+
+Deterministic extraction supports selected inline-XBRL per-share tags and simple explicitly labeled return tables. Text rules locate rates and relevant narrative, footnotes and tables. Ambiguous units, share classes, return definitions, merged table layouts and most narrative rates require reviewer confirmation. PDF text is searchable evidence; scanned PDFs require future OCR support. N-PORT XML is retained as evidence, but dedicated position/aggregate mapping is not implemented. This prototype does not yet automatically derive leverage, missing trailing returns or yields; absent comparable measures stay unavailable.
+
+Confidence is an evidence status, not an LLM probability. Structured checks can establish `medium`; a recorded human interpretation is `reviewed`. Neither is board approval. Conflicting accepted values are withheld. All unresolved numeric candidates in the same/newer filing are surfaced before publication. This conservative coverage can require substantial review; live filings must be used to tune it.
+
+## Documents
+
+- [Implementation plan and client decisions](docs/implementation-plan.md)
+- [Technical approach - 3 pages](docs/technical-approach.pdf)
+- [Solution brief - 2 pages](docs/solution-brief.pdf)
+- [Internal-data discrepancy note - draft, not sent](docs/apex-data-discrepancy.md)
+- [Validation record](docs/validation.md)
+- [Original starter README](docs/starter-readme.md)
+
+Regenerate written PDF deliverables with `python scripts/build_documents.py`. PDF runtime dependencies install with the project. Documentation source is in that script.
+
+## Operational constraints and next validation
+
+Resolve SEC access using a real declared contact and a permitted network. Run the four-fund retrieval and manually audit a representative set of actual passages and conflicting disclosures; calibrate extraction rules before relying on coverage. Confirm the interval-fund class identifiers from those filings. Obtain Dana's approval or replacement Apex file. Review the populated output with Dana and confirm the portable format. Authentication, scheduled runs, signed approvals, automated PDF OCR, extraction coverage targets, and market-data integrations are production follow-ups, not features claimed here.
+
+Official references: [SEC APIs](https://www.sec.gov/search-filings/edgar-application-programming-interfaces), [SEC developer resources](https://www.sec.gov/about/developer-resources). The tool fetches public evidence only; client data and generated outputs stay local unless you explicitly share them.

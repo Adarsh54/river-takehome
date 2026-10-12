@@ -1,0 +1,16 @@
+{
+  "target_period": "2024-12-31",
+  "filing_cutoff": "2025-02-28",
+  "history_quarters": 8,
+  "stale_after_days": 120,
+  "apex_data_approved": false,
+  "apex_approved_by": null,
+  "apex_approval_note": null,
+  "apex_history_start": "2024-03-31",
+  "funds": [
+    {"ticker": "CCLFX", "name": "Cliffwater Corporate Lending Fund", "cik": "0001735964", "structure": "interval", "share_class": "Institutional", "return_basis": "net_nav"},
+    {"ticker": "TAKIX", "name": "Carlyle Tactical Private Credit Fund", "cik": "0001725472", "structure": "interval", "share_class": "Class I", "return_basis": "net_nav"},
+    {"ticker": "GBDC", "name": "Golub Capital BDC", "cik": "0001476765", "structure": "bdc", "share_class": "Common", "return_basis": "shareholder"},
+    {"ticker": "KREF", "name": "KKR Real Estate Finance Trust", "cik": "0001631596", "structure": "mortgage_reit", "share_class": "Common", "return_basis": "shareholder"}
+  ]
+}
