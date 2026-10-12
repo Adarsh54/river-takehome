@@ -184,7 +184,7 @@ def main(argv=None):
         judge = None
         if args.llm != 'off':
             from .judgment import NumberedJudge
-            judge = NumberedJudge(os.environ.get('OPENAI_API_KEY'), args.model or os.environ.get('OPENAI_MODEL', 'gpt-5.4'),
+            judge = NumberedJudge(os.environ.get('OPENAI_API_KEY'), args.model or os.environ.get('OPENAI_MODEL', 'gpt-6.1-sol'),
                                 args.cache / 'judgments', offline=args.llm=='cached')
         print('Stage: source preparation',flush=True)
         source_started=time.perf_counter()
