@@ -125,14 +125,14 @@ The 26-value/21-observation coverage is the **parser baseline**. After resuming 
 ## Documents
 
 - [Implementation plan and client decisions](docs/implementation-plan.md)
-- Technical approach - 3 pages: [Word](docs/technical-approach.docx) | [PDF](docs/technical-approach.pdf)
+- [Technical approach - 3 pages](docs/technical-approach.pdf)
 - [Solution brief - 2 pages](docs/solution-brief.pdf)
 - [Internal-data discrepancy note - draft, not sent](docs/apex-data-discrepancy.md)
 - [Scope-update validation](docs/scope-validation.json): live Ares discovery and three custom-metric judgments
 - [Validation record](docs/validation.md) and [observed live result](docs/live-validation.json)
 - [Original starter README](docs/starter-readme.md)
 
-Regenerate written deliverables with `python scripts/build_documents.py`. The technical approach is authored as Word in `scripts/technical_report.py` and exported to PDF with LibreOffice; Times New Roman must be installed. To generate only the editable Word file, run `python scripts/technical_report.py --word-only`. The solution brief source remains in `scripts/build_documents.py`.
+Regenerate written PDF deliverables with `python scripts/build_documents.py`. PDF runtime dependencies install with the project. Documentation source is in that script.
 
 ## Operational constraints and next validation
 
