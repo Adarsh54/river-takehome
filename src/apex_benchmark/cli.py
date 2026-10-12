@@ -14,7 +14,8 @@ from .report import export
 from .normalize import qualify_disclosures
 from .structured_reports import derive_report_metrics
 
-PARSER_VERSION = hashlib.sha256(Path(__file__).with_name('extract.py').read_bytes()).hexdigest()
+PARSER_VERSION = hashlib.sha256(b''.join(Path(__file__).with_name(name).read_bytes()
+    for name in ('extract.py', 'nport.py', 'pdf_extract.py'))).hexdigest()
 
 
 def validate_config(config):
@@ -30,13 +31,16 @@ def validate_config(config):
         raise ValueError('Duplicate fund ticker')
 
 
-def run_pipeline(config, client, internal_path, decisions=None, progress=print):
+def run_pipeline(config, client, internal_path, decisions=None, progress=print, ocr_mode='auto'):
     validate_config(config)
+    from .pdf_extract import ocr_environment
+    ocr_runtime = ocr_environment()
     now = datetime.now(timezone.utc).isoformat()
     run = {'schema_version': 1, 'generated_at': now,
         'run_id': hashlib.sha256((now + json.dumps(config, sort_keys=True)).encode()).hexdigest()[:16],
         'config': config, 'mode': 'offline_cache' if client.offline else 'live_refresh' if client.refresh else 'live_with_cache',
-        'filings': [], 'documents': [], 'candidates': [], 'errors': [], 'results': [], 'nav_history': [],
+        'filings': [], 'documents': [], 'nport_reports': [], 'extraction_diagnostics': [],
+        'ocr': {'mode': ocr_mode, **ocr_runtime}, 'candidates': [], 'errors': [], 'results': [], 'nav_history': [],
         'apex': internal_data(internal_path, config),
         'quarters': quarter_ends(config['target_period'], config['history_quarters'])}
     for fund in config['funds']:
@@ -69,15 +73,32 @@ def run_pipeline(config, client, internal_path, decisions=None, progress=print):
                               'retrieved_at': meta['retrieved_at'], 'submission_url': full}
                     # Cache each parsed exhibit exactly as inspected; keep original submission too.
                     (client.cache / digest).write_bytes(content)
-                    parse_key = hashlib.sha256(json.dumps([digest, source, fund, filing, PARSER_VERSION], sort_keys=True).encode()).hexdigest()
+                    parse_key = hashlib.sha256(json.dumps([digest, source, fund, filing, PARSER_VERSION, ocr_mode, ocr_runtime], sort_keys=True).encode()).hexdigest()
                     parsed_dir = client.cache / 'parsed'
                     parsed_dir.mkdir(exist_ok=True)
                     parsed_path = parsed_dir / (parse_key + '.json')
                     if parsed_path.exists():
-                        found = json.loads(parsed_path.read_text())
+                        parsed = json.loads(parsed_path.read_text())
                     else:
-                        found = [c.dict() for c in parse_document(content, fund, filing, source)]
-                        parsed_path.write_text(json.dumps(found))
+                        diagnostics, structured = [], []
+                        try:
+                            found = [c.dict() for c in parse_document(content, fund, filing, source,
+                                diagnostics=diagnostics, structured=structured,
+                                ocr_mode=ocr_mode, ocr_environment=ocr_runtime)]
+                        except (ValueError, OSError) as exc:
+                            found = []
+                            diagnostics.append({'stage': 'parse', 'status': 'failed', 'error': str(exc)})
+                        parsed = {'candidates': found, 'diagnostics': diagnostics, 'structured': structured}
+                        # Failures are retried on rerun (e.g. missing language data or transient OCR timeout).
+                        if not any(d.get('error') for d in diagnostics):
+                            parsed_path.write_text(json.dumps(parsed, allow_nan=False))
+                    found = parsed['candidates']
+                    run['nport_reports'].extend(parsed['structured'])
+                    for diagnostic in parsed['diagnostics']:
+                        diagnostic = dict(diagnostic, ticker=ticker, accession=filing['accessionNumber'], source_url=url)
+                        run['extraction_diagnostics'].append(diagnostic)
+                        if diagnostic.get('error'):
+                            run['errors'].append(diagnostic)
                     run['documents'].append(dict(source, ticker=ticker, accession=filing['accessionNumber'],
                         candidates=len(found)))
                     run['candidates'].extend(found)
@@ -107,6 +128,8 @@ def main(argv=None):
     parser.add_argument('--cache', type=Path, default=Path('.cache/sec'))
     parser.add_argument('--output', type=Path, default=Path('output/latest'))
     parser.add_argument('--decisions', type=Path, help='Reviewed candidate decisions JSON; see docs/review-workflow.md')
+    parser.add_argument('--ocr', choices=['auto', 'always', 'off'], default='auto',
+                        help='OCR sparse-text PDF pages automatically, every page, or disable with explicit gap flags')
     parser.add_argument('--offline', action='store_true', help='Use previously downloaded real SEC responses only')
     parser.add_argument('--refresh', action='store_true', help='Recheck SEC responses instead of using URL cache')
     args = parser.parse_args(argv)
@@ -119,7 +142,7 @@ def main(argv=None):
         config = json.loads(args.config.read_text())
         decisions = json.loads(args.decisions.read_text()) if args.decisions else []
         client = SecClient(ua or 'offline-cache-only', args.cache, args.offline, args.refresh)
-        run = run_pipeline(config, client, args.apex_data, decisions)
+        run = run_pipeline(config, client, args.apex_data, decisions, ocr_mode=args.ocr)
         export(run, args.output)
     except (ValueError, OSError, KeyError) as exc:
         parser.error(str(exc))
@@ -127,7 +150,8 @@ def main(argv=None):
     for result in run['results']:
         counts[result['status']] = counts.get(result['status'], 0) + 1
     print(json.dumps({'output': str(args.output.resolve()), 'statuses': counts,
-        'retrieval_errors': len(run['errors']), 'apex': run['apex']['status']}, indent=2))
+        'retrieval_errors': sum(e['stage'] not in {'ocr', 'parse'} for e in run['errors']),
+        'extraction_errors': sum(e['stage'] in {'ocr', 'parse'} for e in run['errors']), 'apex': run['apex']['status']}, indent=2))
     return 2 if run['errors'] else 0
 
 

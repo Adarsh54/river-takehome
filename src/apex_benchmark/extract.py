@@ -69,6 +69,7 @@ class Candidate:
     eligible: bool = False
     reasons: list[str] = field(default_factory=list)
     id: str = ''
+    extraction_meta: dict = field(default_factory=dict)
 
     def __post_init__(self):
         if not self.id:
@@ -110,15 +111,20 @@ def documents_from_submission(body: bytes, primary_url: str):
     return result
 
 
-def parse_document(body, fund, filing, source):
+def parse_document(body, fund, filing, source, *, diagnostics=None, structured=None,
+                   ocr_mode='auto', ocr_environment=None):
+    diagnostics = diagnostics if diagnostics is not None else []
     if body.startswith(b'%PDF'):
-        snippets = [(f'PDF page {i+1}', clean(p.extract_text() or ''))
-                    for i, p in enumerate(PdfReader(BytesIO(body)).pages)]
-        return narrative(snippets, fund, filing, source)
+        from .pdf_extract import pdf_candidates
+        return pdf_candidates(body, fund, filing, source, diagnostics, ocr_mode, ocr_environment)
     if source['url'].lower().endswith('.xml'):
-        # XML financial instances/label dictionaries are not prose. The accompanying
-        # inline-XBRL HTML is parsed separately. N-PORT needs a dedicated schema mapping.
-        return []
+        if filing['form'].removesuffix('/A') == 'NPORT-P' and b'edgarSubmission' in body:
+            from .nport import parse_nport
+            report, candidates = parse_nport(body, fund, filing, source)
+            if structured is not None:
+                structured.append(report)
+            return candidates
+        return []  # Other XBRL/XML schemas are handled by their accompanying HTML.
     soup = BeautifulSoup(body, 'lxml')
     results = inline_facts(soup, fund, filing, source)
     results.extend(dated_per_share_tables(soup, fund, filing, source))

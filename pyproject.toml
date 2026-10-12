@@ -10,6 +10,7 @@ requires-python = ">=3.11"
 dependencies = ["requests>=2.32,<3", "beautifulsoup4>=4.12,<5", "lxml>=5,<7", "reportlab>=4.2,<5", "pypdf>=5,<7"]
 
 [project.optional-dependencies]
+ocr = ["pypdfium2>=4.30,<6", "Pillow>=10,<13"]
 dev = ["pytest>=8,<10"]
 
 [project.scripts]

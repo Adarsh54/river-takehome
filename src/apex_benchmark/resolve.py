@@ -41,6 +41,10 @@ def apply_decisions(candidates, decisions, cutoff):
         c['review'] = entry
         c['eligible'] = False
         if entry['action'] == 'accept':
+            if c.get('method') == 'nport_borrowings_ratio':
+                raise ValueError('Derived N-PORT borrowing scope requires an implemented benchmark rule, not a quoted-value override')
+            if c.get('method') == 'ocr_evidence' and entry.get('visual_verified') is not True:
+                raise ValueError('OCR acceptance requires visual_verified=true after checking the original PDF')
             required = ['value', 'period', 'basis', 'share_class', 'evidence_text', 'unit']
             if any(entry.get(k) in (None, '') for k in required):
                 raise ValueError(f'Accepted decision requires {required}')
@@ -100,7 +104,10 @@ def resolve_metric(candidates, fund, metric, config, exact_period=None, retrieva
         'sources': [], 'candidate_ids': [c['id'] for c in relevant], 'basis': '',
         'comparability': 'Not assessed', 'lag_days': None}
     if retrieval_errors:
-        result.update(status='retrieval_incomplete', reason='SEC retrieval incomplete; availability and freshness cannot be certified.')
+        extraction_only = all(isinstance(e, dict) and e.get('stage') in {'ocr', 'parse'} for e in retrieval_errors)
+        result.update(status='extraction_incomplete' if extraction_only else 'retrieval_incomplete',
+            reason='Source extraction incomplete; inspect OCR/parser errors before publication.' if extraction_only
+            else 'SEC retrieval incomplete; availability and freshness cannot be certified.')
         # Preserve available evidence for review but never silently publish an older value.
         return result
     if not eligible:

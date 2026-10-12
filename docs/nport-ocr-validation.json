@@ -1,0 +1,259 @@
+{
+  "source": "Real SEC files from the existing immutable cache; no synthetic competitor data",
+  "reports": [
+    {
+      "ticker": "CCLFX",
+      "accession": "0001145549-25-015668",
+      "period": "2024-12-31",
+      "holdings": 4805,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 1
+    },
+    {
+      "ticker": "CCLFX",
+      "accession": "0001145549-24-078553",
+      "period": "2024-06-30",
+      "holdings": 3879,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 1
+    },
+    {
+      "ticker": "CCLFX",
+      "accession": "0001145549-24-076933",
+      "period": "2024-09-30",
+      "holdings": 4432,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 1
+    },
+    {
+      "ticker": "CCLFX",
+      "accession": "0001145549-24-055431",
+      "period": "2024-06-30",
+      "holdings": 3879,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 1
+    },
+    {
+      "ticker": "CCLFX",
+      "accession": "0001145549-24-035041",
+      "period": "2024-03-31",
+      "holdings": 2888,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 1
+    },
+    {
+      "ticker": "CCLFX",
+      "accession": "0001145549-24-012959",
+      "period": "2023-12-31",
+      "holdings": 2231,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 1
+    },
+    {
+      "ticker": "CCLFX",
+      "accession": "0001145549-23-073448",
+      "period": "2023-09-30",
+      "holdings": 1780,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 1
+    },
+    {
+      "ticker": "CCLFX",
+      "accession": "0001145549-23-053962",
+      "period": "2023-06-30",
+      "holdings": 1541,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 1
+    },
+    {
+      "ticker": "CCLFX",
+      "accession": "0001145549-23-031909",
+      "period": "2023-03-31",
+      "holdings": 1342,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 1
+    },
+    {
+      "ticker": "CCLFX",
+      "accession": "0001145549-23-014030",
+      "period": "2022-12-31",
+      "holdings": 1332,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 1
+    },
+    {
+      "ticker": "CCLFX",
+      "accession": "0001145549-22-070560",
+      "period": "2022-09-30",
+      "holdings": 1265,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 1
+    },
+    {
+      "ticker": "CCLFX",
+      "accession": "0001145549-22-066274",
+      "period": "2022-06-30",
+      "holdings": 1095,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 1
+    },
+    {
+      "ticker": "CCLFX",
+      "accession": "0001145549-22-054539",
+      "period": "2022-06-30",
+      "holdings": 1095,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 1
+    },
+    {
+      "ticker": "CCLFX",
+      "accession": "0001145549-22-032014",
+      "period": "2022-03-31",
+      "holdings": 928,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 1
+    },
+    {
+      "ticker": "CCLFX",
+      "accession": "0001145549-22-011213",
+      "period": "2021-12-31",
+      "holdings": 765,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 1
+    },
+    {
+      "ticker": "TAKIX",
+      "accession": "0001752724-25-046102",
+      "period": "2024-12-31",
+      "holdings": 989,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 7
+    },
+    {
+      "ticker": "TAKIX",
+      "accession": "0001752724-24-272661",
+      "period": "2024-09-30",
+      "holdings": 877,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 7
+    },
+    {
+      "ticker": "TAKIX",
+      "accession": "0001752724-24-197818",
+      "period": "2024-06-30",
+      "holdings": 830,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 7
+    },
+    {
+      "ticker": "TAKIX",
+      "accession": "0001752724-24-128250",
+      "period": "2024-03-31",
+      "holdings": 777,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 7
+    },
+    {
+      "ticker": "TAKIX",
+      "accession": "0001752724-24-049216",
+      "period": "2023-12-31",
+      "holdings": 720,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 7
+    },
+    {
+      "ticker": "TAKIX",
+      "accession": "0001752724-23-272437",
+      "period": "2023-09-30",
+      "holdings": 660,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 7
+    },
+    {
+      "ticker": "TAKIX",
+      "accession": "0001752724-23-196271",
+      "period": "2023-06-30",
+      "holdings": 617,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 7
+    },
+    {
+      "ticker": "TAKIX",
+      "accession": "0001752724-23-124504",
+      "period": "2023-03-31",
+      "holdings": 561,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 7
+    },
+    {
+      "ticker": "TAKIX",
+      "accession": "0001752724-23-049975",
+      "period": "2022-12-31",
+      "holdings": 522,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 7
+    },
+    {
+      "ticker": "TAKIX",
+      "accession": "0001752724-22-274510",
+      "period": "2022-09-30",
+      "holdings": 510,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 7
+    },
+    {
+      "ticker": "TAKIX",
+      "accession": "0001752724-22-200287",
+      "period": "2022-06-30",
+      "holdings": 481,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 6
+    },
+    {
+      "ticker": "TAKIX",
+      "accession": "0001752724-22-130017",
+      "period": "2022-03-31",
+      "holdings": 413,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 6
+    },
+    {
+      "ticker": "TAKIX",
+      "accession": "0001752724-22-054022",
+      "period": "2021-12-31",
+      "holdings": 371,
+      "balance": "pass",
+      "missing_values": 0,
+      "monthly_return_entries": 6
+    }
+  ],
+  "ocr_validation": "Real Tesseract on synthetic image-only and mixed-page regression fixtures; no PDF exhibits in competitor corpus",
+  "tests_passed": 53
+}

@@ -15,7 +15,10 @@ git clone https://github.com/Adarsh54/river-takehome.git
 cd river-takehome
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install -e '.[dev]'
+python -m pip install -e '.[dev,ocr]'
+# OCR engine (macOS):
+brew install tesseract
+# Ubuntu/Debian instead: sudo apt-get install tesseract-ocr tesseract-ocr-eng
 export SEC_USER_AGENT='ApexBenchmark/0.1 Your Name your-real-contact-email@your-domain.com'
 apex-benchmark --refresh
 ```
@@ -39,6 +42,8 @@ Visit http://127.0.0.1:8000. There is no server-side application, authentication
 | `index.html` | Comparison, eight-quarter competitor NAV table, filing inventory, searchable source review queue |
 | `benchmark.pdf` | Portable review package with the same flags, definitions and source evidence |
 | `benchmark.csv` | Editable long-form data with status, period, definitions and source references |
+| `nport.json` | Structured fund totals, borrowing fields, monthly return entries, holdings and balance checks with XML provenance |
+| `nport-holdings.csv` | Position-level values with source URL, hash and XML path |
 | `audit.json` | Full configuration, source hashes, candidates, selection reasons, errors and recorded reviewer decisions |
 
 All formats say REVIEW DRAFT. Publication still requires PM and compliance review. Unscoped narrative guesses are kept in the review queue rather than treated as comparable facts. A missing result is not silently replaced by an older value. Retrieval failure is distinguished from unresolved extraction; neither is asserted to be non-disclosure.
@@ -72,7 +77,7 @@ See [review workflow](docs/review-workflow.md) for decision format, confidence m
 
 SEC submissions discovery includes historical filing-list pages, not only recent records. The inventory selects financial reports, portfolio reports, prospectuses/supplements and current reports across the lookback. Complete submissions preserve HTML/text/XML exhibits; PDF exhibits are retrieved separately. Sources are parsed into reproducible locations and complete relevant passages.
 
-Deterministic extraction supports selected inline-XBRL per-share tags, KREF book-value tables with explicit date-column spans, and simple explicitly labeled return tables. Text rules locate rates and relevant narrative, footnotes and tables. Ambiguous units, share classes, return definitions, merged table layouts and most narrative rates require reviewer confirmation. PDF text is searchable evidence; scanned PDFs require future OCR support. N-PORT XML is retained as evidence, but dedicated position/aggregate mapping is not implemented. Narrow disclosure rules distinguish current contractual fees from old rates, target ranges and expense ratios. Trailing returns can be calculated from consecutive annual total returns or a disclosed reinvested-dividend index; formulas and original inputs are exported. Quarterly fee/hurdle percentages can be annualized with explicit conditions. Unsupported leverage or yield conversions stay unavailable. Cliffwater return chaining is deliberately disabled because its fiscal transition includes a partial period.
+Deterministic extraction supports selected inline-XBRL per-share tags, KREF book-value tables with explicit date-column spans, and simple explicitly labeled return tables. Text rules locate rates and relevant narrative, footnotes and tables. Ambiguous units, share classes, return definitions, merged table layouts and most narrative rates require reviewer confirmation. PDF text is searchable evidence; sparse-text pages use local Tesseract OCR when installed. OCR candidates retain page numbers, word boxes, recognition scores and rendering settings, and require visual verification before acceptance. N-PORT XML maps fund totals, all eight B.2.c borrowing components, selected other liabilities/cash fields, monthly return entries and holdings. It uses repPdDate (observation date), not repPdEnd (fiscal year-end), and checks assets minus liabilities against net assets. XML paths, raw values and source hashes remain available in nport.json. Total net assets are not NAV per share; unassigned monthly return classes are never guessed. Derived N-PORT borrowing/net-asset ratios remain review candidates because their scope is not automatically comparable to reported debt/equity. Narrow disclosure rules distinguish current contractual fees from old rates, target ranges and expense ratios. Trailing returns can be calculated from consecutive annual total returns or a disclosed reinvested-dividend index; formulas and original inputs are exported. Quarterly fee/hurdle percentages can be annualized with explicit conditions. Unsupported leverage or yield conversions stay unavailable. Cliffwater return chaining is deliberately disabled because its fiscal transition includes a partial period.
 
 Confidence is an evidence status, not an LLM probability. Structured checks can establish `medium`; a recorded human interpretation is `reviewed`. Neither is board approval. Conflicting comparable values are withheld. Explicitly different reported rounding precision can reconcile a summary to a detailed percentage; the more precise figure is selected and both sources retained. Conflicting candidates with a confirmed matching definition and period block publication. Unscoped numeric candidates produce an explicit supported-with-review flag alongside the definition-matched value; their evidence remains available for review. This conservative coverage can require substantial review; live filings must be used to tune it.
 
@@ -89,6 +94,16 @@ Regenerate written PDF deliverables with `python scripts/build_documents.py`. PD
 
 ## Operational constraints and next validation
 
-Keep SEC identification configured with a real contact. Manually audit a representative set of actual passages and conflicting disclosures; calibrate extraction rules before relying on coverage. Confirm the interval-fund class identifiers from those filings. Obtain Dana's approval or replacement Apex file. Review the populated output with Dana and confirm the portable format. Authentication, scheduled runs, signed approvals, automated PDF OCR, extraction coverage targets, and market-data integrations are production follow-ups, not features claimed here.
+Keep SEC identification configured with a real contact. Manually audit a representative set of actual passages and conflicting disclosures; calibrate extraction rules before relying on coverage. Confirm the interval-fund class identifiers from those filings. Obtain Dana's approval or replacement Apex file. Review the populated output with Dana and confirm the portable format. Authentication, scheduled runs, signed approvals, extraction coverage targets, and market-data integrations are production follow-ups, not features claimed here.
 
 Official references: [SEC APIs](https://www.sec.gov/search-filings/edgar-application-programming-interfaces), [SEC developer resources](https://www.sec.gov/about/developer-resources). The tool fetches public evidence only; client data and generated outputs stay local unless you explicitly share them.
+
+## N-PORT and OCR operation
+
+`apex-benchmark --offline --ocr auto` reuses the real source cache and OCRs PDF pages with sparse selectable text (fewer than 120 alphanumeric characters). `--ocr always` also processes pages with a substantial text layer, useful for mixed image/text pages that the heuristic misses. `--ocr off` records a coverage error for each sparse page rather than silently treating it as undisclosed. Missing OCR dependencies, timeouts and empty results are explicit extraction errors and produce exit code 2. Native text and OCR failures on one page do not stop later pages.
+
+OCR runs locally in English at 300 dpi, with a 90-second engine timeout and a 35-million-pixel page limit. No document is sent to a model or external OCR service. Install the `ocr` extra and the Tesseract system engine as above; without them, HTML and N-PORT extraction still work. Cache identity includes parser code, OCR mode, engine version and renderer version; failed OCR is retried on rerun. A recognition score describes transcription quality, not financial correctness. See the review workflow for `visual_verified`.
+
+N-PORT mapping is an explicit subset, not a complete SEC taxonomy validator. It retains class identifiers where present but does not infer classes or turn monthly returns into annual returns. Holdings include reported USD values, balances, weights, categories, identifiers and debt terms where available; derivative-specific nested contracts and portfolio risk grids are not normalized. Missing fields remain null, and amendments are kept as distinct sourced reports. Totals reconciliation is a diagnostic, not an audit opinion. The holdings sum is not equated to total assets.
+
+Mapping references: [SEC Form N-PORT instructions](https://www.sec.gov/files/formn-port.pdf), [SEC N-PORT technical specification](https://www.sec.gov/info/edgar/specifications/form-n-port-xml-tech-specs-1.3.htm), [Tesseract TSV output](https://tesseract-ocr.github.io/tessdoc/Command-Line-Usage.html).

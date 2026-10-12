@@ -26,6 +26,7 @@ def export(run, output):
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
     (output / 'audit.json').write_text(json.dumps(run, indent=2, allow_nan=False))
+    export_nport(run.get('nport_reports', []), output)
     with (output / 'benchmark.csv').open('w', newline='') as file:
         fields = ['ticker', 'metric', 'value', 'unit', 'period', 'basis', 'status', 'confidence', 'reason', 'comparability', 'sources']
         writer = csv.DictWriter(file, fieldnames=fields)
@@ -34,7 +35,7 @@ def export(run, output):
             record = {k: result.get(k, '') for k in fields}
             record['sources'] = json.dumps([{'url': c['source_url'], 'locator': c['locator'], 'quote': c['quote'],
                 'filing_date': c['filing_date'], 'sha256': c['source_sha256'], 'calculation': c.get('calculation'),
-                'selection_notes': c.get('reasons', [])} for c in result['sources']])
+                'selection_notes': c.get('reasons', []), 'extraction_meta': c.get('extraction_meta', {})} for c in result['sources']])
             # Prevent spreadsheet formula execution for text fields from external filings.
             for key, value in record.items():
                 if isinstance(value, str) and value.startswith(('=', '+', '-', '@')):
@@ -86,10 +87,14 @@ def html_report(run):
         apex_history = '<h3>Apex Ridge approved history · starts Q1 2024</h3><p>' + ' · '.join(
             f'{esc(r["period"])}: ${r["value"]:,.2f} (input row {r["row"]})' for r in run['apex']['nav_history']) + '</p>'
     errors = ''.join(f'<li><strong>{esc(e["ticker"])}</strong>: {esc(e["error"])}</li>' for e in run['errors'])
+    nport_rows = ''.join(f'<tr><td>{esc(r["ticker"])}</td><td>{esc(r["period"])}</td>'
+        f'<td>{r["holdings_summary"]["count"]}</td><td>{esc(r["checks"][0]["status"])}</td>'
+        f'<td><a href="{esc(r["source_url"])}">XML source</a></td></tr>' for r in run.get('nport_reports', []))
+    ocr_pages = [d for d in run.get('extraction_diagnostics', []) if d['stage'] == 'ocr']
     inventory = ''.join(f'<tr><td>{esc(f["ticker"])}</td><td>{esc(f["form"])}</td><td>{esc(f["filingDate"])}</td><td>{esc(f.get("reportDate", ""))}</td><td>{esc(f["accessionNumber"])}</td></tr>' for f in run['filings'])
     return f'''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Apex Ridge | Q4 2024 review</title><style>
-:root{{font-family:system-ui,sans-serif;color:#18313d;background:#f4f6f5}}body{{margin:0}}main{{max-width:1400px;margin:auto;padding:40px}}h1{{font-size:38px;margin:12px 0}}h2{{margin-top:36px}}.eyebrow{{text-transform:uppercase;letter-spacing:2px;font-size:12px;color:#46766c}}.banner{{padding:20px;background:#fff3db;border-left:4px solid #bd791f;margin:20px 0}}.downloads a{{display:inline-block;background:#183f3a;color:white;padding:10px 16px;margin:4px;text-decoration:none;border-radius:5px}}.scroll{{overflow:auto}}table{{border-collapse:collapse;width:100%;background:white;font-size:13px}}th,td{{padding:12px;border-bottom:1px solid #dce5e2;text-align:left;vertical-align:top;min-width:110px}}th{{background:#e6eeeb}}small{{display:block;font-size:11px;color:#586c72;margin-top:6px}}a{{color:#166957}}.metric,details{{background:white;padding:20px;margin:12px 0;border:1px solid #dce5e2;border-radius:6px}}blockquote{{border-left:3px solid #9ab5ae;padding:12px;background:#f4f7f6;white-space:pre-wrap;overflow-wrap:anywhere}}.meta{{font-size:12px;overflow-wrap:anywhere}}summary{{cursor:pointer}}input{{padding:12px;width:min(500px,90%);font:inherit}}.supported,.reviewed{{background:#edf6f0}}.conflict,.retrieval_incomplete{{background:#fff6e7}}@media print{{.downloads,input{{display:none}}main{{padding:0}}details{{break-inside:avoid}}}}
+:root{{font-family:system-ui,sans-serif;color:#18313d;background:#f4f6f5}}body{{margin:0}}main{{max-width:1400px;margin:auto;padding:40px}}h1{{font-size:38px;margin:12px 0}}h2{{margin-top:36px}}.eyebrow{{text-transform:uppercase;letter-spacing:2px;font-size:12px;color:#46766c}}.banner{{padding:20px;background:#fff3db;border-left:4px solid #bd791f;margin:20px 0}}.downloads a{{display:inline-block;background:#183f3a;color:white;padding:10px 16px;margin:4px;text-decoration:none;border-radius:5px}}.scroll{{overflow:auto}}table{{border-collapse:collapse;width:100%;background:white;font-size:13px}}th,td{{padding:12px;border-bottom:1px solid #dce5e2;text-align:left;vertical-align:top;min-width:110px}}th{{background:#e6eeeb}}small{{display:block;font-size:11px;color:#586c72;margin-top:6px}}a{{color:#166957}}.metric,details{{background:white;padding:20px;margin:12px 0;border:1px solid #dce5e2;border-radius:6px}}blockquote{{border-left:3px solid #9ab5ae;padding:12px;background:#f4f7f6;white-space:pre-wrap;overflow-wrap:anywhere}}.meta{{font-size:12px;overflow-wrap:anywhere}}summary{{cursor:pointer}}input{{padding:12px;width:min(500px,90%);font:inherit}}.supported,.reviewed{{background:#edf6f0}}.conflict,.retrieval_incomplete,.extraction_incomplete{{background:#fff6e7}}@media print{{.downloads,input{{display:none}}main{{padding:0}}details{{break-inside:avoid}}}}
 </style><main><div class="eyebrow">Apex Ridge Capital · Research review</div><h1>Competitor benchmarking</h1>
 <p>Q4 2024 board cycle · filings through {cfg['filing_cutoff']} · target period {cfg['target_period']}</p>
 <div class="banner"><strong>REVIEW DRAFT — PM and compliance approval required.</strong><br>
@@ -101,8 +106,13 @@ Blank values are explicit gaps. Retrieval errors do not mean a fund failed to di
 <h2>NAV history</h2><p>Eight competitor quarter-ends; no interpolation or carry-forward. KREF uses book value per common share. Apex history starts Q1 2024 and is withheld pending approval.</p>
 <div class="scroll"><table><tr><th>Fund</th>{''.join('<th>'+d+'</th>' for d in run['quarters'])}</tr>{''.join(history)}</table></div>
 {apex_history}
-<h2>Retrieval and coverage</h2><ul>{errors or '<li>No retrieval errors recorded.</li>'}</ul><p>{len(run['filings'])} eligible filings inventoried; {len(run['documents'])} source documents parsed; {len(run['candidates'])} evidence candidates. Cache mode: {esc(run['mode'])}.</p>
+<h2>Retrieval and extraction coverage</h2><ul>{errors or '<li>No retrieval or extraction errors recorded.</li>'}</ul><p>{len(run['filings'])} eligible filings inventoried; {len(run['documents'])} source documents parsed; {len(run['candidates'])} evidence candidates. Cache mode: {esc(run['mode'])}.</p>
 <details><summary>Filing inventory</summary><div class="scroll"><table><tr><th>Fund</th><th>Form</th><th>Filed</th><th>Report period</th><th>Accession</th></tr>{inventory}</table></div></details>
+<details><summary>N-PORT structured evidence and OCR coverage</summary>
+<p><a href="nport.json">N-PORT fields, checks and monthly returns (JSON)</a> · <a href="nport-holdings.csv">Holdings CSV</a></p>
+<p>Fund-level net assets are not NAV per share. Borrowing ratios require review before debt/equity comparison. Monthly return classes may be unidentified. XML locators use the namespace recorded in nport.json.</p>
+<table><tr><th>Fund</th><th>Observation date</th><th>Holdings</th><th>Balance check</th><th>Evidence</th></tr>{nport_rows}</table>
+<p>{len(ocr_pages)} pages attempted or flagged for OCR; {sum(d['status']=='processed' for d in ocr_pages)} processed. Page-level details and word coordinates are in audit.json. OCR values require visual verification.</p></details>
 <h2>Values and selection explanations</h2>{''.join(evidence)}
 <h2>Extraction review queue</h2><p>These passages are evidence candidates, not accepted values. Reviewer decisions are recorded in a separate JSON file and validated on rerun.</p>
 <input id="filter" aria-label="Filter evidence" placeholder="Filter by ticker or metric"><div id="queue">{''.join(candidates) or '<p>No source passages retrieved.</p>'}</div>
@@ -112,6 +122,10 @@ Blank values are explicit gaps. Retrieval errors do not mean a fund failed to di
 
 def source_html(c):
     calc = f'<p>Calculation: {esc(json.dumps(c["calculation"]))}</p>' if c.get('calculation') else ''
+    meta = c.get('extraction_meta', {})
+    if meta:
+        visible = {k: v for k, v in meta.items() if k not in {'text', 'words'}}
+        calc += f'<p>Extraction details: {esc(json.dumps(visible))}. Full word boxes, if applicable, are in audit.json.</p>'
     return f'<p class="meta"><a target="_blank" rel="noopener" href="{esc(c["source_url"])}">Original SEC filing</a> · {esc(c["form"])} · filed {esc(c["filing_date"])} · period {esc(c["period"])}<br>{esc(c["locator"])}<br>Source SHA-256: {esc(c["source_sha256"])}</p>{calc}<blockquote>{esc(c["quote"])}</blockquote>'
 
 
@@ -174,3 +188,20 @@ def pdf_report(run, path):
         story.append(p(f'Apex Ridge | {METRICS[metric]} | {value["value"]}', 'Heading3'))
         story.append(p(f'Client-approved source: {value["source"]}, row {value["row"]}, column {value["column"]}. SHA-256: {value["sha256"]}. Approval: {value["approval"]}', 'SmallNote'))
     doc.build(story, onFirstPage=footer, onLaterPages=footer)
+
+
+def export_nport(reports, output):
+    (output / 'nport.json').write_text(json.dumps(reports, indent=2, allow_nan=False))
+    fields = ['ticker', 'period', 'filing_date', 'accession', 'source_url', 'source_sha256',
+              'locator', 'name', 'title', 'cusip', 'curCd', 'units', 'assetCat', 'issuerCat',
+              'payoffProfile', 'fairValLevel', 'balance', 'valUSD', 'pctVal', 'confidence']
+    with (output / 'nport-holdings.csv').open('w', newline='') as file:
+        writer = csv.DictWriter(file, fieldnames=fields)
+        writer.writeheader()
+        for report in reports:
+            for holding in report['holdings']:
+                record = {k: holding.get(k, report.get(k, '')) for k in fields}
+                for key, value in record.items():
+                    if isinstance(value, str) and value.startswith(('=', '+', '-', '@')):
+                        record[key] = "'" + value
+                writer.writerow(record)

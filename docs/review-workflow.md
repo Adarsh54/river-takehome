@@ -51,3 +51,11 @@ Rerun `apex-benchmark --offline --decisions output/decisions.json`. The PDF/CSV/
 ## Internal figures
 
 Dana must confirm the authoritative Apex source and permitted rows. Only then set `apex_data_approved`, `apex_approved_by` and `apex_approval_note` in a local config copy. Only the target quarter and history from Q1 2024 through the target enter output. The original input remains unchanged. Approval is a documented local control, not an identity-security system.
+
+## Scanned PDF evidence
+
+Candidates with method `ocr_evidence` are never automatically qualified. The audit records the original PDF URL/hash, physical page number, local engine version, render hash, 300-dpi settings, recognized words and pixel boxes (top-left origin), and word recognition scores. Open the original PDF and visually check the number, punctuation, units, period, class and surrounding terms. Acceptance also requires `"visual_verified": true` in the existing decision record. This flag records reviewer attestation; it is not authenticated sign-off. Low recognition scores increase review need; high scores never replace visual review. OCR errors are coverage errors, not evidence of non-disclosure.
+
+## N-PORT structured records
+
+Use `nport.json` for aggregate amounts, monthly returns, reconciliation checks and position details; use `nport-holdings.csv` for flat position data. All XML paths use `n` for the N-PORT namespace documented in each report. An individual position locator plus field name identifies its exact XML field. Fund-level net assets must not be accepted as NAV per share. Return entries without class IDs remain unassigned. B.2.c borrowing/net-asset ratios are calculated candidates with explicit inputs and are not automatically used as comparable leverage. The current decision file cannot approve a derived value by pretending it is a quoted number; adding a benchmark rule requires an explicit supported transformation and scope checks.

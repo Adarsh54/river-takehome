@@ -24,6 +24,8 @@ def qualify_disclosures(candidates, filings, config):
     output = []
     seen = set()
     for source in candidates:
+        if source.get('method') == 'ocr_evidence':
+            continue  # Never auto-promote machine-transcribed text to a qualified fact.
         report = selected.get(source['ticker'])
         if not report or source['accession'] != report['accessionNumber']:
             continue

@@ -1,16 +1,16 @@
 {
   "description": "Observed result from real SEC responses, not a runtime fixture or mock data source.",
-  "generated_at": "2026-10-12T19:38:57.389310+00:00",
+  "generated_at": "2026-10-12T20:06:00.291590+00:00",
   "filing_cutoff": "2025-02-28",
   "target_period": "2024-12-31",
   "filings": 167,
   "documents": 2940,
-  "candidates": 12925,
+  "candidates": 12953,
   "retrieval_errors": [],
   "current_status_counts": {
-    "needs_review": 12,
+    "needs_review": 13,
     "supported_with_review": 13,
-    "not_found": 2,
+    "not_found": 1,
     "supported": 13
   },
   "history_supported": 21,
@@ -135,9 +135,9 @@
       "unit": "x",
       "period": "",
       "basis": "",
-      "status": "not_found",
+      "status": "needs_review",
       "confidence": "unavailable",
-      "reason": "No supported value extracted from inspected documents; this does not establish non-disclosure.",
+      "reason": "Relevant evidence requires interpretation.",
       "sources": []
     },
     {
@@ -920,5 +920,7 @@
       "reason": "Relevant evidence requires interpretation.",
       "sources": []
     }
-  ]
+  ],
+  "nport_reports": 28,
+  "nport_holdings": 41585
 }
