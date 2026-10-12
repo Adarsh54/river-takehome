@@ -1,0 +1,662 @@
+{
+  "generated_at": "2026-10-12T20:57:43.564171+00:00",
+  "model": "gpt-5.4",
+  "target_period": "2024-12-31",
+  "filing_cutoff": "2025-02-28",
+  "current_values": 17,
+  "historical_values": 15,
+  "decision_validation": {
+    "passed": 56,
+    "not_accepted": 16
+  },
+  "failure_reasons": {
+    "No retrieved passages available for model assessment.": 1,
+    "Citation does not match a supplied source passage verbatim": 4,
+    "A calculated value cannot be described as directly reported": 1,
+    "Proposed financial definition or share class is incompatible": 3,
+    "Selected number is absent from its cited excerpt": 1,
+    "Withheld decisions cannot contain a selected value": 1,
+    "LLM API HTTP 429 (credit_balance_exhausted); response body omitted to avoid exposing credentials or request text.": 5
+  },
+  "billing_blocked_cells": [
+    {
+      "ticker": "KREF",
+      "metric": "nav",
+      "period": "2023-12-31"
+    },
+    {
+      "ticker": "KREF",
+      "metric": "nav",
+      "period": "2024-03-31"
+    },
+    {
+      "ticker": "KREF",
+      "metric": "nav",
+      "period": "2024-06-30"
+    },
+    {
+      "ticker": "KREF",
+      "metric": "nav",
+      "period": "2024-09-30"
+    },
+    {
+      "ticker": "KREF",
+      "metric": "nav",
+      "period": "2024-12-31"
+    }
+  ],
+  "tests_passed": 80,
+  "human_approval": "Not performed; Apex input remains withheld.",
+  "limitations": [
+    "A successful local validation establishes traceability and structural checks, not independent financial correctness.",
+    "Table headings and linked footnotes can be absent from excerpts.",
+    "Some model responses fail exact citation, calculation/direct-reporting or definition checks even after one correction.",
+    "Five KREF historical cells were blocked by exhausted API credits."
+  ],
+  "selected_values": [
+    {
+      "ticker": "CCLFX",
+      "metric": "management_fee",
+      "period": "2024-09-30",
+      "value": 1,
+      "basis": "contractual:net_assets",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1735964/000121390024106851/ea0221175-01_ncsrs.htm",
+          "locator": "HTML block 51960"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1735964/000121390025004659/ea0227864-01_424b3.htm",
+          "locator": "HTML block 36"
+        }
+      ]
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "return_3y",
+      "period": "2024-12-31",
+      "value": 7.859162046952584,
+      "basis": "net_nav",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1725472/000172547225000003/ctac-20241231.htm",
+          "locator": "HTML table 65; annual return row and subsequent reinvestment footnote"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1725472/000172547225000003/ctac-20241231.htm",
+          "locator": "HTML block 2171"
+        }
+      ]
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "return_5y",
+      "period": "2024-12-31",
+      "value": 7.356492735761688,
+      "basis": "net_nav",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1725472/000172547225000003/ctac-20241231.htm",
+          "locator": "HTML table 65; annual return row and subsequent reinvestment footnote"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1725472/000172547225000003/ctac-20241231.htm",
+          "locator": "HTML table 65; annual return row and subsequent reinvestment footnote"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1725472/000172547225000003/ctac-20241231.htm",
+          "locator": "HTML block 260"
+        }
+      ]
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "management_fee",
+      "period": "2024-12-31",
+      "value": 1,
+      "basis": "contractual:month_end_managed_assets",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1725472/000172547225000003/ctac-20241231.htm",
+          "locator": "HTML block 2858"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1725472/000172547225000003/ctac-20241231.htm",
+          "locator": "HTML block 3518"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1725472/000172547225000003/ctac-20241231.htm",
+          "locator": "HTML block 2875"
+        }
+      ]
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "incentive_fee",
+      "period": "2024-12-31",
+      "value": 15,
+      "basis": "income:pre_incentive_net_income_after_hurdle_and_catchup",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1725472/000172547225000003/ctac-20241231.htm",
+          "locator": "HTML block 2862"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1725472/000172547225000003/ctac-20241231.htm",
+          "locator": "HTML block 2863"
+        }
+      ]
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "nav",
+      "period": "2024-12-31",
+      "value": 8.55,
+      "basis": "nav",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1725472/000172547225000003/ctac-20241231.htm",
+          "locator": "HTML table 65; Class I NAV at end of period"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1725472/000172547225000003/ctac-20241231.htm",
+          "locator": "HTML block 1931"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1725472/000172547225000003/ctac-20241231.htm",
+          "locator": "HTML block 2534"
+        }
+      ]
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "distribution_yield",
+      "period": "2024-12-31",
+      "value": 10,
+      "basis": "annualized:reported_class_I_distribution_rate",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1725472/000172547225000003/ctac-20241231.htm",
+          "locator": "HTML block 187"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1725472/000172547225000003/ctac-20241231.htm",
+          "locator": "HTML block 209"
+        }
+      ]
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "management_fee",
+      "period": "2024-12-31",
+      "value": 1,
+      "basis": "contractual: average adjusted gross assets",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676525000016/R12.htm",
+          "locator": "HTML block 6"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676525000016/R12.htm",
+          "locator": "HTML block 6"
+        }
+      ]
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "incentive_fee",
+      "period": "2024-12-31",
+      "value": 15,
+      "basis": "income_and_capital_gains:separate_bases_with_cap",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676525000016/R12.htm",
+          "locator": "HTML block 6"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676525000016/R12.htm",
+          "locator": "HTML block 6"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676525000016/R12.htm",
+          "locator": "HTML block 6"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676525000016/R12.htm",
+          "locator": "HTML block 6"
+        }
+      ]
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "hurdle",
+      "period": "2024-12-31",
+      "value": 8.0,
+      "basis": "annualized:quarterly_net_assets_hurdle",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676525000016/R12.htm",
+          "locator": "HTML block 21"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676524000132/gbdc-20240930.htm",
+          "locator": "HTML block 593"
+        }
+      ]
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "nav",
+      "period": "2024-12-31",
+      "value": 15.13,
+      "basis": "nav",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676525000016/gbdc-20241231.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=c-9 unit=usdPerShare; anchor #f-111"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676525000016/gbdc-20241231.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=c-9 unit=usdPerShare; anchor #f-20681"
+        }
+      ]
+    },
+    {
+      "ticker": "KREF",
+      "metric": "return_1y",
+      "period": "2024-12-31",
+      "value": -15.879396984924622,
+      "basis": "shareholder",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1631596/000163159625000012/kref-20241231.htm",
+          "locator": "HTML table 14; KREF total-return index row"
+        }
+      ]
+    },
+    {
+      "ticker": "KREF",
+      "metric": "return_3y",
+      "period": "2024-12-31",
+      "value": -12.042384181318077,
+      "basis": "shareholder",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1631596/000163159625000012/kref-20241231.htm",
+          "locator": "HTML table 14; KREF total-return index row"
+        }
+      ]
+    },
+    {
+      "ticker": "KREF",
+      "metric": "return_5y",
+      "period": "2024-12-31",
+      "value": -3.4960496004881714,
+      "basis": "shareholder",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1631596/000163159625000012/kref-20241231.htm",
+          "locator": "HTML table 14; KREF total-return index row"
+        }
+      ]
+    },
+    {
+      "ticker": "KREF",
+      "metric": "incentive_fee",
+      "period": "2024-12-31",
+      "value": 20.0,
+      "basis": "income:trailing_12_month_distributable_earnings_over_adjusted_equity_hurdle",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1631596/000163159625000012/kref-20241231.htm",
+          "locator": "HTML block 1649"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1631596/000163159625000012/kref-20241231.htm",
+          "locator": "HTML block 1649"
+        }
+      ]
+    },
+    {
+      "ticker": "KREF",
+      "metric": "hurdle",
+      "period": "2024-12-31",
+      "value": 7.0,
+      "basis": "annual:trailing_12_month_adjusted_equity",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1631596/000163159625000012/kref-20241231.htm",
+          "locator": "HTML block 1649"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1631596/000163159625000012/kref-20241231.htm",
+          "locator": "HTML block 1649"
+        }
+      ]
+    },
+    {
+      "ticker": "KREF",
+      "metric": "leverage",
+      "period": "2024-12-31",
+      "value": 1.6,
+      "basis": "debt_to_equity:reported_corporate_ratio",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1631596/000163159625000012/kref-20241231.htm",
+          "locator": "HTML table 29; dated debt/equity row"
+        }
+      ]
+    },
+    {
+      "ticker": "CCLFX",
+      "metric": "nav",
+      "period": "2023-03-31",
+      "value": 10.67,
+      "basis": "nav",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1735964/000121390024106851/ea0221175-01_ncsrs.htm",
+          "locator": "HTML table 212; Class I NAV at end of period"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1735964/000121390024050723/ea0205192-01_ncsr.htm",
+          "locator": "HTML table 169; Class I NAV at end of period"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1735964/000121390024034098/ea0202431-02_ncsrsa.htm",
+          "locator": "HTML table 125; Class I NAV at end of period"
+        }
+      ]
+    },
+    {
+      "ticker": "CCLFX",
+      "metric": "nav",
+      "period": "2024-03-31",
+      "value": 10.55,
+      "basis": "nav",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1735964/000121390024106851/ea0221175-01_ncsrs.htm",
+          "locator": "HTML table 212; Class I NAV at end of period"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1735964/000121390024050723/ea0205192-01_ncsr.htm",
+          "locator": "HTML table 169; Class I NAV at end of period"
+        }
+      ]
+    },
+    {
+      "ticker": "CCLFX",
+      "metric": "nav",
+      "period": "2024-09-30",
+      "value": 10.93,
+      "basis": "nav",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1735964/000121390024106851/ea0221175-01_ncsrs.htm",
+          "locator": "HTML table 212; Class I NAV at end of period"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1735964/000121390024106851/ea0221175-01_ncsrs.htm",
+          "locator": "HTML block 43161"
+        }
+      ]
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "nav",
+      "period": "2023-12-31",
+      "value": 8.52,
+      "basis": "nav",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1725472/000172547225000003/ctac-20241231.htm",
+          "locator": "HTML table 65; Class I NAV at end of period"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1725472/000172547224000003/ctac_202312xn-csr.htm",
+          "locator": "HTML table 58; Class I NAV at end of period"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1725472/000172547224000003/ctac_202312xn-csr.htm",
+          "locator": "HTML block 1586"
+        }
+      ]
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "nav",
+      "period": "2024-12-31",
+      "value": 8.55,
+      "basis": "nav",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1725472/000172547225000003/ctac-20241231.htm",
+          "locator": "HTML table 65; Class I NAV at end of period"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1725472/000172547225000003/ctac-20241231.htm",
+          "locator": "HTML block 2534"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1725472/000172547225000003/ctac-20241231.htm",
+          "locator": "HTML block 1931"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1725472/000172547225000003/ctac-20241231.htm",
+          "locator": "HTML block 1929"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1725472/000172547225000003/ctac-20241231.htm",
+          "locator": "HTML block 1934"
+        }
+      ]
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "nav",
+      "period": "2023-03-31",
+      "value": 14.73,
+      "basis": "nav",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676524000036/gbdc-20240331.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=c-41 unit=usdPerShare; anchor #f-19469"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676523000042/gbdc-20230331.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=i8f967f5219084293b17482aa9c45e0a7_I20230331 unit=usdPerShare; anchor #id3VybDovL2RvY3MudjEvZG9jOjFlZDU0M2IyM2JhMTQxZjhhMDMxMzI4NmY3MzAzMDUzL3NlYzoxZWQ1NDNiMjNiYTE0MWY4YTAzMTMyODZmNzMwMzA1M18yOC9mcmFnOjFmZThmMjRiZTk0ZDRlNjI5M2Y0NDUwOGRmNTZkNDU0L3RhYmxlOjdlZjU5NjQzZmY4MTQ5ODJhZDQ1ZTE0Zjg3MzdmMDg1L3RhYmxlcmFuZ2U6N2VmNTk2NDNmZjgxNDk4MmFkNDVlMTRmODczN2YwODVfMzktMS0xLTEtMTYxNTk4_0d940077-31e0-42e7-947f-ba58743acd8c"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676523000042/gbdc-20230331.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=i8f967f5219084293b17482aa9c45e0a7_I20230331 unit=usdPerShare; anchor #id3VybDovL2RvY3MudjEvZG9jOjFlZDU0M2IyM2JhMTQxZjhhMDMxMzI4NmY3MzAzMDUzL3NlYzoxZWQ1NDNiMjNiYTE0MWY4YTAzMTMyODZmNzMwMzA1M185MS9mcmFnOmJiOWIxODdkOTFlODRlMjRiYjI3MDM1ZTYzMjRlNGI4L3RhYmxlOjA0ODI2OWQyMjk2NzQ4Y2Q5NDUwMWVmZTg4MWNhMTUxL3RhYmxlcmFuZ2U6MDQ4MjY5ZDIyOTY3NDhjZDk0NTAxZWZlODgxY2ExNTFfMTMtMS0xLTEtMTYxNTk4_8eedd298-df74-4b69-b4bf-334b268b250f"
+        }
+      ]
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "nav",
+      "period": "2023-06-30",
+      "value": 14.83,
+      "basis": "nav",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676523000063/gbdc-20230630.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=c-9 unit=usdPerShare; anchor #f-107"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676524000074/gbdc-20240630.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=c-41 unit=usdPerShare; anchor #f-19886"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000110465923107691/gbdc-20231006xn2.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=As_Of_6_30_2023_wsrtQHMyX0e2is1ZVRFckA unit=Unit_Divide_USD_shares_ISruaYmNzUmYAj92xLvdaA; anchor #Narr_jSDA1EhG5EOsxsOEgRPtYQ"
+        }
+      ]
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "nav",
+      "period": "2023-09-30",
+      "value": 15.02,
+      "basis": "nav",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676523000077/gbdc-20230930.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=c-113 unit=usdPerShare; anchor #f-318"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676524000132/gbdc-20240930.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=c-123 unit=usdPerShare; anchor #f-303"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676524000016/gbdc-20231231.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=c-10 unit=usdPerShare; anchor #f-106"
+        }
+      ]
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "nav",
+      "period": "2023-12-31",
+      "value": 15.03,
+      "basis": "nav",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676525000016/gbdc-20241231.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=c-31 unit=usdPerShare; anchor #f-20682"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676524000016/gbdc-20231231.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=c-9 unit=usdPerShare; anchor #f-105"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676524000016/gbdc-20231231.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=c-9 unit=usdPerShare; anchor #f-18821"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676524000132/gbdc-20240930.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=c-121 unit=usdPerShare; anchor #f-177"
+        }
+      ]
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "nav",
+      "period": "2024-03-31",
+      "value": 15.12,
+      "basis": "nav",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676524000036/gbdc-20240331.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=c-9 unit=usdPerShare; anchor #f-109"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676524000036/gbdc-20240331.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=c-9 unit=usdPerShare; anchor #f-19468"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676524000132/gbdc-20240930.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=c-2 unit=usdPerShare; anchor #f-172"
+        }
+      ]
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "nav",
+      "period": "2024-06-30",
+      "value": 15.32,
+      "basis": "nav",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676524000074/gbdc-20240630.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=c-9 unit=usdPerShare; anchor #f-113"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676524000074/gbdc-20240630.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=c-9 unit=usdPerShare; anchor #f-19885"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676524000132/gbdc-20240930.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=c-118 unit=usdPerShare; anchor #f-167"
+        }
+      ]
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "nav",
+      "period": "2024-09-30",
+      "value": 15.19,
+      "basis": "nav",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676524000132/gbdc-20240930.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=c-116 unit=usdPerShare; anchor #f-302"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676524000132/gbdc-20240930.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=c-116 unit=usdPerShare; anchor #f-20028"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676525000016/gbdc-20241231.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=c-10 unit=usdPerShare; anchor #f-112"
+        }
+      ]
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "nav",
+      "period": "2024-12-31",
+      "value": 15.13,
+      "basis": "nav",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676525000016/gbdc-20241231.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=c-9 unit=usdPerShare; anchor #f-111"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676525000016/gbdc-20241231.htm",
+          "locator": "iXBRL us-gaap:NetAssetValuePerShare context=c-9 unit=usdPerShare; anchor #f-20681"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1476765/000147676525000016/R2.htm",
+          "locator": "HTML block 34"
+        }
+      ]
+    },
+    {
+      "ticker": "KREF",
+      "metric": "nav",
+      "period": "2023-06-30",
+      "value": 16.38,
+      "basis": "book_value",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1631596/000163159623000033/kref-20230630.htm",
+          "locator": "HTML table 54; row 10; column 8"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1631596/000163159623000033/kref-20230630.htm",
+          "locator": "HTML block 2085"
+        }
+      ]
+    },
+    {
+      "ticker": "KREF",
+      "metric": "nav",
+      "period": "2023-09-30",
+      "value": 16.29,
+      "basis": "book_value",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1631596/000163159623000043/kref-20230930.htm",
+          "locator": "HTML table 54; row 10; column 8"
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1631596/000163159623000043/kref-20230930.htm",
+          "locator": "HTML block 2110"
+        }
+      ]
+    }
+  ]
+}

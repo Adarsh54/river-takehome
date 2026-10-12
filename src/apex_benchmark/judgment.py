@@ -5,6 +5,8 @@ import hashlib
 import json
 import math
 import re
+import random
+import time
 from datetime import date, datetime, timezone
 from pathlib import Path
 import requests
@@ -67,11 +69,23 @@ class OpenAIJudge:
         if not offline and not api_key:
             raise JudgmentError('Set OPENAI_API_KEY locally to run LLM judgment; use --llm off for explicit parser-only review.')
 
-    def judge(self, packet):
+    def judge(self, packet, correction=None):
+        instructions = PROMPT
+        input_data = packet
+        if correction:
+            instructions += '''\nCorrect the previous decision using the validator feedback. Return the complete schema.
+Citation quote strings must be exact contiguous source substrings: do not add quotation marks,
+ellipses, or change whitespace. Assess every evidence ID exactly once, using short reasons.
+Do not invent a missing period, definition or calculation to satisfy validation; withhold instead.
+Older observations are permitted when latest available and explicitly dated; target_period is a ceiling,
+not a requirement that every current observation has that exact date. Do not call HTML text OCR.
+'''
+            input_data = dict(packet, correction=correction)
         payload = {'model':self.model, 'store':False, 'instructions':PROMPT,
-            'input':json.dumps(packet,sort_keys=True,allow_nan=False),
+            'input':json.dumps(input_data,sort_keys=True,allow_nan=False),
             'text':{'format':{'type':'json_schema','name':'financial_judgment','strict':True,'schema':SCHEMA}},
             'max_output_tokens':32768}
+        payload['instructions'] = instructions
         key = hashlib.sha256(json.dumps(payload,sort_keys=True).encode()).hexdigest()
         path = self.cache / (key + '.json')
         if path.exists():
@@ -82,11 +96,29 @@ class OpenAIJudge:
         if self.offline:
             raise JudgmentError('No matching cached LLM judgment; no network call made.')
         try:
-            response = self.session.post('https://api.openai.com/v1/responses',
-                headers={'Authorization':'Bearer '+self.api_key,'Content-Type':'application/json'},
-                json=payload,timeout=(10,120),allow_redirects=False)
+            for attempt in range(4):
+                response = self.session.post('https://api.openai.com/v1/responses',
+                    headers={'Authorization':'Bearer '+self.api_key,'Content-Type':'application/json'},
+                    json=payload,timeout=(10,300),allow_redirects=False)
+                if response.status_code not in {429, 503}:
+                    break
+                error = response.json().get('error') or {}
+                code = error.get('code', '')
+                if code not in {'rate_limit_exceeded', 'slow_down', 'server_is_overloaded'} or attempt == 3:
+                    break
+                retry_after = getattr(response, 'headers', {}).get('retry-after')
+                try:
+                    delay = float(retry_after) if retry_after is not None else 15 * 2**attempt
+                except (TypeError, ValueError):
+                    delay = 15 * 2**attempt
+                if not math.isfinite(delay) or delay < 0 or delay > 120:
+                    break
+                time.sleep(delay + random.uniform(0, 1))
             if response.status_code != 200:
-                raise ProviderError(f'LLM API HTTP {response.status_code}; response body omitted to avoid exposing credentials or request text.')
+                error = response.json().get('error') or {}
+                code = error.get('code', '')
+                safe_code = code if isinstance(code,str) and re.fullmatch(r'[a-z_]{1,80}',code) else 'unspecified'
+                raise ProviderError(f'LLM API HTTP {response.status_code} ({safe_code}); response body omitted to avoid exposing credentials or request text.')
             body = response.json()
         except (requests.RequestException, ValueError) as exc:
             if isinstance(exc, JudgmentError):
@@ -104,7 +136,7 @@ class OpenAIJudge:
             raise JudgmentError('LLM output was not a usable structured judgment.') from None
         provenance = {'provider':'openai','model':body.get('model',self.model),
             'response_id':body.get('id'),'request_sha256':key,
-            'prompt_sha256':hashlib.sha256(PROMPT.encode()).hexdigest(),
+            'prompt_sha256':hashlib.sha256(instructions.encode()).hexdigest(),
             'created_at':datetime.now(timezone.utc).isoformat(),'usage':body.get('usage'), 'cache_hit':False}
         self.cache.mkdir(parents=True,exist_ok=True)
         path.write_text(json.dumps({'request_sha256':key,'decision':decision,'provenance':provenance},allow_nan=False))
@@ -282,7 +314,16 @@ def adjudicate_run(run, judge, source_cache, progress=print):
             progress(f"LLM: {result['ticker']} {result['metric']} {packet['requested_period'] or 'current'}",flush=True)
             decision,provenance=judge.judge(packet)
             record.update(decision=decision,provenance=provenance)
-            sources=validate_decision(decision,packet)
+            try:
+                sources=validate_decision(decision,packet)
+            except JudgmentError as initial_error:
+                if not isinstance(judge, OpenAIJudge):
+                    raise
+                record['initial_attempt']={'decision':decision,'provenance':provenance,'error':str(initial_error)}
+                progress(f"LLM: correcting {result['ticker']} {result['metric']}: {initial_error}",flush=True)
+                decision,provenance=judge.judge(packet,correction={'validation_error':str(initial_error),'previous_decision':decision})
+                record.update(decision=decision,provenance=provenance)
+                sources=validate_decision(decision,packet)
             record['validation']='passed'
             result.update(value=decision['value'], period=decision['period'] if decision['decision']=='publish' else (packet['requested_period'] or ''),
                 basis=decision['basis'],reason=decision['rationale'],comparability=decision['comparability'],

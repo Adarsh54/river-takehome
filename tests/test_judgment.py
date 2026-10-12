@@ -197,3 +197,63 @@ def test_export_migration_removes_grades_but_keeps_ocr_recognition_scores():
     assert r['nport_reports'][0]['fields']['netAssets']['has_verifiable_evidence']
     assert 'confidence' not in r['nport_reports'][0]['monthly_returns'][0]
     assert r['candidates'][0]['extraction_meta']['mean_word_confidence']==92.1
+
+
+def test_retry_temporary_limits_but_not_billing(tmp_path,monkeypatch):
+    sleeps=[]
+    monkeypatch.setattr('apex_benchmark.judgment.time.sleep',sleeps.append)
+    class Limited(Session):
+        def __init__(self,code):super().__init__();self.code=code;self.attempts=0
+        def post(self,*args,**kwargs):
+            self.attempts+=1
+            if self.attempts>1:return super().post(*args,**kwargs)
+            code=self.code
+            class Response:
+                status_code=429;headers={'retry-after':'2'}
+                def json(self):return {'error':{'code':code}}
+            return Response()
+    s=Limited('rate_limit_exceeded')
+    OpenAIJudge('secret','test',tmp_path/'retry',session=s).judge(packet())
+    assert s.attempts==2 and len(sleeps)==1 and sleeps[0]>=2
+    s=Limited('credit_balance_exhausted')
+    with pytest.raises(JudgmentError,match='credit_balance_exhausted'):
+        OpenAIJudge('secret','test',tmp_path/'billing',session=s).judge(packet())
+    assert s.attempts==1
+
+
+def test_corrected_response_has_separate_cache_and_is_revalidated(tmp_path):
+    (tmp_path/HASH).write_bytes(BODY)
+    class CorrectionSession(Session):
+        def post(self,url,**kwargs):
+            response=super().post(url,**kwargs)
+            body=response.json()
+            d=decision()
+            if 'correction' not in json.loads(kwargs['json']['input']):
+                d['citations'][0]['quote']='"'+BODY.decode()+'"'
+            body['output'][0]['content'][0]['text']=json.dumps(d)
+            response.json=lambda:body
+            return response
+    s=CorrectionSession();j=OpenAIJudge('secret','test',tmp_path/'judgments',session=s)
+    r=adjudicate_run(run(),j,tmp_path,progress=lambda *a,**k:None)
+    assert r['results'][0]['value']==1.25 and len(s.calls)==2
+    assert 'initial_attempt' in r['llm_judgments'][0]
+    assert len(list((tmp_path/'judgments').glob('*.json')))==2
+    j=OpenAIJudge(None,'test',tmp_path/'judgments',offline=True,session=s)
+    replay=adjudicate_run(run(),j,tmp_path,progress=lambda *a,**k:None)
+    assert replay['results'][0]['value']==1.25 and len(s.calls)==2
+
+
+def test_failed_correction_never_publishes(tmp_path):
+    (tmp_path/HASH).write_bytes(BODY)
+    class InvalidSession(Session):
+        def post(self,url,**kwargs):
+            response=super().post(url,**kwargs);body=response.json();d=decision()
+            d['value']=99
+            body['output'][0]['content'][0]['text']=json.dumps(d)
+            response.json=lambda:body
+            return response
+    s=InvalidSession()
+    r=adjudicate_run(run(),OpenAIJudge('secret','test',tmp_path/'cache',session=s),tmp_path,progress=lambda *a,**k:None)
+    assert len(s.calls)==2 and r['results'][0]['value'] is None
+    assert r['llm_judgments'][0]['validation']=='not_accepted'
+    assert 'initial_attempt' in r['llm_judgments'][0]
