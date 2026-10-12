@@ -18,7 +18,7 @@ from .cli import validate_config
 from .sec import SecClient,RetrievalError
 from .fund_browser import FundBrowser
 
-FILES={'timings.json':'application/json','benchmark-evidence.docx':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','index.html':'text/html','benchmark.docx':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','benchmark.pdf':'application/pdf','benchmark.csv':'text/csv','audit.json':'application/json','judgments.json':'application/json','nport.json':'application/json','nport-holdings.csv':'text/csv'}
+FILES={'candidates.html':'text/html','timings.json':'application/json','benchmark-evidence.docx':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','index.html':'text/html','benchmark.docx':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','benchmark.pdf':'application/pdf','benchmark.csv':'text/csv','audit.json':'application/json','judgments.json':'application/json','nport.json':'application/json','nport-holdings.csv':'text/csv'}
 
 
 class Workspace:

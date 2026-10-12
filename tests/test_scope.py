@@ -193,3 +193,16 @@ def test_context_schema_is_opt_in_and_invalidates_only_relevant_requests():
  assert 'comparison_context' in schema['required']
  assert 'comparison_context' not in SCHEMA['properties']
  assert schema['properties']['comparison_context']['items']['additionalProperties'] is False
+
+
+def test_dashboard_preserves_full_candidates_in_separate_review_page():
+ from apex_benchmark.report import html_report,candidate_report
+ cfg=dict(CONFIG,funds=[F],custom_metrics=[M])
+ cs=extract_custom(BODY,F,FILING,SOURCE,[M])
+ results=[resolve_metric(cs,F,metric,cfg) for metric in metric_labels(cfg)]
+ run={'config':cfg,'results':results,'nav_history':[],'quarters':[],'run_id':'test','generated_at':'2024-12-31','mode':'test',
+      'apex':{'status':'withheld','reason':'Source approval pending','values':{},'nav_history':[]},'errors':[], 'candidates':cs,'filings':[],'documents':[]}
+ main=html_report(run);queue=candidate_report(run)
+ assert 'candidates.html' in main and 'class="candidate"' not in main
+ assert cs[0]['id'] in queue and cs[0]['quote'] in queue
+ assert 'Back to comparison' in queue

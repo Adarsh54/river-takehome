@@ -50,6 +50,7 @@ def export(run, output):
                 'period': value['period'], 'status': 'client_approved', 'evidence_rationale': value['evidence_rationale'],
                 'basis': 'Client supplied; confirm definitions', 'sources': json.dumps(value)})
     (output / 'index.html').write_text(html_report(run))
+    (output / 'candidates.html').write_text(candidate_report(run))
     (output / 'judgments.json').write_text(json.dumps(run.get('llm_judgments', []), indent=2, allow_nan=False))
     pdf_report(run, output / 'benchmark.pdf')
     from .word_report import export_word, export_evidence_word
@@ -83,11 +84,6 @@ def html_report(run):
         evidence.append(f'<section class="metric" id="{ident}"><h3>{r["ticker"]} · {esc(r["label"])} · {esc(r["period"])}</h3>'
             f'<p><strong>{display(r)}</strong> · {evidence_label(r)} · {"Directly reported" if r.get("directly_reported") else "Calculated from cited inputs" if r.get("calculation") else "No supported value"}</p>'
             f'<p>{esc(r["reason"])} {esc(r["comparability"])}</p><p>Basis: {esc(r["basis"] or "Unconfirmed")}</p>' + issues + alternatives + ''.join(snippets) + '</section>')
-    candidates = []
-    for c in run['candidates']:
-        candidates.append(f'<details class="candidate" data-search="{esc(c["ticker"] + " " + c["metric"])}">'
-            f'<summary>{esc(c["ticker"])} · {esc(c["metric"])} · candidate {esc(c["value"])} · {esc(c["id"])}</summary>'
-            f'<p>Candidate only; not a board-approved number. {esc("; ".join(c["reasons"]))}</p>' + source_html(c) + '</details>')
     history = []
     for ticker in tickers:
         items = [r for r in run['nav_history'] if r['ticker'] == ticker]
@@ -128,9 +124,23 @@ Blank values are explicit gaps. Retrieval errors do not mean a fund failed to di
 <p>{len(ocr_pages)} pages attempted or flagged for OCR; {sum(d['status']=='processed' for d in ocr_pages)} processed. Page-level details and word coordinates are in audit.json. OCR values require visual verification.</p></details>
 <h2>Values and selection explanations</h2>{''.join(evidence)}
 <h2>Extraction review queue</h2><p>These passages are evidence candidates, not accepted values. Reviewer decisions are recorded in a separate JSON file and validated on rerun.</p>
-<input id="filter" aria-label="Filter evidence" placeholder="Filter by ticker or metric"><div id="queue">{''.join(candidates) or '<p>No source passages retrieved.</p>'}</div>
+<p><a href="candidates.html">Open full extraction review queue</a> · <a href="audit.json">Download the complete evidence audit</a>. All candidate passages are retained in the separate review queue so the comparison page can open quickly.</p>
 <p class="meta">Run {esc(run['run_id'])} · generated {esc(run['generated_at'])}. Evidence support is explained per value. Model judgment is separate from PM and compliance approval.</p>
-</main><script>document.getElementById('filter').addEventListener('input',e=>{{for(const d of document.querySelectorAll('.candidate'))d.hidden=!d.dataset.search.toLowerCase().includes(e.target.value.toLowerCase());}});</script></html>'''
+</main></html>'''
+
+
+def candidate_report(run):
+    entries=[]
+    for c in run['candidates']:
+        entries.append(f'<details class="candidate" data-search="{esc(c["ticker"]+" "+c["metric"])}">'
+            f'<summary>{esc(c["ticker"])} · {esc(c["metric"])} · candidate {esc(c["value"])} · {esc(c["id"])}</summary>'
+            f'<p>Candidate only; not a board-approved number. {esc("; ".join(c["reasons"]))}</p>'+source_html(c)+'</details>')
+    return ('<!doctype html><html lang="en"><meta charset="utf-8"><title>Extraction review queue</title>'
+        '<style>body{font:15px/1.5 system-ui;margin:32px;color:#172e2b}details{padding:16px;border:1px solid #d6dfdb;margin:12px 0}blockquote{white-space:pre-wrap;overflow-wrap:anywhere}.meta{overflow-wrap:anywhere}input{padding:12px;width:400px}summary{cursor:pointer}</style>'
+        '<h1>Extraction review queue</h1><p><a href="index.html">Back to comparison</a> · <a href="audit.json">Full evidence audit</a></p>'
+        '<p>All extracted candidates are retained here. These are not accepted results.</p>'
+        '<input id="filter" aria-label="Filter evidence" placeholder="Filter by ticker or metric">'+''.join(entries)+
+        "<script>document.getElementById('filter').addEventListener('input',e=>{for(const d of document.querySelectorAll('.candidate'))d.hidden=!d.dataset.search.toLowerCase().includes(e.target.value.toLowerCase());});</script></html>")
 
 
 def source_html(c):
