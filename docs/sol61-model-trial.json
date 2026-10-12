@@ -1,0 +1,46 @@
+{
+  "scenario": "Targeted GBDC effective-fee trial; unchanged prompt and retrieval code; model override only",
+  "requested_model": "gpt-6.1-sol",
+  "returned_model": "gpt-6.1-sol",
+  "elapsed_seconds": 18.906,
+  "baseline_gpt54_elapsed_seconds": 12.626,
+  "model_calls": 1,
+  "documents_parsed": 0,
+  "other_results_unchanged": 104,
+  "validation": "passed",
+  "packet_complete": true,
+  "result": {
+    "value": 1.56,
+    "unit": "%",
+    "period": "2024-09-30",
+    "basis": "effective:net assets attributable to common stock",
+    "reason": "Publish the reported 1.56% management-fee expense ratio for the year ended September 30, 2024. Its footnote identifies actual management-fee expenses and a September 30 net-assets denominator; the annual statements show no base-management-fee waiver for 2024. Retain this three-month-lagged observation: December disclosures provide only the contractual 1.0% rate and dollar expenses, not a newer effective percentage. The 2.75% prospectus figure relates to March 2022 and excludes its one-time waiver.",
+    "comparability": "This is an annual expense ratio using net assets attributable to common stock, not the contractual rate on average adjusted gross assets or an average-net-assets ratio. The separately disclosed approximately 0.72% uses total assets and is not interchangeable. Incentive fees and total-expense ratios remain separate."
+  },
+  "usage": {
+    "input_tokens": 174523,
+    "input_tokens_details": {
+      "cache_write_tokens": 174520,
+      "cached_tokens": 0
+    },
+    "output_tokens": 783,
+    "output_tokens_details": {
+      "reasoning_tokens": 158
+    },
+    "total_tokens": 175306
+  },
+  "estimated_standard_api_cost_usd": 0.444136,
+  "pricing_source": "https://developers.openai.com/api/docs/models/gpt-6.1-sol",
+  "cost_note": "Estimate using reported tokens and standard pricing, including cache writes; not an invoice.",
+  "limitations": [
+    "Single decision trial, not a broad accuracy or latency evaluation.",
+    "Other 104 results retain their previous model decisions.",
+    "App configuration and main dashboard unchanged; trial output saved separately.",
+    "Expense ratio uses period-end net assets, not average net assets or contractual gross-asset fee basis."
+  ],
+  "sources": [
+    "https://www.sec.gov/Archives/edgar/data/1476765/000147676524000132/gbdc-20240930.htm",
+    "https://www.sec.gov/Archives/edgar/data/1476765/000147676525000016/R12.htm",
+    "https://www.sec.gov/Archives/edgar/data/1476765/000110465924123193/gbdc-20241125xn2.htm"
+  ]
+}
