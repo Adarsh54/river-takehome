@@ -106,7 +106,7 @@ def export_word(run,path):
             import json
             doc.add_paragraph('Calculation: '+json.dumps(r['calculation'],ensure_ascii=False))
         citations=(r.get('judgment') or {}).get('decision',{}).get('citations',[])
-        for c in r.get('sources',[]):
+        for c in {source['id']:source for source in r.get('sources',[])}.values():
             p=doc.add_paragraph();link(p,f"SEC {c['form']} filed {c['filing_date']} | {c['accession']}",c['source_url'])
             p.add_run(f" | Source period {c['period'] or 'unresolved'} | {c['locator']}")
             if not supported:
