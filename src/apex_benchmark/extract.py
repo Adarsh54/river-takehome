@@ -73,6 +73,7 @@ class Candidate:
     def __post_init__(self):
         if not self.id:
             identity = '|'.join(map(str, [self.ticker, self.metric, self.value, self.period,
+                self.accession, self.filing_date, self.source_url,
                 self.source_sha256, self.locator, self.method]))
             self.id = hashlib.sha256(identity.encode()).hexdigest()[:20]
 
@@ -114,12 +115,19 @@ def parse_document(body, fund, filing, source):
         snippets = [(f'PDF page {i+1}', clean(p.extract_text() or ''))
                     for i, p in enumerate(PdfReader(BytesIO(body)).pages)]
         return narrative(snippets, fund, filing, source)
+    if source['url'].lower().endswith('.xml'):
+        # XML financial instances/label dictionaries are not prose. The accompanying
+        # inline-XBRL HTML is parsed separately. N-PORT needs a dedicated schema mapping.
+        return []
     soup = BeautifulSoup(body, 'lxml')
     results = inline_facts(soup, fund, filing, source)
+    results.extend(dated_per_share_tables(soup, fund, filing, source))
     # Give every source block a reproducible sequential locator; no invented PDF page numbers.
     blocks = soup.find_all(['p', 'tr', 'div'])
     snippets = []
     for i, block in enumerate(blocks):
+        if block.name == 'tr' and block.find('table'):
+            continue
         if block.name == 'div' and block.find(['p', 'tr', 'div']):
             continue
         text = clean(block.get_text(' ', strip=True))
@@ -132,6 +140,45 @@ def parse_document(body, fund, filing, source):
     results.extend(narrative(snippets, fund, filing, source))
     results.extend(return_tables(soup, fund, filing, source))
     return list({c.id: c for c in results}.values())
+
+
+def dated_per_share_tables(soup, fund, filing, source):
+    """Map exact date-header column spans, never guess first/last numeric column."""
+    if fund['structure'] != 'mortgage_reit' or filing['form'].removesuffix('/A') not in {'10-K', '10-Q'}:
+        return []
+    from datetime import datetime
+    results = []
+    for table_number, table in enumerate(soup.find_all('table'), 1):
+        if table.find('table'):
+            continue
+        text = clean(table.get_text(' ', strip=True))
+        if 'book value per share' not in text.lower() or 'common stock' not in text.lower() or len(text) > 30000:
+            continue
+        headers = []
+        for row_number, row in enumerate(table.find_all('tr'), 1):
+            col = 0
+            cells = []
+            for cell in row.find_all(['td', 'th'], recursive=False):
+                width = int(cell.get('colspan', 1))
+                label = clean(cell.get_text(' ', strip=True))
+                cells.append((col, col + width, label))
+                if re.fullmatch(r'[A-Z][a-z]+ \d{1,2}, \d{4}', label):
+                    period = datetime.strptime(label, '%B %d, %Y').date().isoformat()
+                    headers.append((col, col + width, period))
+                col += width
+            if not cells or cells[0][2].lower() != 'book value per share':
+                continue
+            if '$' not in clean(row.get_text(' ', strip=True)):
+                continue
+            for start, end, label in cells[1:]:
+                value = number(label)
+                dates = {period for a, b, period in headers if a <= start and end <= b}
+                if value is not None and value > 0 and len(dates) == 1:
+                    results.append(candidate(fund, filing, source, 'nav', value,
+                        f'HTML table {table_number}; row {row_number}; column {start+1}', text,
+                        'dated_per_share_table', period=dates.pop(), basis='book_value',
+                        share_class='Common', eligible=True))
+    return results
 
 
 def inline_facts(soup, fund, filing, source):
@@ -220,7 +267,11 @@ def narrative(snippets, fund, filing, source):
 def return_tables(soup, fund, filing, source):
     results = []
     for i, table in enumerate(soup.find_all('table')):
+        if table.find('table'):
+            continue
         text = clean(table.get_text(' ', strip=True))
+        if len(text) > 30000:
+            continue  # Large investment schedules are not compact return tables.
         if not re.search(r'(?:1|one)\s*year', text, re.I):
             continue
         if not re.search(r'(?:3|three|5|five)\s*years?', text, re.I):

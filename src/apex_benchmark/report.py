@@ -33,7 +33,8 @@ def export(run, output):
         for result in run['results'] + run['nav_history']:
             record = {k: result.get(k, '') for k in fields}
             record['sources'] = json.dumps([{'url': c['source_url'], 'locator': c['locator'], 'quote': c['quote'],
-                'filing_date': c['filing_date'], 'sha256': c['source_sha256']} for c in result['sources']])
+                'filing_date': c['filing_date'], 'sha256': c['source_sha256'], 'calculation': c.get('calculation'),
+                'selection_notes': c.get('reasons', [])} for c in result['sources']])
             # Prevent spreadsheet formula execution for text fields from external filings.
             for key, value in record.items():
                 if isinstance(value, str) and value.startswith(('=', '+', '-', '@')):
@@ -58,7 +59,7 @@ def html_report(run):
         cells = [f'<th>{esc(label)}</th>', f'<td>{esc(internal["value"]) if internal else "Withheld / unavailable"}</td>']
         for ticker in tickers:
             r = lookup[ticker, metric]
-            cells.append(f'<td class="{esc(r["status"])}"><a href="#{ticker}-{metric}">{display(r)}</a>'
+            cells.append(f'<td class="{esc(r["status"])}"><a href="#{ticker}-{metric}">{display(r)}{"*" if r.get("calculation") else ""}</a>'
                          f'<small>{esc(r["status"].replace("_", " "))} · {esc(r["confidence"])}</small>'
                          f'<small>{esc(r["period"] or "Period unconfirmed")}</small></td>')
         rows.append('<tr>' + ''.join(cells) + '</tr>')
@@ -95,7 +96,7 @@ def html_report(run):
 Apex Ridge data: {esc(run['apex']['status'])}. {esc(run['apex']['reason'])}<br>
 Blank values are explicit gaps. Retrieval errors do not mean a fund failed to disclose a metric. No synthetic competitor figures.</div>
 <nav class="downloads"><a href="benchmark.pdf">Download PDF</a><a href="benchmark.csv">Download CSV</a><a href="audit.json">Full evidence JSON</a></nav>
-<h2>Comparison</h2><p>Listed funds use shareholder returns; interval funds use net NAV returns. KREF book value, leverage and yield are not automatically comparable with the other funds.</p>
+<h2>Comparison</h2><p>Listed funds use shareholder returns; interval funds use net NAV returns. KREF book value, leverage and yield are not automatically comparable with the other funds. Fee bases differ; KREF's annualized percentage retains a quarterly dollar minimum. * Calculated from filing values; open the evidence for inputs and formula.</p>
 <div class="scroll"><table><thead><tr><th>Metric</th><th>Apex Ridge</th>{''.join('<th>'+t+'</th>' for t in tickers)}</tr></thead><tbody>{''.join(rows)}</tbody></table></div>
 <h2>NAV history</h2><p>Eight competitor quarter-ends; no interpolation or carry-forward. KREF uses book value per common share. Apex history starts Q1 2024 and is withheld pending approval.</p>
 <div class="scroll"><table><tr><th>Fund</th>{''.join('<th>'+d+'</th>' for d in run['quarters'])}</tr>{''.join(history)}</table></div>
@@ -110,7 +111,8 @@ Blank values are explicit gaps. Retrieval errors do not mean a fund failed to di
 
 
 def source_html(c):
-    return f'<p class="meta"><a target="_blank" rel="noopener" href="{esc(c["source_url"])}">Original SEC filing</a> · {esc(c["form"])} · filed {esc(c["filing_date"])} · period {esc(c["period"])}<br>{esc(c["locator"])}<br>Source SHA-256: {esc(c["source_sha256"])}</p><blockquote>{esc(c["quote"])}</blockquote>'
+    calc = f'<p>Calculation: {esc(json.dumps(c["calculation"]))}</p>' if c.get('calculation') else ''
+    return f'<p class="meta"><a target="_blank" rel="noopener" href="{esc(c["source_url"])}">Original SEC filing</a> · {esc(c["form"])} · filed {esc(c["filing_date"])} · period {esc(c["period"])}<br>{esc(c["locator"])}<br>Source SHA-256: {esc(c["source_sha256"])}</p>{calc}<blockquote>{esc(c["quote"])}</blockquote>'
 
 
 def footer(canvas, doc):
@@ -140,12 +142,12 @@ def pdf_report(run, path):
         row = [p(label, 'Cell'), p(str(internal['value']) if internal else 'Withheld / unavailable', 'Cell')]
         for ticker in tickers:
             r = lookup[ticker, metric]
-            row.append(p(f"{display(r)} | {r['status']} | {r['confidence']} | {r['period'] or 'period unconfirmed'}", 'Cell'))
+            row.append(p(f"{display(r)}{'*' if r.get('calculation') else ''} | {r['status']} | {r['confidence']} | {r['period'] or 'period unconfirmed'}", 'Cell'))
         table.append(row)
     tbl = Table(table, colWidths=[155, 91, 132, 132, 132, 132], repeatRows=1, hAlign='LEFT')
     tbl.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.HexColor('#dce9e3')), ('VALIGN',(0,0),(-1,-1),'TOP'),
         ('ROWBACKGROUNDS',(0,1),(-1,-1),[colors.white,colors.HexColor('#f3f6f5')]),('BOTTOMPADDING',(0,0),(-1,-1),8),('TOPPADDING',(0,0),(-1,-1),8)]))
-    story.extend([tbl, Spacer(1,10), p('Unavailable means unresolved or not retrieved, not necessarily undisclosed. Confidence labels express evidence checks; they are not probabilities.', 'SmallNote'), PageBreak(), p('NAV history and coverage', 'Title')])
+    story.extend([tbl, Spacer(1,10), p('Unavailable means unresolved or not retrieved, not necessarily undisclosed. * Calculated: see evidence for inputs and formula. Fee bases differ; KREF retains a quarterly dollar minimum. Confidence labels are not probabilities.', 'SmallNote'), PageBreak(), p('NAV history and coverage', 'Title')])
     hist = [[p(t, 'Cell') for t in ['Fund'] + run['quarters']]]
     for ticker in tickers:
         hist.append([p(ticker, 'Cell')] + [p(display(r) + ' | ' + r['status'], 'Cell') for r in run['nav_history'] if r['ticker'] == ticker])
@@ -166,6 +168,8 @@ def pdf_report(run, path):
             story.append(Paragraph(f'<link href="{esc(c["source_url"])}" color="#166957">Original SEC source: {esc(c["accession"])}</link>', styles['SmallNote']))
             # Paragraphs split safely across pages; keep the full quoted evidence.
             story.append(p(c['quote'], 'SmallNote'))
+            if c.get('calculation'):
+                story.append(p('Calculation: ' + json.dumps(c['calculation']), 'SmallNote'))
     for metric, value in run['apex']['values'].items():
         story.append(p(f'Apex Ridge | {METRICS[metric]} | {value["value"]}', 'Heading3'))
         story.append(p(f'Client-approved source: {value["source"]}, row {value["row"]}, column {value["column"]}. SHA-256: {value["sha256"]}. Approval: {value["approval"]}', 'SmallNote'))

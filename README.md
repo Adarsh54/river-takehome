@@ -2,7 +2,7 @@
 
 A local Python prototype for the Q4 2024 board cycle. It connects to SEC EDGAR, inventories filings published through **February 28, 2025**, parses source evidence, and exports a comparison plus a review queue. No mock competitor data and no paid/model API key required.
 
-**Current validation status:** unit and integration tests pass, but live requests from the development machine returned SEC HTTP 403. No live competitor values have been validated. The generated development report honestly shows retrieval failures and withheld numbers. This is a prototype requiring a successful live run and extraction calibration before a board-ready populated output can be claimed.
+**Current validation status:** live SEC access works after configuring a real contact email. Live testing exposed and fixed N-PORT archive paths and oversized XML evidence extraction. The current run establishes 26 of 40 current comparison cells and 21 of 32 historical per-share observations, with review flags where appropriate. Definitions, formulas, rounding reconciliation and remaining gaps are explicit. PM/compliance approval and disputed Apex input approval remain outstanding. See the validation record for the latest run counts.
 
 The supplied Apex Ridge file is preserved but **withheld by default**: Dana disputes its provenance and its dates through Q4 2025. Approving the source is a separate client action. Competitor extraction runs independently.
 
@@ -41,7 +41,7 @@ Visit http://127.0.0.1:8000. There is no server-side application, authentication
 | `benchmark.csv` | Editable long-form data with status, period, definitions and source references |
 | `audit.json` | Full configuration, source hashes, candidates, selection reasons, errors and recorded reviewer decisions |
 
-All formats say REVIEW DRAFT. Publication still requires PM and compliance review. A missing result is not silently replaced by an older value. Retrieval failure is distinguished from unresolved extraction; neither is asserted to be non-disclosure.
+All formats say REVIEW DRAFT. Publication still requires PM and compliance review. Unscoped narrative guesses are kept in the review queue rather than treated as comparable facts. A missing result is not silently replaced by an older value. Retrieval failure is distinguished from unresolved extraction; neither is asserted to be non-disclosure.
 
 ## Repeat a run and review evidence
 
@@ -72,9 +72,9 @@ See [review workflow](docs/review-workflow.md) for decision format, confidence m
 
 SEC submissions discovery includes historical filing-list pages, not only recent records. The inventory selects financial reports, portfolio reports, prospectuses/supplements and current reports across the lookback. Complete submissions preserve HTML/text/XML exhibits; PDF exhibits are retrieved separately. Sources are parsed into reproducible locations and complete relevant passages.
 
-Deterministic extraction supports selected inline-XBRL per-share tags and simple explicitly labeled return tables. Text rules locate rates and relevant narrative, footnotes and tables. Ambiguous units, share classes, return definitions, merged table layouts and most narrative rates require reviewer confirmation. PDF text is searchable evidence; scanned PDFs require future OCR support. N-PORT XML is retained as evidence, but dedicated position/aggregate mapping is not implemented. This prototype does not yet automatically derive leverage, missing trailing returns or yields; absent comparable measures stay unavailable.
+Deterministic extraction supports selected inline-XBRL per-share tags, KREF book-value tables with explicit date-column spans, and simple explicitly labeled return tables. Text rules locate rates and relevant narrative, footnotes and tables. Ambiguous units, share classes, return definitions, merged table layouts and most narrative rates require reviewer confirmation. PDF text is searchable evidence; scanned PDFs require future OCR support. N-PORT XML is retained as evidence, but dedicated position/aggregate mapping is not implemented. Narrow disclosure rules distinguish current contractual fees from old rates, target ranges and expense ratios. Trailing returns can be calculated from consecutive annual total returns or a disclosed reinvested-dividend index; formulas and original inputs are exported. Quarterly fee/hurdle percentages can be annualized with explicit conditions. Unsupported leverage or yield conversions stay unavailable. Cliffwater return chaining is deliberately disabled because its fiscal transition includes a partial period.
 
-Confidence is an evidence status, not an LLM probability. Structured checks can establish `medium`; a recorded human interpretation is `reviewed`. Neither is board approval. Conflicting accepted values are withheld. All unresolved numeric candidates in the same/newer filing are surfaced before publication. This conservative coverage can require substantial review; live filings must be used to tune it.
+Confidence is an evidence status, not an LLM probability. Structured checks can establish `medium`; a recorded human interpretation is `reviewed`. Neither is board approval. Conflicting comparable values are withheld. Explicitly different reported rounding precision can reconcile a summary to a detailed percentage; the more precise figure is selected and both sources retained. Conflicting candidates with a confirmed matching definition and period block publication. Unscoped numeric candidates produce an explicit supported-with-review flag alongside the definition-matched value; their evidence remains available for review. This conservative coverage can require substantial review; live filings must be used to tune it.
 
 ## Documents
 
@@ -82,13 +82,13 @@ Confidence is an evidence status, not an LLM probability. Structured checks can 
 - [Technical approach - 3 pages](docs/technical-approach.pdf)
 - [Solution brief - 2 pages](docs/solution-brief.pdf)
 - [Internal-data discrepancy note - draft, not sent](docs/apex-data-discrepancy.md)
-- [Validation record](docs/validation.md)
+- [Validation record](docs/validation.md) and [observed live result](docs/live-validation.json)
 - [Original starter README](docs/starter-readme.md)
 
 Regenerate written PDF deliverables with `python scripts/build_documents.py`. PDF runtime dependencies install with the project. Documentation source is in that script.
 
 ## Operational constraints and next validation
 
-Resolve SEC access using a real declared contact and a permitted network. Run the four-fund retrieval and manually audit a representative set of actual passages and conflicting disclosures; calibrate extraction rules before relying on coverage. Confirm the interval-fund class identifiers from those filings. Obtain Dana's approval or replacement Apex file. Review the populated output with Dana and confirm the portable format. Authentication, scheduled runs, signed approvals, automated PDF OCR, extraction coverage targets, and market-data integrations are production follow-ups, not features claimed here.
+Keep SEC identification configured with a real contact. Manually audit a representative set of actual passages and conflicting disclosures; calibrate extraction rules before relying on coverage. Confirm the interval-fund class identifiers from those filings. Obtain Dana's approval or replacement Apex file. Review the populated output with Dana and confirm the portable format. Authentication, scheduled runs, signed approvals, automated PDF OCR, extraction coverage targets, and market-data integrations are production follow-ups, not features claimed here.
 
 Official references: [SEC APIs](https://www.sec.gov/search-filings/edgar-application-programming-interfaces), [SEC developer resources](https://www.sec.gov/about/developer-resources). The tool fetches public evidence only; client data and generated outputs stay local unless you explicitly share them.

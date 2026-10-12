@@ -10,7 +10,9 @@ import requests
 
 
 class RetrievalError(RuntimeError):
-    pass
+    def __init__(self, message, status_code=None):
+        super().__init__(message)
+        self.status_code = status_code
 
 
 class SecClient:
@@ -51,7 +53,7 @@ class SecClient:
                     continue
                 raise RetrievalError(f'Network failure for {url}: {exc}') from exc
             if response.status_code == 403:
-                raise RetrievalError(f'SEC access denied (HTTP 403): {url}. Verify declared contact and network access; no numbers substituted.')
+                raise RetrievalError(f'SEC access denied (HTTP 403): {url}. Verify declared contact and network access; no numbers substituted.', status_code=403)
             if response.status_code == 429 or response.status_code >= 500:
                 if attempt < 2:
                     retry = response.headers.get('Retry-After', '')
@@ -59,7 +61,7 @@ class SecClient:
                     time.sleep(delay)
                     continue
             if not response.ok:
-                raise RetrievalError(f'HTTP {response.status_code}: {url}')
+                raise RetrievalError(f'HTTP {response.status_code}: {url}', status_code=response.status_code)
             body = response.content
             if b'Your Request Originates from an Undeclared' in body or b'Request Rate Threshold Exceeded' in body:
                 raise RetrievalError(f'SEC returned a block page: {url}')
@@ -131,7 +133,10 @@ def select_filings(inventory, target):
 
 
 def filing_url(cik, filing):
-    return f"https://www.sec.gov/Archives/edgar/data/{int(cik)}/{filing['accessionNumber'].replace('-', '')}/{filing['primaryDocument']}"
+    # Submissions metadata sometimes includes SEC's presentation-only XSL directory.
+    # The raw XML and complete submission live at the accession root.
+    document = filing['primaryDocument'].rsplit('/', 1)[-1]
+    return f"https://www.sec.gov/Archives/edgar/data/{int(cik)}/{filing['accessionNumber'].replace('-', '')}/{document}"
 
 
 def filing_documents(client, cik, filing):

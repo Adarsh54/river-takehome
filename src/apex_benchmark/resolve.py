@@ -109,7 +109,12 @@ def resolve_metric(candidates, fund, metric, config, exact_period=None, retrieva
     chosen = [c for c in eligible if c['period'] == latest_period]
     # Do not suppress contradictions simply because one filing is newer.
     values = {(c['value'], c['basis'], c['share_class']) for c in chosen}
-    if len(values) > 1:
+    precision_selected = None
+    if len(values)>1 and len({(c['basis'],c['share_class']) for c in chosen})==1 and all(c.get('reported_precision_pct') for c in chosen):
+        precise=min(chosen,key=lambda c:c['reported_precision_pct'])
+        if all(abs(c['value']-precise['value']) <= c['reported_precision_pct']/2 + 1e-9 for c in chosen):
+            precision_selected=precise
+    if len(values) > 1 and precision_selected is None:
         result.update(status='conflict', reason='Accepted sources disagree for the same reporting period. Explicit reviewer rejection/rationale required.',
                       sources=chosen, period=latest_period)
         return result
@@ -117,12 +122,16 @@ def resolve_metric(candidates, fund, metric, config, exact_period=None, retrieva
     # A newer relevant unresolved passage can change the interpretation. Surface it.
     unresolved = [c for c in relevant if not c['eligible'] and c.get('review', {}).get('action') != 'reject'
                   and c['filing_date'] >= latest_filing and c['value'] is not None]
-    if unresolved:
+    scoped_conflicts = [c for c in unresolved if c['period'] == latest_period
+                       and compatible(c, fund) and c['value'] != chosen[0]['value']]
+    if scoped_conflicts:
         result.update(status='needs_review', reason='Unresolved extraction candidates in the same or newer filing may change this value.',
                       sources=chosen, period=latest_period)
         return result
-    selected = max(chosen, key=lambda c: (c['filing_date'], c['accession']))
-    lag = (date.fromisoformat(config['target_period']) - date.fromisoformat(latest_period)).days
+    selected = precision_selected or max(chosen, key=lambda c: (c['filing_date'], c['accession']))
+    # Historical observations are evaluated against their requested quarter, not
+    # against today's comparison quarter; old history is not stale current data.
+    lag = (date.fromisoformat(exact_period or config['target_period']) - date.fromisoformat(latest_period)).days
     result.update(value=selected['value'], period=latest_period, basis=selected['basis'], sources=chosen,
         confidence='medium', status='supported', lag_days=lag,
         reason='Source, unit, period and basis checks passed; PM and compliance approval still required.',
@@ -132,6 +141,25 @@ def resolve_metric(candidates, fund, metric, config, exact_period=None, retrieva
             else 'As labeled')
     if any(c.get('review', {}).get('action') == 'accept' for c in chosen):
         result['confidence'] = 'reviewed'
+    if precision_selected:
+        result['reason'] += (' Source values reconcile within their explicitly reported rounding precision. '
+                             f"The most precise figure, {selected['value']:.2f}%, is used; all source versions are retained.")
+    if selected.get('method') in {'qualified_disclosure','annual_return_chain','return_index_ratio','dated_financial_table'}:
+        result['reason'] += ' ' + ' '.join(selected.get('reasons', []))
+    if selected.get('calculation'):
+        result['calculation'] = selected['calculation']
+        result['reason'] += ' Calculation: ' + selected['calculation']['expression'] + '.'
+    if selected.get('nav_return_comparison'):
+        comparison = selected['nav_return_comparison']
+        result['nav_return_comparison'] = comparison
+        result['reason'] += (f" Same-period 1Y NAV-based return: {comparison['nav_return_1y_pct']}%; "
+                            f"shareholder return: {comparison['shareholder_return_1y_pct']}%; "
+                            f"difference: {comparison['difference_percentage_points']:.2f} percentage points. {comparison['note']}")
+    if unresolved:
+        result['status'] = 'supported_with_review'
+        result['unresolved_candidate_ids'] = [c['id'] for c in unresolved]
+        result['reason'] += (f' {len(unresolved)} other numeric candidates have unconfirmed context or duplicate source values. '
+                             'The explicitly dated and definition-matched source is used; other passages remain in the review queue, not treated as comparable facts.')
     if lag > config.get('stale_after_days', 120):
         result['status'] = 'lagged'
         result['reason'] += f' Reporting period is {lag} days behind target.'

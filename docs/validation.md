@@ -4,23 +4,39 @@ Development validation: October 12, 2026. Historical comparison cutoff remains F
 
 ## Automated checks
 
-`pytest -q`: 20 passing tests at the final local validation checkpoint. Tests cover structured units/scales and locations, ambiguous dimensions/share classes, historical filing discovery, inclusive cutoff, future-period exclusion, conflicts, stale fallback prevention, evidence-bound decisions, waiver-term retention, explicit shareholder-return tables, cache integrity, internal-data gating and complete error-state PDF/HTML/CSV/JSON exports. Synthetic test fixtures are clearly identified and never used as competitor report data.
+`pytest -q`: 35 passing tests. Coverage includes units/scales and exact contexts, historical discovery, inclusive cutoff, future-period exclusion, source conflicts, evidence-bound decisions, waiver-term retention, return-table definitions, source-cache integrity, disputed internal data, export citations and HTTP error handling. New live-driven regressions cover N-PORT display-folder paths, financial XML exclusion, explicit KREF date-column mapping, distinct evidence IDs for repeated documents, historical observations not being mislabeled as stale current figures, current versus old fee rates, target versus actual leverage, annualization conditions, return compounding, exact share classes, source-index conversion and rounding reconciliation.
 
-## Live SEC smoke run
+Synthetic unit fixtures never supply competitor output. Actual report values come from downloaded SEC sources.
 
-Executed the actual CLI with `--refresh`, identifying the application and its GitHub project contact. Requests to all four `data.sec.gov/submissions/CIK....json` endpoints returned HTTP 403. Exit status was 2. Output recorded four retrieval errors, 40 unavailable current metric cells, zero invented competitor values and withheld Apex data. A real SEC contact email has been requested; it is not embedded in the repository.
+## Live SEC retrieval
 
-No financial extraction accuracy, actual source conflict resolution, source reconciliation, eight-quarter NAV coverage or operational time savings can be claimed from this run. Those are outstanding acceptance checks after permitted SEC access succeeds. A contact header change may not resolve a network-level rejection.
+Initial calls without a real contact email returned HTTP 403. After the user supplied a contact, the SEC submissions API succeeded. The contact is stored in ignored, owner-readable local configuration, not in Git or generated evidence.
 
-## Document QA
+The corrected live run retrieved **167 selected filings** across all four funds with **zero retrieval errors**. It processed 2,940 source documents/exhibits. Historical metadata filtering retained only filings dated on or before February 28, 2025. Two live defects were fixed: N-PORT metadata's XSL display folder was incorrectly included in raw submission paths, and status detection previously searched arbitrary error text instead of checking the HTTP status field.
 
-Technical approach: 3 pages. Business solution brief: 2 pages. Benchmark failure report: 6 pages. PDF text extraction confirmed review-draft labels and absence of unapproved internal values. All document pages were rendered and visually inspected for clipping, overlap and readability. Generated benchmark outputs stay local and ignored by Git. GitHub Actions also passed on the initial pushed implementation; subsequent export fixes are covered by local regression tests.
+Financial XML and label dictionaries are no longer copied into narrative evidence. This reduced the initial 775 MB audit to approximately 30 MB. Original SEC sources remain in the immutable local cache. Parsed evidence is separately cached by source, configuration and parser version.
+
+## Financial checks and coverage
+
+Source inspection confirmed:
+
+- Golub NAV per common share: **$15.13 at December 31, 2024**, from its February 4, 2025 Form 10-Q. Inline XBRL specifies USD/share and the exact instant date.
+- KREF book value per share: **$14.76 at December 31, 2024**, from its February 3, 2025 Form 10-K. The date-column span and common-equity/share table establish the mapping. This is labeled book value, not fund NAV.
+
+These figures retain `supported_with_review` flags because other numeric passages have unconfirmed context. Confirmed contradictions for the same period/definition still block a value. The system does not treat a rough narrative match as a proven competing fact.
+
+The current mappings establish **26 current values and 21 historical observations** across the four funds. Thirteen current values are supported with additional review flags and thirteen are supported; twelve need further interpretation and two were not extracted. These gaps are not claims of non-disclosure. The complete observed summary and source links are in `live-validation.json`; that file is not used as runtime input. No claim of completed PM/compliance approval or measured time savings is made.
+
+Golub return extraction reconciles the summary percentage of 15.8% to the more precise 15.77% in the financial highlights. The matching NAV-based return is 8.98%, a difference of 6.79 percentage points; these have different definitions. Carlyle return chains use only Class I, not the Class N headline. KREF returns are derived from the disclosed reinvested-dividend index. Quarterly management fees and hurdles retain inputs, formulas and conditions when annualized. Cliffwater's fiscal transition includes a partial period, so its return chain remains unfilled rather than being incorrectly compounded as consecutive full years.
+
+## Documents and reproducibility
+
+The technical approach remains 3 pages and the solution brief 2 pages; all pages were rendered and visually inspected. The CLI can rerun from the downloaded source cache without network calls. Output files remain local and ignored by Git. GitHub CI verifies installation and tests separately from SEC connectivity.
 
 ## Remaining acceptance checks
 
-1. Retrieve actual eligible filings for all four competitors and verify selected documents/exhibits against the inventory.
-2. Confirm institutional share classes and calibrate table/text rules against their real layouts.
-3. Manually audit supported figures and unknowns; test actual gross/net discrepancies and fee waivers.
-4. Verify leverage/yield definitions and matching-period NAV/shareholder return comparisons with the PM.
-5. Obtain Dana's source approval or replacement internal file.
-6. Review the populated portable report with Dana, then complete PM and compliance gates.
+1. Complete source-specific metric and interval-fund class mappings; audit representative cases against original filings.
+2. Reconcile actual gross/net return differences and temporary fee waivers.
+3. Verify leverage/yield definitions and matching-period NAV/shareholder return comparisons with the PM.
+4. Obtain Dana's source approval or replacement Apex file.
+5. Review the populated portable report with Dana, then complete PM and compliance gates.

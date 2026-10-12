@@ -11,6 +11,10 @@ from .sec import SecClient, RetrievalError, discover, select_filings, filing_doc
 from .extract import parse_document, documents_from_submission, METRICS
 from .resolve import apply_decisions, resolve_metric, quarter_ends, internal_data
 from .report import export
+from .normalize import qualify_disclosures
+from .structured_reports import derive_report_metrics
+
+PARSER_VERSION = hashlib.sha256(Path(__file__).with_name('extract.py').read_bytes()).hexdigest()
 
 
 def validate_config(config):
@@ -65,15 +69,27 @@ def run_pipeline(config, client, internal_path, decisions=None, progress=print):
                               'retrieved_at': meta['retrieved_at'], 'submission_url': full}
                     # Cache each parsed exhibit exactly as inspected; keep original submission too.
                     (client.cache / digest).write_bytes(content)
-                    found = parse_document(content, fund, filing, source)
+                    parse_key = hashlib.sha256(json.dumps([digest, source, fund, filing, PARSER_VERSION], sort_keys=True).encode()).hexdigest()
+                    parsed_dir = client.cache / 'parsed'
+                    parsed_dir.mkdir(exist_ok=True)
+                    parsed_path = parsed_dir / (parse_key + '.json')
+                    if parsed_path.exists():
+                        found = json.loads(parsed_path.read_text())
+                    else:
+                        found = [c.dict() for c in parse_document(content, fund, filing, source)]
+                        parsed_path.write_text(json.dumps(found))
                     run['documents'].append(dict(source, ticker=ticker, accession=filing['accessionNumber'],
                         candidates=len(found)))
-                    run['candidates'].extend(c.dict() for c in found)
+                    run['candidates'].extend(found)
             except (RetrievalError, ValueError) as exc:
                 run['errors'].append({'ticker': ticker, 'stage': 'document', 'accession': filing['accessionNumber'], 'error': str(exc)})
-                if '403' in str(exc):
+                progress(f'{ticker}: {exc}', flush=True)
+                if isinstance(exc, RetrievalError) and exc.status_code == 403:
                     break  # Honor access rejection; do not hammer the remaining URLs.
     run['candidates'] = list({c['id']: c for c in run['candidates']}.values())
+    if run['documents']:
+        run['candidates'].extend(derive_report_metrics(run['documents'], run['filings'], config, client.cache))
+    run['candidates'].extend(qualify_disclosures(run['candidates'], run['filings'], config))
     run['applied_decisions'] = apply_decisions(run['candidates'], decisions or [], config['filing_cutoff'])
     for fund in config['funds']:
         errors = [e for e in run['errors'] if e['ticker'] == fund['ticker']]

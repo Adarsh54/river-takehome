@@ -40,6 +40,7 @@ Rerun `apex-benchmark --offline --decisions output/decisions.json`. The PDF/CSV/
 ## Status meanings
 
 - `supported` / medium: structured source passed unit, context and temporal checks; human gates outstanding.
+- `supported_with_review`: a dated, definition-matched source supports the value, while other numeric passages have unconfirmed context or duplicate it. Those passages remain explicit review items. This is not a resolved disagreement between comparable facts.
 - `reviewed`: a named reviewer resolved interpretation with verbatim supporting evidence. This is a confidence label, not compliance sign-off.
 - `conflict`: accepted evidence differs for the same period; value withheld.
 - `needs_review`: candidates exist but interpretation or conflicting candidates are unresolved.
