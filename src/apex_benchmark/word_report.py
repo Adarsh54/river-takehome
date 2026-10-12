@@ -67,7 +67,8 @@ def export_word(run,path):
     doc.add_paragraph(f"{count} of {len(run['results'])} current comparison values have linked evidence. Values without established support remain blank in the comparison. Review the definitions, reporting dates and explanations before drawing conclusions across funds. This package requires PM and compliance approval before board use.")
     doc.add_paragraph(run['apex']['reason'] if run['apex']['status']!='withheld' else 'Apex Ridge internal figures remain withheld pending resolution of the supplied data provenance. No internal values have been substituted.')
     doc.add_paragraph('Evidence linked means that the value has a traceable source. It does not establish financial correctness or approval. Calculations and differences between shareholder returns, net NAV returns, and REIT book value are explained in the evidence notes.')
-    doc.add_paragraph(f"Judgment mode: {run.get('judgment_mode','rules_only')}. Run reference: {run['run_id']}.")
+    mode={'rules_only':'Parser evidence; not reviewed by AI','llm':'OpenAI evidence review','llm_cached':'Previously saved OpenAI judgments'}.get(run.get('judgment_mode'),run.get('judgment_mode','Parser evidence'))
+    doc.add_paragraph(f"Review method: {mode}. Run reference: {run['run_id']}.")
     lookup={(r['ticker'],r['metric']):r for r in run['results']}
     for start in range(0,len(funds),4):
         doc.add_page_break();group=funds[start:start+4];doc.add_paragraph('Current comparison',style='Heading 1')
@@ -90,8 +91,8 @@ def export_word(run,path):
             rows.append([f['ticker']]+[value(obs[q]) if q in obs else 'Not established' for q in quarters])
         table(doc,['Fund']+quarters,rows,[1.0]+[9.4/len(quarters)]*len(quarters))
     doc.add_paragraph('Definitions and comparison set',style='Heading 1')
-    for f in funds:doc.add_paragraph(f"{f['ticker']}: {f['name']}. CIK {f['cik']}; structure {f['structure']}; share class {f['share_class']}; return basis {f['return_basis']}.")
-    for m in cfg.get('custom_metrics',[]):doc.add_paragraph(f"{m['label']} ({m['unit']}): {m['definition']} Measurement period: {m['period_basis']}; scope: {m['scope']}. Reported values only.")
+    for f in funds:doc.add_paragraph(f"{f['ticker']}: {f['name']}. CIK {f['cik']}; structure {f['structure'].replace('_',' ')}; share class {f['share_class']}; return basis {f['return_basis'].replace('_',' ')}.")
+    for m in cfg.get('custom_metrics',[]):doc.add_paragraph(f"{m['label']} ({m['unit']}): {m['definition']} Measurement period: {m['period_basis'].replace('_',' ')}; scope: {m['scope'].replace('_',' ')}. Reported values only.")
     for error in run.get('errors',[]):doc.add_paragraph('Retrieval or extraction issue: '+error['ticker']+' '+error['error'])
     doc.add_page_break();doc.add_paragraph('Evidence and review notes',style='Heading 1')
     doc.add_paragraph('Each note states the selection rationale or unresolved issue. SEC links identify the original filing; locators identify tables, text blocks, XML paths or PDF pages. Quotations below are short exact excerpts; the companion audit contains complete retained passages and every model attempt. Unresolved entries retain source links and locators without repeating their full passages.')
@@ -100,7 +101,7 @@ def export_word(run,path):
         supported=r.get('value') is not None
         doc.add_paragraph(value(r)+(' | Evidence linked | '+('Calculated' if r.get('calculation') else 'Directly reported') if supported else ' | Evidence not established'))
         doc.add_paragraph(r['reason'])
-        if r.get('basis'):doc.add_paragraph('Definition: '+r['basis']+'. '+r.get('comparability',''))
+        if r.get('basis'):doc.add_paragraph('Definition: '+(r['label'] if r['basis'].startswith('custom:') else r['basis'].replace('_',' '))+'. '+r.get('comparability',''))
         if r.get('calculation'):
             import json
             doc.add_paragraph('Calculation: '+json.dumps(r['calculation'],ensure_ascii=False))

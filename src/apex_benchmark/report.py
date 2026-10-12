@@ -100,7 +100,7 @@ def html_report(run):
         f'<td>{r["holdings_summary"]["count"]}</td><td>{esc(r["checks"][0]["status"])}</td>'
         f'<td><a href="{esc(r["source_url"])}">XML source</a></td></tr>' for r in run.get('nport_reports', []))
     ocr_pages = [d for d in run.get('extraction_diagnostics', []) if d['stage'] == 'ocr']
-    definitions = ''.join('<p><strong>'+esc(m['label'])+'</strong> ('+esc(m['unit'])+'): '+esc(m['definition'])+' Measurement period: '+esc(m['period_basis'])+'; scope: '+esc(m['scope'])+'. Reported values only.</p>' for m in cfg.get('custom_metrics',[]))
+    definitions = ''.join('<p><strong>'+esc(m['label'])+'</strong> ('+esc(m['unit'])+'): '+esc(m['definition'])+' Measurement period: '+esc(m['period_basis'].replace('_',' '))+'; scope: '+esc(m['scope'].replace('_',' '))+'. Reported values only.</p>' for m in cfg.get('custom_metrics',[]))
     inventory = ''.join(f'<tr><td>{esc(f["ticker"])}</td><td>{esc(f["form"])}</td><td>{esc(f["filingDate"])}</td><td>{esc(f.get("reportDate", ""))}</td><td>{esc(f["accessionNumber"])}</td></tr>' for f in run['filings'])
     return f'''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Apex Ridge | {cfg['target_period']} review</title><style>
