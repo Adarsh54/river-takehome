@@ -8,6 +8,7 @@ import re
 import secrets
 import subprocess
 import sys
+import time
 import threading
 import uuid
 from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
@@ -17,7 +18,7 @@ from .cli import validate_config
 from .sec import SecClient,RetrievalError
 from .fund_browser import FundBrowser
 
-FILES={'benchmark-evidence.docx':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','index.html':'text/html','benchmark.docx':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','benchmark.pdf':'application/pdf','benchmark.csv':'text/csv','audit.json':'application/json','judgments.json':'application/json','nport.json':'application/json','nport-holdings.csv':'text/csv'}
+FILES={'timings.json':'application/json','benchmark-evidence.docx':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','index.html':'text/html','benchmark.docx':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','benchmark.pdf':'application/pdf','benchmark.csv':'text/csv','audit.json':'application/json','judgments.json':'application/json','nport.json':'application/json','nport-holdings.csv':'text/csv'}
 
 
 class Workspace:
@@ -71,13 +72,16 @@ class Workspace:
                 if {k:v for k,v in prior.items() if k!='custom_metrics'}=={k:v for k,v in self.config.items() if k!='custom_metrics'}:
                     args+=['--from-audit',str(audit)]
             if mode=='cached':args+=['--offline']
-            self.job={'id':uid,'status':'running','mode':mode,'output':str(result),'log_path':str(log),'config':copy.deepcopy(self.config)}
+            self.job={'id':uid,'status':'running','mode':mode,'output':str(result),'log_path':str(log),'config':copy.deepcopy(self.config),'started_at':time.time()}
             job=self.job
             def work():
                 try:
                     with log.open('w') as stream:
                         code=subprocess.run(args,cwd=self.root,stdout=stream,stderr=subprocess.STDOUT).returncode
                     with self.lock:
+                        job['elapsed_seconds']=round(time.time()-job['started_at'],3)
+                        timing_path=result/'timings.json'
+                        if timing_path.exists():job['timings']=json.loads(timing_path.read_text())
                         job['exit_code']=code;job['status']='complete' if code==0 else 'review_required' if (result/'index.html').exists() else 'failed'
                         if (result/'index.html').exists():self.report=result
                 except Exception:
@@ -89,6 +93,7 @@ class Workspace:
         with self.lock:
             job={k:v for k,v in (self.job or {}).items() if k not in {'log_path','config'}}
             if self.job:
+                if self.job['status']=='running':job['elapsed_seconds']=round(time.time()-self.job['started_at'],1)
                 p=Path(self.job['log_path']);job['log']=p.read_text()[-8000:] if p.exists() else ''
             return {'config':self.config,'job':job,'csrf':self.token,'has_report':(self.report/'index.html').exists(),
                     'has_word':(self.report/'benchmark.docx').exists(),'has_evidence_word':(self.report/'benchmark-evidence.docx').exists(),'openai_configured':bool(os.environ.get('OPENAI_API_KEY'))}

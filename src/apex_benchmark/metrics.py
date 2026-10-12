@@ -30,6 +30,9 @@ def validate_metrics(config):
             raise ValueError('Choose point_in_time, fiscal_year, or trailing_12_months')
         if not isinstance(m.get('keywords'),list) or not 1<=len(m['keywords'])<=12 or any(not isinstance(k,str) or not k.strip() or len(k)>100 for k in m['keywords']):
             raise ValueError('Provide 1 to 12 literal search phrases, each 1 to 100 characters.')
+        fields=m.get('context_fields',[])
+        if not isinstance(fields,list) or len(fields)>10 or any(not isinstance(f,str) or not f.strip() or len(f)>80 for f in fields) or len(fields)!=len(set(fields)):
+            raise ValueError('Provide up to 10 unique context fields, each 1 to 80 characters.')
         if m.get('calculation','reported_only')!='reported_only':
             raise ValueError('Custom metrics currently support disclosed values only, not user formulas.')
 
@@ -43,6 +46,12 @@ def extract_custom(body, fund, filing, source, definitions):
     if not definitions or source['url'].lower().endswith('.xml'):
         return []
     passages=[]
+    retain_context=any(m.get('context_fields') for m in definitions)
+    def with_neighbors(node,text):
+        if not retain_context:return text
+        before=[clean(x.get_text(' ',strip=True)) for x in node.find_previous_siblings(limit=2)]
+        after=[clean(x.get_text(' ',strip=True)) for x in node.find_next_siblings(limit=3)]
+        return ' '.join([*reversed(before),text,*after])
     if body.startswith(b'%PDF'):
         from io import BytesIO
         from pypdf import PdfReader
@@ -54,11 +63,11 @@ def extract_custom(body, fund, filing, source, definitions):
         for i,table in enumerate(soup.find_all('table'),1):
             if table.find('table'):continue
             text=clean(table.get_text(' ',strip=True))
-            if text:passages.append((f'HTML table {i}',text))
+            if text:passages.append((f'HTML table {i}'+('; includes preceding 2 and following 3 sibling elements' if retain_context else ''),with_neighbors(table,text)))
         for i,block in enumerate(soup.find_all(['p','div']),1):
             if block.find_parent('table') or block.find(['p','div','table']):continue
             text=clean(block.get_text(' ',strip=True))
-            if text:passages.append((f'Custom text block {i}',text))
+            if text:passages.append((f'Custom text block {i}'+('; includes preceding 2 and following 3 sibling elements' if retain_context else ''),with_neighbors(block,text)))
         if not passages:passages=[('Document text',clean(soup.get_text(' ',strip=True)))]
     result=[]
     for m in definitions:
@@ -86,7 +95,7 @@ def augment_custom(run, cache):
     for doc in run['documents']:
         fund=funds.get(doc['ticker']);filing=filings.get((doc['ticker'],doc['accession']))
         if not fund or not filing:continue
-        key=hashlib.sha256(json.dumps([doc,fund,filing,definitions,'custom-v2'],sort_keys=True).encode()).hexdigest()
+        key=hashlib.sha256(json.dumps([doc,fund,filing,definitions,'custom-v3-context'],sort_keys=True).encode()).hexdigest()
         path=parsed/(key+'.json')
         try:
             body=(Path(cache)/doc['sha256']).read_bytes()

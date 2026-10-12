@@ -52,6 +52,17 @@ SCHEMA = obj({
 })
 
 
+def decision_schema(packet):
+    fields=packet.get('custom_metric_definition',{}).get('context_fields',[])
+    if not fields:return SCHEMA
+    schema=copy.deepcopy(SCHEMA)
+    schema['properties']['comparison_context']={'type':'array','items':obj({
+        'field':{'type':'string','enum':fields}, 'value':S,
+        'candidate_id':{'type':['string','null']}, 'quote':S})}
+    schema['required'].append('comparison_context')
+    return schema
+
+
 class JudgmentError(ValueError):
     pass
 
@@ -74,6 +85,16 @@ class OpenAIJudge:
         instructions = PROMPT
         if packet.get('target_period','2024-12-31')!='2024-12-31':
             instructions = PROMPT.replace('Q4 2024 benchmarking', 'benchmarking for the quarter ended '+packet['target_period'])
+        if packet.get('custom_metric_definition',{}).get('context_fields'):
+            instructions += '''\nDocument every requested context field exactly once in comparison_context.
+For a known detail cite a supplied candidate_id and an exact contiguous quote establishing it.
+For unknown details use value Not established, candidate_id null and quote empty.
+Keep benchmark rate, gross/net treatment, fees, floors, portfolio scope, weighting and timing distinct.
+A portfolio-weighted average can be measured at a point in time. Never infer unspecified adjustments,
+convert benchmarks or equate a higher spread with better risk-adjusted performance.
+Unknown comparison context does not itself require withholding an otherwise well-supported reported
+value, but explain that it cannot support direct comparison. Withhold if the value's identity is unclear.
+'''
         input_data = packet
         if correction:
             instructions += '''\nCorrect the previous decision using the validator feedback. Return the complete schema.
@@ -86,7 +107,7 @@ not a requirement that every current observation has that exact date. Do not cal
             input_data = dict(packet, correction=correction)
         payload = {'model':self.model, 'store':False, 'instructions':PROMPT,
             'input':json.dumps(input_data,sort_keys=True,allow_nan=False),
-            'text':{'format':{'type':'json_schema','name':'financial_judgment','strict':True,'schema':SCHEMA}},
+            'text':{'format':{'type':'json_schema','name':'financial_judgment','strict':True,'schema':decision_schema(packet)}},
             'max_output_tokens':32768}
         payload['instructions'] = instructions
         key = hashlib.sha256(json.dumps(payload,sort_keys=True).encode()).hexdigest()
@@ -226,7 +247,7 @@ def validate_decision(decision, packet):
     # Schema adherence alone is insufficient: verify citations, dates, definition and values locally.
     from jsonschema import validate, ValidationError
     try:
-        validate(decision,SCHEMA)
+        validate(decision,decision_schema(packet))
     except ValidationError as exc:
         raise JudgmentError('Invalid judgment schema: '+exc.message[:200]) from None
     if not decision['rationale'].strip():
@@ -243,6 +264,20 @@ def validate_decision(decision, packet):
         if c is None or not citation['quote'].strip() or citation['quote'] not in c['quote']:
             raise JudgmentError('Citation does not match a supplied source passage verbatim')
         sources.append(c)
+    fields=packet.get('custom_metric_definition',{}).get('context_fields',[])
+    if fields:
+        entries=decision['comparison_context']
+        if len(entries)!=len(fields) or {x['field'] for x in entries}!=set(fields):
+            raise JudgmentError('Every comparison context field must be documented exactly once')
+        for item in entries:
+            if item['candidate_id'] is None:
+                if item['value']!='Not established' or item['quote']:
+                    raise JudgmentError('Unknown context must be explicitly marked Not established')
+            else:
+                c=evidence.get(item['candidate_id'])
+                if not item['value'].strip() or c is None or not item['quote'].strip() or item['quote'] not in c['quote']:
+                    raise JudgmentError('Comparison context needs a verbatim source citation')
+                sources.append(c)
     if decision['decision']=='withhold':
         if decision['value'] is not None or decision['selected_candidate_id'] is not None or decision['directly_reported']:
             raise JudgmentError('Withheld decisions cannot contain a selected value')
@@ -339,6 +374,10 @@ def adjudicate_run(run, judge, source_cache, progress=print):
                 basis=decision['basis'],reason=decision['rationale'],comparability=decision['comparability'],
                 unresolved_issues=decision['unresolved_issues'],sources=sources,
                 status='supported' if decision['decision']=='publish' else 'needs_review')
+            if decision.get('comparison_context'):
+                result['comparison_context']=decision['comparison_context']
+                context='; '.join(x['field']+': '+x['value'] for x in decision['comparison_context'])
+                result['comparability']+=' Comparison context: '+context+'. Cross-fund comparability is not established automatically.'
             result.pop('calculation',None)
             result.pop('nav_return_comparison',None)
             result.pop('unresolved_candidate_ids',None)

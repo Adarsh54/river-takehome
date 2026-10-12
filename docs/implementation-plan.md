@@ -38,3 +38,11 @@ Dana confirmed the following in the follow-up consultation supplied by the user:
 - The summary cannot claim Apex outperformance or relative positioning while its internal source remains disputed. Source approval alone also does not establish comparable methodology; comparative LP language requires PM review.
 - Institutional share classes are the default where available. Show the selected class in each comparison header and disclose that class selection must be verified against the filing. Never silently replace it with another class.
 - Normalize only when defensible; preserve and disclose incompatible definitions. Neither an identical label nor matching units proves comparability.
+
+## Timing and spread defaults for the demo
+
+- Dana prioritizes accuracy over speed; roughly fifteen minutes can be acceptable for a quarterly run, but this is not a promised SLA. Ad-hoc new-fund pulls should not take hours. Measure actual runs before setting targets.
+- Working spread convention: portfolio-weighted contractual spread at quarter-end. This is an explicit implementation assumption, not an additional client confirmation. Weighting across assets and averaging over time are separate dimensions.
+- Custom metrics can request named context fields. The spread example requests reference rate, gross/net basis, fees, floors, weighting, portfolio coverage and timing. Each established detail needs a verbatim source citation; unknown details stay marked Not established. A documented reported value is not automatically comparable across funds.
+- Context-aware HTML retrieval includes nearby sibling elements to retain surrounding footnotes; distant or externally referenced footnotes can still require review. No inferred benchmark conversion, fee/floor adjustment, or risk-adjusted ranking.
+- Timed runs report source preparation (retrieval/extraction or saved-audit reuse), AI review, export generation and total duration. Warm-cache results are not cold-start performance claims. Timings are saved with the run in timings.json.

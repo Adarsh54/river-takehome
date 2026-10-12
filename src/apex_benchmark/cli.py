@@ -5,6 +5,7 @@ import json
 import os
 import re
 import sys
+import time
 from datetime import date, datetime, timezone
 from pathlib import Path
 from .sec import SecClient, RetrievalError, discover, select_filings, filing_documents
@@ -158,6 +159,8 @@ def main(argv=None):
     ua = os.environ.get('SEC_USER_AGENT', '')
     if not ua and not args.offline and not args.from_audit:
         parser.error('Set SEC_USER_AGENT to your app name and real contact email; see README.')
+    started=time.perf_counter()
+    timings={}
     try:
         config = json.loads(args.config.read_text())
         decisions = json.loads(args.decisions.read_text()) if args.decisions else []
@@ -166,6 +169,8 @@ def main(argv=None):
             from .judgment import OpenAIJudge
             judge = OpenAIJudge(os.environ.get('OPENAI_API_KEY'), args.model or os.environ.get('OPENAI_MODEL', 'gpt-5.4'),
                                 args.cache / 'judgments', offline=args.llm=='cached')
+        print('Stage: source preparation',flush=True)
+        source_started=time.perf_counter()
         if args.from_audit:
             run = json.loads(args.from_audit.read_text())
             if {k:v for k,v in run['config'].items() if k != 'custom_metrics'} != {k:v for k,v in config.items() if k != 'custom_metrics'}:
@@ -191,6 +196,9 @@ def main(argv=None):
         else:
             client = SecClient(ua or 'offline-cache-only', args.cache, args.offline, args.refresh)
             run = run_pipeline(config, client, args.apex_data, decisions, ocr_mode=args.ocr)
+        timings['source_preparation_seconds']=round(time.perf_counter()-source_started,3)
+        print('Stage: AI review',flush=True)
+        review_started=time.perf_counter()
         if judge:
             from .judgment import adjudicate_run
             adjudicate_run(run, judge, args.cache)
@@ -199,9 +207,18 @@ def main(argv=None):
             run.pop('llm_judgments', None)
             run.pop('rule_results', None)
             run.pop('rule_nav_history', None)
+        timings['ai_review_seconds']=round(time.perf_counter()-review_started,3)
+        print('Stage: report generation',flush=True)
+        export_started=time.perf_counter()
         from .evidence import migrate_evidence_contract
         migrate_evidence_contract(run)
         export(run, args.output)
+        timings['report_generation_seconds']=round(time.perf_counter()-export_started,3)
+        timings['total_seconds']=round(time.perf_counter()-started,3)
+        timings['source_mode']='saved_audit' if args.from_audit else run['mode']
+        timings['review_mode']=run['judgment_mode']
+        timings['model_network_responses']=sum(not p.get('cache_hit',True) for j in run.get('llm_judgments',[]) for p in [j.get('provenance',{}),j.get('initial_attempt',{}).get('provenance',{})])
+        (args.output/'timings.json').write_text(json.dumps(timings,indent=2))
     except (ValueError, OSError, KeyError) as exc:
         parser.error(str(exc))
     counts = {}

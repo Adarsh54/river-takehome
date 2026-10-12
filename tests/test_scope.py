@@ -38,7 +38,7 @@ def test_custom_extraction_keeps_table_headers_and_definition_identity():
 
 
 def custom_packet():
- cfg=dict(CONFIG,funds=[F],custom_metrics=[M]);cs=extract_custom(BODY,F,FILING,SOURCE,[M])
+ cfg=copy.deepcopy(dict(CONFIG,funds=[F],custom_metrics=[M]));cs=extract_custom(BODY,F,FILING,SOURCE,[M])
  result=resolve_metric(cs,F,M['id'],cfg)
  return build_packet({'config':cfg,'filings':[FILING],'candidates':cs},result)
 
@@ -159,3 +159,37 @@ def test_custom_native_pdf_preserves_page_locator():
  c=extract_custom(body,F,FILING,source,[M])[0]
  assert c['locator']=='PDF page 1; native text' and '24.5%' in c['quote']
  assert not c['eligible'] and c['value'] is None
+
+
+def test_custom_context_requires_all_fields_and_verbatim_support():
+ p=custom_packet();p['custom_metric_definition']['context_fields']=['Weighting','Fees']
+ c=p['evidence'][0]
+ d={'decision':'publish','selected_candidate_id':c['id'],'value':24.5,'period':'2024-12-31','unit':'%',
+ 'basis':'custom:custom_turnover','share_class':'Fund','directly_reported':True,'rationale':'Reported value with context caveats.','comparability':'Do not assume definitions match.','unresolved_issues':[],
+ 'citations':[{'candidate_id':c['id'],'quote':c['quote']}],'assessments':[{'candidate_id':c['id'],'reason':'Reported value.'}],
+ 'comparison_context':[{'field':'Weighting','value':'Not established','candidate_id':None,'quote':''},{'field':'Fees','value':'Not established','candidate_id':None,'quote':''}]}
+ assert validate_decision(d,p)
+ for mutate in ['missing','invented','unknown']:
+  bad=copy.deepcopy(d)
+  if mutate=='missing':bad['comparison_context'].pop()
+  elif mutate=='invented':bad['comparison_context'][0].update(value='Principal weighted',candidate_id=c['id'],quote='Imaginary footnote')
+  else:bad['comparison_context'][0]['value']='Principal weighted'
+  with pytest.raises(JudgmentError):validate_decision(bad,p)
+
+
+def test_custom_context_keeps_adjacent_footnotes():
+ body=b'<p>As of December 31, 2024</p><table><tr><td>Portfolio turnover 24.5%</td></tr></table><p>Weighting uses average invested capital.</p>'
+ cs=extract_custom(body,F,FILING,SOURCE,[dict(M,context_fields=['Weighting'])])
+ assert any('Weighting uses average invested capital.' in c['quote'] and 'December 31' in c['quote'] for c in cs)
+ with pytest.raises(ValueError):validate_metrics({'custom_metrics':[dict(M,context_fields=['Fees','Fees'])]})
+
+
+def test_context_schema_is_opt_in_and_invalidates_only_relevant_requests():
+ from apex_benchmark.judgment import SCHEMA,decision_schema
+ p=custom_packet()
+ assert decision_schema(p) is SCHEMA
+ p['custom_metric_definition']['context_fields']=['Reference rate']
+ schema=decision_schema(p)
+ assert 'comparison_context' in schema['required']
+ assert 'comparison_context' not in SCHEMA['properties']
+ assert schema['properties']['comparison_context']['items']['additionalProperties'] is False
