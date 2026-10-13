@@ -73,7 +73,7 @@ def html_report(run):
     rows = []
     for metric, label in metric_labels(run['config']).items():
         internal = run['apex']['values'].get(metric)
-        cells = [f'<th>{esc(label)}</th>', f'<td>{esc(internal["value"]) if internal else "Withheld / unavailable"}</td>']
+        cells = [f'<th>{esc(label)}</th>', (f'<td>{esc(internal["value"])}<small>{esc(internal["period"])}</small></td>' if internal else '<td>Withheld / unavailable</td>')]
         for ticker in tickers:
             r = lookup[ticker, metric]
             cells.append(f'<td class="{esc(r["status"])}"><a href="#{ticker}-{metric}">{display(r)}{"*" if r.get("calculation") else ""}</a>'
@@ -124,7 +124,7 @@ Blank values distinguish evidence not found, pending/failed AI review, and revie
 <nav class="downloads"><a href="benchmark.docx">Committee Word</a><a href="benchmark-evidence.docx">Detailed evidence Word</a><a href="benchmark.pdf">Download PDF</a><a href="benchmark.csv">Download CSV</a><a href="audit.json">Full evidence JSON</a><a href="judgments.json">Model decision records</a></nav>
 {('<details><summary>Custom metric definitions for this run</summary>'+definitions+'</details>') if definitions else ''}
 <h2>Comparison</h2><p>Listed funds use shareholder returns; interval funds use net NAV returns. KREF book value, leverage and yield are not automatically comparable with the other funds. Fee bases differ; KREF's annualized percentage retains a quarterly dollar minimum. * Calculated from filing values; open the evidence for inputs and formula.</p>
-<div class="scroll"><table><thead><tr><th>Metric</th><th>Apex Ridge</th>{''.join('<th>'+t+'</th>' for t in tickers)}</tr></thead><tbody>{''.join(rows)}</tbody></table></div>
+<div class="scroll"><table><thead><tr><th>Metric</th><th>Apex Ridge<br>Internal figures</th>{''.join('<th>'+t+'</th>' for t in tickers)}</tr></thead><tbody>{''.join(rows)}</tbody></table></div>
 <h2>NAV history</h2><p>Eight competitor quarter-ends; no interpolation or carry-forward. KREF uses book value per common share. Apex history starts Q1 2024; only authorized internal rows are included.</p>
 <div class="scroll"><table><tr><th>Fund</th>{''.join('<th>'+d+'</th>' for d in run['quarters'])}</tr>{''.join(history)}</table></div>
 {apex_history}
@@ -190,10 +190,10 @@ def pdf_report(run, path):
     for start in range(0,len(tickers),4):
         group=tickers[start:start+4]
         if start:story.append(PageBreak())
-        table = [[p(t, 'Cell') for t in ['Metric', 'Apex Ridge'] + group]]
+        table = [[p(t, 'Cell') for t in ['Metric', 'Apex Ridge internal figures'] + group]]
         for metric, label in metric_labels(run['config']).items():
             internal = run['apex']['values'].get(metric)
-            row = [p(label, 'Cell'), p(str(internal['value']) if internal else 'Withheld / unavailable', 'Cell')]
+            row = [p(label, 'Cell'), p(str(internal['value'])+' | '+internal['period'] if internal else 'Withheld / unavailable', 'Cell')]
             for ticker in group:
                 r = lookup[ticker, metric]
                 row.append(p(f"{display(r)}{'*' if r.get('calculation') else ''} | {evidence_label(r)} | {r['period'] or 'period unconfirmed'}", 'Cell'))

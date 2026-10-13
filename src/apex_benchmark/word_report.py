@@ -89,12 +89,12 @@ def export_evidence_word(run,path):
         rows=[]
         for metric,label in labels.items():
             internal=run['apex']['values'].get(metric)
-            row=[label,str(internal['value']) if internal else 'Withheld or unavailable']
+            row=[label,str(internal['value'])+'\n'+internal['period'] if internal else 'Withheld or unavailable']
             for fund in group:
                 r=lookup[fund['ticker'],metric]
                 row.append(value(r)+ (' *' if r.get('calculation') else '')+'\n'+(r.get('period') or 'Period unresolved'))
             rows.append(row)
-        table(doc,['Metric','Apex Ridge']+[f['ticker'] for f in group],rows,[2.2,1.4]+[6.8/len(group)]*len(group))
+        table(doc,['Metric','Apex Ridge\nInternal figures']+[f['ticker'] for f in group],rows,[2.2,1.4]+[6.8/len(group)]*len(group))
         doc.add_paragraph('* Calculated from reported inputs. Empty values are unresolved, not necessarily undisclosed. Each value and gap has a corresponding evidence note. Fee bases and leverage definitions can differ materially.')
     doc.add_page_break();doc.add_paragraph('Per share value history',style='Heading 1')
     doc.add_paragraph('NAV for funds and book value per common share for mortgage REITs. No interpolation or carry-forward. The periods shown are the actual observation dates.')
@@ -208,7 +208,7 @@ def export_working_word(run, path):
                 ref = refs.get((f['ticker'], metric))
                 row.append(value(r) + (f' [{ref}]' if ref else '') + (' *' if r.get('calculation') else '') + ('\n'+r['period'] if r.get('period') else ''))
             rows.append(row)
-        table(doc, ['Metric', 'Apex Ridge'] + [f["ticker"] + '\n' + f['share_class'] for f in group], rows, [2.2, 1.4] + [6.8/len(group)]*len(group))
+        table(doc, ['Metric', 'Apex Ridge\nInternal figures'] + [f["ticker"] + '\n' + f['share_class'] for f in group], rows, [2.2, 1.4] + [6.8/len(group)]*len(group))
     doc.add_page_break()
     conflicts=[r for r in run['results']+run['nav_history'] if r.get('unresolved_conflict')]
     if conflicts:
@@ -316,7 +316,7 @@ def export_word(run, path):
                 row.append('—' if metric.startswith('return_') and f.get('return_basis')!='net_nav'
                            else cell(lookup.get((f['ticker'],metric)),metric))
             rows.append(row)
-        compact(['Metric','Apex Ridge']+[f['ticker']+(' (book value)' if f.get('structure')=='mortgage_reit' else '') for f in group],rows)
+        compact(['Metric','Apex Ridge\nInternal figures']+[f['ticker']+(' (book value)' if f.get('structure')=='mortgage_reit' else '') for f in group],rows)
         doc.add_paragraph('NAV per share history',style='Heading 1')
         quarters=run.get('quarters',[])
         history=[]
@@ -327,7 +327,7 @@ def export_word(run, path):
                 r=next((r for r in run['nav_history'] if r['ticker']==f['ticker'] and r['period']==q),None)
                 row.append('$'+f"{r['value']:.2f}" if r and r.get('value') is not None else '—')
             history.append(row)
-        compact(['Period','Apex Ridge (2024 onward)']+[f['ticker']+(' book value' if f.get('structure')=='mortgage_reit' else '') for f in group],history)
+        compact(['Period','Apex Ridge internal\n2024 onward']+[f['ticker']+(' book value' if f.get('structure')=='mortgage_reit' else '') for f in group],history)
         doc.add_paragraph('PM perspective',style='Heading 1')
         doc.add_paragraph(run.get('pm_narrative') or '[PM to add two or three sentences on relative performance and matters for discussion.]')
     footer=sec.footer.paragraphs[0]
