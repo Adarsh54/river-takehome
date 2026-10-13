@@ -17,6 +17,7 @@ from urllib.parse import urlparse,parse_qs
 from .cli import validate_config
 from .sec import SecClient,RetrievalError
 from .fund_browser import FundBrowser
+from . import approval
 
 FILES={'candidates.html':'text/html','timings.json':'application/json','benchmark-evidence.docx':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','index.html':'text/html','benchmark.docx':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','benchmark.pdf':'application/pdf','benchmark.csv':'text/csv','audit.json':'application/json','judgments.json':'application/json','nport.json':'application/json','nport-holdings.csv':'text/csv'}
 
@@ -110,7 +111,15 @@ class Workspace:
             if self.job:
                 if self.job['status']=='running':job['elapsed_seconds']=round(time.time()-self.job['started_at'],1)
                 p=Path(self.job['log_path']);job['log']=p.read_text()[-8000:] if p.exists() else ''
-            return {'config':self.config,'job':job,'csrf':self.token,'has_report':(self.report/'index.html').exists(),
+            publication=approval.status(self.report)
+            figures=[]
+            if (self.report/'audit.json').exists():
+                audit=json.loads((self.report/'audit.json').read_text())
+                for section in ('results','nav_history'):
+                    for index,r in enumerate(audit.get(section,[])):
+                        if r.get('value') is not None:
+                            figures.append({'section':section,'index':index,'label':f"{r['ticker']} | {r['metric']} | {r.get('period')} | {r['value']}"})
+            return {'publication':publication,'publication_figures':figures,'config':self.config,'job':job,'csrf':self.token,'has_report':(self.report/'index.html').exists(),
                     'has_word':(self.report/'benchmark.docx').exists(),'has_evidence_word':(self.report/'benchmark-evidence.docx').exists(),'openai_configured':bool(os.environ.get('OPENAI_API_KEY'))}
 
 
@@ -138,9 +147,12 @@ def handler(workspace):
                 if path.path.startswith('/report/'):
                     name=path.path[len('/report/'):] or 'index.html'
                     if name not in FILES:return self.send({'error':'Not found'},404)
-                    p=workspace.report/name
-                    if not p.exists():return self.send({'error':'Run the comparison to generate this output'},404)
-                    return self.send(p.read_bytes(),mime=FILES[name])
+                    with workspace.lock:
+                        if name in approval.DOWNLOADS and not approval.status(workspace.report)['released']:
+                            return self.send({'error':'Publication blocked: both PM and compliance must approve this exact report version. Review the dashboard and exclude unlocatable figures first.'},403)
+                        p=workspace.report/name
+                        if not p.exists():return self.send({'error':'Run the comparison to generate this output'},404)
+                        return self.send(p.read_bytes(),mime=FILES[name])
                 return self.send({'error':'Not found'},404)
             except (ValueError,KeyError,RetrievalError) as exc:self.send({'error':str(exc)},400)
         def do_POST(self):
@@ -149,6 +161,12 @@ def handler(workspace):
                 size=int(self.headers.get('Content-Length','0'))
                 if not 0<size<=100000:raise ValueError('Invalid request size')
                 data=json.loads(self.rfile.read(size))
+                if self.path in {'/api/approve','/api/exclude'}:
+                    with workspace.lock:
+                        if workspace.job and workspace.job['status']=='running':raise ValueError('Wait for the active run to finish before publication review.')
+                        if self.path=='/api/approve':
+                            return self.send(approval.approve(workspace.report,data['role'],data['reviewer'],data['version'],data.get('confirmed')))
+                        return self.send(approval.exclude(workspace.report,data['section'],data['index'],data['reason'],data['version']))
                 if self.path=='/api/funds':return self.send(workspace.add_fund(data))
                 if self.path=='/api/remove-fund':
                     with workspace.lock:
