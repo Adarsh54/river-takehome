@@ -125,17 +125,17 @@ def test_exhibits_are_parsed():
     assert docs[0][0].endswith('/ex99.htm') and b'annual report' in docs[0][1]
 
 
-def test_internal_data_is_gated_and_future_rows_excluded():
+def test_internal_data_is_automatic_and_future_rows_excluded():
     path = ROOT / 'data/apex_ridge_fund_data.csv'
-    assert internal_data(path, dict(CONFIG, apex_data_approved=False))['values'] == {}
-    cfg = dict(CONFIG, apex_data_approved=True, apex_approved_by=None, apex_approval_note=None)
-    with pytest.raises(ValueError, match='approver'):
-        internal_data(path, cfg)
-    cfg.update(apex_approved_by='Test only', apex_approval_note='Synthetic approval for unit testing only')
-    result = internal_data(path, cfg)
-    assert len(result['nav_history']) == 4
-    assert result['values']['nav']['period'] == '2024-12-31'
-    assert result['values']['nav']['value'] == 25.42
+    for cfg in (CONFIG, dict(CONFIG, apex_data_approved=False, apex_approved_by=None, apex_approval_note=None),
+                {k:v for k,v in CONFIG.items() if not k.startswith('apex_')}):
+        result = internal_data(path, cfg)
+        assert len(result['nav_history']) == 4
+        assert result['values']['nav']['period'] == '2024-12-31'
+        assert result['values']['nav']['value'] == 25.42
+        assert result['values']['return_1y']['value'] == 10.34
+    with pytest.raises(ValueError, match='no row for target quarter'):
+        internal_data(path, dict(CONFIG, target_period='2023-12-31'))
 
 
 def test_quarters_no_future_leak():
@@ -168,7 +168,7 @@ def test_full_failure_run_exports_honest_report(tmp_path):
     assert 'synthetic test response' in (tmp_path/'index.html').read_text()
     from pypdf import PdfReader
     pdftext = ' '.join(p.extract_text() for p in PdfReader(tmp_path/'benchmark.pdf').pages)
-    assert 'REVIEW DRAFT' in pdftext and '25.42' not in pdftext
+    assert 'REVIEW DRAFT' in pdftext and '25.42' in pdftext
     assert (tmp_path/'benchmark.csv').exists()
 
 

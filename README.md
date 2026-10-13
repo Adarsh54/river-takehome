@@ -4,7 +4,7 @@ A local Python prototype for the Q4 2024 board cycle. It connects to SEC EDGAR, 
 
 **Validation status:** live SEC ingestion and targeted OpenAI reviews have been exercised. Automated tests cover extraction, source checks, calculations, conflicting disclosures, incremental reuse and publication gates. Coverage varies by metric and fund; a missing value is not proof of non-disclosure. A full independent evaluation of extraction accuracy and missed disclosures, and a complete run of all metrics with the current default model, remain outstanding. PM and compliance approval are required before circulation.
 
-The supplied starter CSV is the authoritative Apex Ridge input for this prototype, as authorized by the project owner. The Q4 2024 comparison includes the Q4 2024 metrics and Q1-Q4 2024 NAV history; all 2025 rows are excluded. This source decision is recorded in configuration and is not attributed to Dana. PM and compliance publication approval remains a separate step.
+The supplied starter CSV is the authoritative Apex Ridge input for this prototype, as authorized by the project owner. The Q4 2024 comparison includes the Q4 2024 metrics and Q1-Q4 2024 NAV history; all 2025 rows are excluded. This source decision is recorded in configuration and is not attributed to Dana. Every fresh run and saved-audit update loads this CSV automatically; legacy source-approval flags do not suppress it. A missing target-quarter row stops the comparison with an explicit error. PM and compliance publication approval remains a separate step.
 
 ## Install and run
 

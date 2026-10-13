@@ -210,9 +210,9 @@ def test_pipeline_roundtrip_retains_structured_data_and_invalidates_ocr_mode(tmp
             return xml(),{'sha256':'test-only','retrieved_at':'2025-02-28T00:00:00Z'}
     config={'funds':[dict(FUND,return_basis='net_nav')], 'target_period':'2024-12-31',
             'filing_cutoff':'2025-02-28','history_quarters':8,'apex_data_approved':False}
-    first=cli.run_pipeline(config,Client(),tmp_path/'absent.csv',progress=lambda *a,**k:None)
-    second=cli.run_pipeline(config,Client(),tmp_path/'absent.csv',progress=lambda *a,**k:None)
+    first=cli.run_pipeline(config,Client(),Path(__file__).resolve().parents[1]/'data/apex_ridge_fund_data.csv',progress=lambda *a,**k:None)
+    second=cli.run_pipeline(config,Client(),Path(__file__).resolve().parents[1]/'data/apex_ridge_fund_data.csv',progress=lambda *a,**k:None)
     assert len(first['nport_reports'])==1 and first['nport_reports']==second['nport_reports']
     assert not first['errors'] and calls==['auto']
-    cli.run_pipeline(config,Client(),tmp_path/'absent.csv',progress=lambda *a,**k:None,ocr_mode='off')
+    cli.run_pipeline(config,Client(),Path(__file__).resolve().parents[1]/'data/apex_ridge_fund_data.csv',progress=lambda *a,**k:None,ocr_mode='off')
     assert calls==['auto','off']

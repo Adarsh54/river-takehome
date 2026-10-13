@@ -4,8 +4,8 @@ from .resolve import resolve_metric
 
 
 def compatible_audit(prior, current):
-    return {k:v for k,v in prior.items() if k not in {'custom_metrics','funds','comparison_policies'}} == {
-        k:v for k,v in current.items() if k not in {'custom_metrics','funds','comparison_policies'}}
+    return {k:v for k,v in prior.items() if k not in {'custom_metrics','funds','comparison_policies','apex_data_approved','apex_approved_by','apex_approval_note'}} == {
+        k:v for k,v in current.items() if k not in {'custom_metrics','funds','comparison_policies','apex_data_approved','apex_approved_by','apex_approval_note'}}
 
 
 def prepare(run, config, cache, pull_funds=None):
