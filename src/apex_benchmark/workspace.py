@@ -182,7 +182,7 @@ def handler(workspace):
                         for k in ('target_period','filing_cutoff'):config[k]=data[k]
                         workspace.save(config)
                     return self.send({'saved':True})
-                if self.path=='/api/run':return self.send(workspace.start(data.get('mode','on'),data.get('action','update'),data.get('concurrency',3)))
+                if self.path=='/api/run':return self.send(workspace.start('on',data.get('action','update'),data.get('concurrency',3)))
                 return self.send({'error':'Not found'},404)
             except (ValueError,KeyError,TypeError,RetrievalError) as exc:self.send({'error':str(exc)},400)
         def log_message(self,*args):pass
