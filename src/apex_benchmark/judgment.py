@@ -421,7 +421,7 @@ def validate_decision(decision, packet):
     if decision['unit']!=selected['unit']:
         raise JudgmentError('Unit changes require an implemented conversion')
     interpreted=dict(selected,basis=decision['basis'],share_class=decision['share_class'])
-    if packet['metric']=='incentive_fee' and re.search(r'hurdle|catch.up.threshold',decision['basis'],re.I):
+    if packet['metric']=='incentive_fee' and re.match(r'^(?:(?:contractual|effective):)?(?:(?:quarterly|annual)_)?(?:hurdle|catch.up.threshold)(?:\b|_)',decision['basis'],re.I):
         raise JudgmentError('Incentive fee cannot use a hurdle or catch-up threshold basis')
     custom=packet.get('custom_metric_definition')
     if custom and (decision['basis']!='custom:'+custom['id'] or decision['unit']!=custom['unit'] or decision['share_class']!=(packet['fund']['share_class'] if custom['scope']=='share_class' else 'Fund') or not decision['directly_reported']):

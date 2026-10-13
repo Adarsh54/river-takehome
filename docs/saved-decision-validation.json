@@ -1,0 +1,1367 @@
+{
+  "run_id": "3a4d386252af899c",
+  "audit_sha256": "fa8efd6809e7b75483947811ea32a832f26b12a6c9d5988974fa62264e39519d",
+  "method": "Saved-decision replay, source hashes, date/citation checks and independent arithmetic; no model calls.",
+  "limitations": "Not independent ground truth, retrieval recall, or proof of non-disclosure. Passing does not establish financial correctness.",
+  "summary": {
+    "pass": 73,
+    "gap": 32
+  },
+  "source_hashes_checked": 48,
+  "calculations_recomputed": 9,
+  "nport_reconciliations": [
+    {
+      "ticker": "CCLFX",
+      "period": "2024-12-31",
+      "status": "pass",
+      "difference_usd": "0E-12",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "CCLFX",
+      "period": "2024-06-30",
+      "status": "pass",
+      "difference_usd": "0E-12",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "CCLFX",
+      "period": "2024-09-30",
+      "status": "pass",
+      "difference_usd": "0E-12",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "CCLFX",
+      "period": "2024-06-30",
+      "status": "pass",
+      "difference_usd": "0E-12",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "CCLFX",
+      "period": "2024-03-31",
+      "status": "pass",
+      "difference_usd": "0E-12",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "CCLFX",
+      "period": "2023-12-31",
+      "status": "pass",
+      "difference_usd": "0E-12",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "CCLFX",
+      "period": "2023-09-30",
+      "status": "pass",
+      "difference_usd": "0E-12",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "CCLFX",
+      "period": "2023-06-30",
+      "status": "pass",
+      "difference_usd": "0E-12",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "CCLFX",
+      "period": "2023-03-31",
+      "status": "pass",
+      "difference_usd": "0E-12",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "CCLFX",
+      "period": "2022-12-31",
+      "status": "pass",
+      "difference_usd": "0E-12",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "CCLFX",
+      "period": "2022-09-30",
+      "status": "pass",
+      "difference_usd": "0E-12",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "CCLFX",
+      "period": "2022-06-30",
+      "status": "pass",
+      "difference_usd": "0E-12",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "CCLFX",
+      "period": "2022-06-30",
+      "status": "pass",
+      "difference_usd": "0E-12",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "CCLFX",
+      "period": "2022-03-31",
+      "status": "pass",
+      "difference_usd": "0E-12",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "CCLFX",
+      "period": "2021-12-31",
+      "status": "pass",
+      "difference_usd": "0E-12",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "TAKIX",
+      "period": "2024-12-31",
+      "status": "pass",
+      "difference_usd": "0.00",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "TAKIX",
+      "period": "2024-09-30",
+      "status": "pass",
+      "difference_usd": "0.00",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "TAKIX",
+      "period": "2024-06-30",
+      "status": "pass",
+      "difference_usd": "0.00",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "TAKIX",
+      "period": "2024-03-31",
+      "status": "pass",
+      "difference_usd": "0.00",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "TAKIX",
+      "period": "2023-12-31",
+      "status": "pass",
+      "difference_usd": "0.00",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "TAKIX",
+      "period": "2023-09-30",
+      "status": "pass",
+      "difference_usd": "0.00",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "TAKIX",
+      "period": "2023-06-30",
+      "status": "pass",
+      "difference_usd": "0.00",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "TAKIX",
+      "period": "2023-03-31",
+      "status": "pass",
+      "difference_usd": "0.00",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "TAKIX",
+      "period": "2022-12-31",
+      "status": "pass",
+      "difference_usd": "0.00",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "TAKIX",
+      "period": "2022-09-30",
+      "status": "pass",
+      "difference_usd": "0.00",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "TAKIX",
+      "period": "2022-06-30",
+      "status": "pass",
+      "difference_usd": "0.00",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "TAKIX",
+      "period": "2022-03-31",
+      "status": "pass",
+      "difference_usd": "0.00",
+      "tolerance_usd": "0.02"
+    },
+    {
+      "ticker": "TAKIX",
+      "period": "2021-12-31",
+      "status": "pass",
+      "difference_usd": "0.00",
+      "tolerance_usd": "0.02"
+    }
+  ],
+  "checks": [
+    {
+      "ticker": "CCLFX",
+      "metric": "return_1y",
+      "period": "2024-03-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Latest eligible 1-year net NAV return on or before 2024-12-31 is 13.34% for the year ended 2024-03-31, shown in the fund\u2019s financial highlights. For an interval fund, net NAV return is the correct metric. A newer filing dated 2024-12-09 only adds a six-month period ended 2024-09-30 with a 6.52% total return, which is not a trailing 1-year return and therefore does not supersede the older annual 1-year figure. I rejected the prospectus expense-example figures because they are hypothetical costs, not performance returns. Reporting period is 275 days behind target.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "CCLFX",
+      "metric": "return_3y",
+      "period": "2024-03-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish 9.86% from the fund\u2019s Average Annual Total Returns table as of 2024-03-31. For this interval fund, that table provides the trailing 3-year annualized return and is the latest explicit 3-year observation in the packet on or before 2024-12-31. I rejected the 13.34% and 7.06% figures in the financial highlights because they are total returns for individual reporting periods, not a trailing 3-year annualized return. Reporting period is 275 days behind target.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "CCLFX",
+      "metric": "return_5y",
+      "period": "",
+      "section": "results",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "The latest evidence before 2024-12-31 is a 2024-09-30 financial-highlights table showing single-period total returns by fiscal period, not a trailing 5-year annualized net NAV return. Earlier March 31, 2024 evidence provides 1-year, 3-year, and since-inception returns, but no 5-year figure because the fund had not yet reached a 5-year track record in the supplied materials. Expense-example tables with a hypothetical 5% annual return are not performance data.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "CCLFX",
+      "metric": "management_fee",
+      "period": "2024-09-30",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish 1.00%. The latest eligible evidence is the 2024-12-09 N-CSRS for the 2024-09-30 period, which directly states the Fund pays a monthly Investment Management Fee equal to 1.00% accrued daily on an annualized basis of the Fund\u2019s Net Assets. The same passage also contains a historical Class I expense cap of 2.25%, but that is a separate waiver/expense-limitation provision and not the contractual management fee. Later prospectus and fee-table passages consistently show 1.00%, usually framed on average daily net assets, but they are marked ineligible/unconfirmed and therefore are corroborative rather than primary. No competing eligible contractual rate appears in the packet.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "CCLFX",
+      "metric": "effective_fee",
+      "period": "",
+      "section": "results",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "The evidence clearly supports a 1.00% contractual management fee on net assets, but the requested metric is effective fee. The available effective-fee figures in the financial highlights and supplemental expense ratios are expense ratios, not a management fee, and no passage states an effective management fee percentage for the requested share class/definition.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "CCLFX",
+      "metric": "incentive_fee",
+      "period": "",
+      "section": "results",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "The only supplied passage discusses portfolio manager compensation and mentions possible fee sharing and incentive fees, but it does not state the fund\u2019s incentive fee rate, fee formula, hurdle, catch-up, or the applicable share class. No explicit incentive fee percentage is established from the evidence packet.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "CCLFX",
+      "metric": "hurdle",
+      "period": "",
+      "section": "results",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "No retrieved passages available for model assessment.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "CCLFX",
+      "metric": "nav",
+      "period": "2024-11-13",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish the latest disclosed Class I/Institutional NAV on or before 2024-12-31. The semiannual report gives 2024-09-30 NAV of 10.93, but a later repurchase-offer table in the same filing explicitly states Class I NAV as of the November 13, 2024 repurchase offer date was 10.77, which is the latest available observation before year-end. I rejected N-PORT passages because they refer to underlying investments valued using NAV or fund-level net assets, not per-share fund NAV.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "CCLFX",
+      "metric": "leverage",
+      "period": "",
+      "section": "results",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "Withhold because the only available figures are derived N-PORT borrowings-to-net-assets ratios, and each candidate is explicitly flagged as scope requiring review rather than a confirmed comparable debt/equity measure. The latest 2024-12-31 filing provides borrowings and net assets, but N-PORT net assets are not equity per share and the packet does not establish that this derived ratio matches the requested stated debt/equity basis for the interval fund.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "CCLFX",
+      "metric": "distribution_yield",
+      "period": "2024-09-30",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Published the latest stated distribution rate/yield on or before 2024-12-31. The newer 2024-09-30 shareholder letter states the Fund's 11.0% distribution rate for the past year. I rejected the older 2024-03-31 filing's 11.0% distribution yield as superseded by the later dated report, and I did not use the same passages' annualized net return figures because they are performance returns, not distribution yield.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "CCLFX",
+      "metric": "custom_portfolio_turnover",
+      "period": "2024-03-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "The custom metric requires the reported annual portfolio turnover rate for the fiscal year. The latest annual observation on or before 2024-12-31 is 31% for the year ended 2024-03-31, shown in the fund\u2019s financial highlights. I rejected the 21% figure because it is explicitly for the six months ended 2024-09-30 and does not match the fiscal-year period basis. Reporting period is 275 days behind target.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "CCLFX",
+      "metric": "custom_default_rate",
+      "period": "",
+      "section": "results",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "No supplied passage reports the fund\u2019s trailing twelve month principal-weighted portfolio default rate. The only numeric 'default rate' figures are Level 3 valuation assumptions for CLO investments (3% CDR) rather than a fund-level realized/reported portfolio default rate, and other passages discuss debt-facility events of default or generic risk language, not the requested metric.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "CCLFX",
+      "metric": "custom_weighted_average_spread",
+      "period": "",
+      "section": "results",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "Withhold because the supplied passages do not report any numeric weighted average spread for the fund. The only relevant text says weighted average spread of underlying loans is one factor considered in valuing CLOs, which is a methodology description rather than a disclosed portfolio-level quarter-end spread. Newer 2024-09-30 evidence is available, but it still provides no eligible reported value; older 2024-03-31 passages are the same and also non-numeric.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "return_1y",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish 10.80% for Class I trailing 1-year return at net asset value as of 2024-12-31. The fund is an interval fund, so net NAV return is the correct basis. Passage 10 directly reports Class I financial highlights with 'Total Return, at Net Asset Value' of 10.80% for 2024, and passage 15 supplies the reinvestment-based total return definition. Passage 3 independently matches the same Class I 1-year figure in the performance table. Rejected competing figures for other share classes, including Class A 10.23%, Class L 10.05%, Class N 10.77%, Class M/U 9.96%, and Class Y 10.16%, because they do not match the requested share class.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "return_3y",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "For this interval fund, the required basis is net NAV return. The filing provides Class I annual net-asset-value total returns for 2024, 2023, and 2022, and the eligible calculation chains those disclosed annual returns into a trailing 3-year annualized result. The supporting footnote defines the return basis as reinvested dividends and distributions at NAV with redemption at NAV and no sales charges reflected. I rejected competing figures because they are either unlabeled snippets, different share classes, headings/footnotes without the requested number, growth-of-investment presentations rather than a 3-year annualized return, or narrative/risk text unrelated to fund performance.",
+      "calculation_recomputed": true
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "return_5y",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish the Class I trailing 5-year annualized net NAV return as the eligible calculation supplied in candidate 82c82afdc64b64c397be. For this interval fund, net NAV return is the correct basis. The filing provides five consecutive Class I annual NAV total returns for 2020-2024 and defines that return as reinvesting distributions and redeeming at NAV. The supplied eligible calculation annualizes those disclosed yearly returns to 7.356492735761688%. I rejected other numeric rows because they are for other or unconfirmed share classes, and rejected headings/footnotes/risk text because they do not provide the requested Class I 5-year value. This is a calculated figure from rounded annual returns, not a directly reported 5-year percentage.",
+      "calculation_recomputed": true
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "management_fee",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish 1.00% as the contractual base management fee rate. The N-CSR directly reports that the fee is charged at an annual rate of 1.00% on consolidated month-end Managed Assets, with an explicit cap of 1.50% of net assets. A second passage independently repeats the same formula. The evidence packet also contains dollar amounts for fees expense and fees payable, but those are realized amounts rather than the contractual percentage. It also contains a separate expense limitation/waiver arrangement at 2.00% of month-end NAV by class through April 30, 2026; that is not the management fee itself. Share class is not separately specified in the management-fee passages, but the filing gives a fund-level contractual rate and no competing Class I-specific management fee rate, so the fund-level rate is the supportable figure for Class I with the managed-assets basis and cap preserved.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "effective_fee",
+      "period": "",
+      "section": "results",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "The packet gives Class I expense ratios, but not a clearly labeled 'management fee, effective (%)' for Class I. Passage 6 reports Class I total expenses of 5.40% and expenses after recoupment of waivers/reimbursements of 5.50%, which are fund operating expense ratios, not management fee. Passages 20-22 describe the contractual expense limitation and recapture mechanics, not an effective management fee rate. Passage 3 gives dollar management fees for the whole fund, not a Class I percentage. Because the requested metric is specifically management fee, the available evidence does not support a publishable Class I effective management fee percentage.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "incentive_fee",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish 15% as the fund-level contractual incentive fee rate. The governing fee schedule explicitly states the Adviser receives 15% of pre-incentive fee net investment income once the hurdle and catch-up mechanics are satisfied. Candidate 6ebbf22c6bb470960665 directly reports that the catch-up is intended to provide an incentive fee of 15% on all pre-incentive fee net investment income when the threshold is reached, and candidate d22561cd5bd0fdcee54d confirms that after catch-up, 15% thereafter is allocated to the Adviser. Competing figures are not the reportable incentive fee rate: 1.50% is the hurdle rate, 1.765% is the catch-up threshold, several 1.72%-1.73% lines combine deal expenses and incentive fees, 2.00% is an expense limitation excluding incentive fees, and several passages report dollar amounts incurred or payable rather than the contractual percentage. The filing does not tie this fee term to a distinct class-specific variant; the disclosure applies to the Fund generally, so it is usable for Class I as the fund's incentive fee structure.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "hurdle",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "The 2024 annual report directly states the incentive fee hurdle is 1.50% per quarter, or 6.00% annualized, expressed as a rate of return on the Fund\u2019s net assets. Publish the annualized hurdle because the selected eligible passage explicitly provides that form and basis. Rejected competing figures 1.50%, 1.765%, and 15.0% because they are the quarterly hurdle, catch-up threshold, and incentive fee rate, not the requested annualized incentive hurdle.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "nav",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish Class I NAV per share of $8.55 as of 2024-12-31. The strongest evidence is the directly reported Class I financial highlights table, which explicitly includes the 2024 row and states Net asset value, end of period $ 8.55. This is corroborated by a separate NAV table stating Net asset value and redemption price per share $ 871,370,141 101,937,339 $ 8.55; that net assets figure aligns with the Class I financial highlights net assets, end of period (in thousands) $ 871,370, supporting the Class I mapping. I rejected other 2024 NAV figures such as $8.51, $8.50, and $8.56 because the filing states multiple share classes exist and their NAVs may differ by class-specific expenses. I also rejected $8.77 and $8.81 because those are maximum offering prices including sales charges, not NAV.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "leverage",
+      "period": "",
+      "section": "results",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "The only evidence is an N-PORT-derived borrowings-to-net-assets figure showing zero reported borrowings and net assets as of 2024-12-31. That does not establish the requested debt/equity basis, and the evidence itself flags that zero reported borrowings do not prove zero economic leverage. Under the measurement contract, N-PORT net assets are not per-share NAV and leverage definitions differ, so this is not a defensible debt/equity metric to publish.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "distribution_yield",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "The filing directly reports the Class I annualized distribution rate as 10.0% as of December 31, 2024, and separately defines the calculation basis. This matches the requested fund, share class, unit, and date. The other passages are supporting definition text, not competing numeric values. This is a distribution-rate metric, not a return metric, but it is the metric requested here.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "custom_portfolio_turnover",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "The 2024 N-CSR financial highlights directly report a portfolio turnover rate of 11% for the year ended 2024-12-31. Although shown within class tables, the same turnover figure appears across multiple classes, supporting use as a fund-level annual portfolio turnover metric; share_class is therefore Fund per the custom metric scope.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "custom_default_rate",
+      "period": "",
+      "section": "results",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "The supplied passages only discuss default risk qualitatively and state that borrower delinquency and default rates may be higher than estimated. They do not report a fund-level trailing twelve month principal-weighted portfolio default rate, any numeric percentage, or a matching measurement basis. Because the requested metric is reported-only, no value can be published.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "custom_weighted_average_spread",
+      "period": "",
+      "section": "results",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "No retrieved passages available for model assessment.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "return_1y",
+      "period": "2024-09-30",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Latest supported trailing 1-year observation on or before 2024-12-31 is the year ended 2024-09-30 total return based on market value for common shares, with distributions reinvested under the DRIP. I rejected the 2024-12-31 figures because they are explicitly three-month returns or annualized three-month NAV returns, not trailing 1-year returns. I also rejected 15.8% from the separate annual table because the financial highlights table gives the same metric for the same date with greater precision at 15.77%.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "return_3y",
+      "period": "2024-09-30",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Published the eligible calculated 3-year annualized shareholder return from the latest supported trailing annual observations before 2024-12-31. The 2024 10-K gives Common-share total return based on market value for fiscal years 2024, 2023, and 2022, with distributions reinvested under the DRIP; the provided eligible chain annualizes those three one-year shareholder returns to 8.7799%. Rejected the 2024-12-31 10-Q figures because they are single-quarter returns (3.51% market value; 10.98% annualized NAV-based) and not trailing 3-year returns.",
+      "calculation_recomputed": true
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "return_5y",
+      "period": "2024-09-30",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish the calculated 5-year annualized shareholder return from the latest eligible trailing history available on or before 2024-12-31. The 2024-09-30 financial highlights report common-share total return based on market value for each of the five fiscal years, with distributions reinvested under the DRIP; the supplied eligible calculation annualizes that 5-year chain to 5.073214691445882%. I rejected the 2024-12-31 figures because they are only 3-month returns, not a trailing 5-year measure, and the 2024/2023 annual tables showing single-year returns are not themselves the requested annualized 5-year figure without the provided calculation.",
+      "calculation_recomputed": true
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "management_fee",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "The latest in-scope filing is the 2025-02-04 10-Q for the quarter ended 2024-12-31. It explicitly states the current contractual base management fee is 1.0% annually and defines the fee base as average adjusted gross assets, with the historical 1.375% rate applying only to periods ending on or before June 30, 2023. The filing also notes collateral-management fees offset the amount payable, but that does not change the contractual headline rate. Share class is common stock for this BDC, and the contractual fee applies at the company level rather than varying by class.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "effective_fee",
+      "period": "",
+      "section": "results",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "The packet establishes contractual/base management fee terms and dollar management-fee expense amounts, but it does not explicitly report an effective management-fee percentage after waivers or a clearly identified actual management-fee expense ratio for the fund. The closest percentages are contractual rates of 1.0% on average adjusted gross assets and prospectus-style/fees-table management-fee percentages of 1.56% or 2.75% based on net assets attributable to common stock; those are not the requested effective management-fee metric for this cell.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "incentive_fee",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish 15.0% as the current contractual incentive fee rate as of 2024-12-31. The latest 10-Q says the Investment Advisory Agreement was effective June 3, 2024 and that the incentive fee rates were reduced from 20.0% to 15.0%, with the incentive fee cap also reduced to 15.0%. The same filing then gives the post-June-3 mechanics for both components: the income catch-up is meant to provide 15.0% and the capital gain incentive fee equals 15.0% of its base. I rejected passages showing 20.0%, 2.5%, 2.0%, expense ratios, waivers, payable balances, and dollar expenses because they are historical terms, hurdle/catch-up thresholds, ratios, or amounts\u2014not the current contractual fee rate. Comparability note: this is not an all-in expense ratio; it is a contractual rate applied separately to income and capital-gains bases, subject to a cumulative per-share cap.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "hurdle",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish 8.0% as the simple annualized incentive hurdle at 2024-12-31. The latest 10-Q explicitly states the governing contractual term is a hurdle rate of 2.0% quarterly on net assets, and the evidence packet includes eligible annualized calculations of that quarterly hurdle to 8.0%. I selected candidate e4e37a34193dfca9b146 because its quoted source text is a clean verbatim match and directly supports the underlying 2.0% quarterly term used for the allowed calculation. This is a fee-contract hurdle for the income incentive fee, not a fund return, yield, distribution rate, or management fee. I rejected 2.0% values as quarterly rather than annualized publish values, 2.5% values as old catch-up breakpoints for periods ending on or before March 31, 2024, and 15.0% values as the post-June 3, 2024 incentive fee payout/cap percentage rather than the hurdle. Older 2024-09-30 evidence, including an explicit 8.0% annualized reference, is consistent but superseded by the 2024-12-31 filing.",
+      "calculation_recomputed": true
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "nav",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish $15.13 per common share for 2024-12-31. The latest filing in scope is the 2025-02-04 10-Q, which directly reports the quarter-end figure as both \u201cNet asset value per common share\u201d and \u201cNet asset value at end of period.\u201d The competing 15.19 values in the same filing are for 2024-09-30 or beginning-of-period, not the target date. Older 2024-09-30 filings and 8-K materials are superseded for the 2024-12-31 target period. Non-GAAP adjusted NAV figures from the earnings presentation are not the requested metric.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "leverage",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "The latest eligible disclosure before 2024-12-31 is the 10-Q stating that as of December 31, 2024 the GAAP debt-to-equity ratio was 1.24x. I rejected 1.19x because the same filing labels it GAAP debt-to-equity ratio, net, which is a different leverage basis. I also rejected older September 30, 2024 figures such as 1.16x and 1.12x because newer December 31, 2024 values are available.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "distribution_yield",
+      "period": "2024-09-30",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "The only passage with an explicit yield figure states total announced distributions of $0.43 per share equated to an 11.3% dividend yield on September 30, 2024 NAV. This is a distribution yield, not shareholder total return, and the basis is clearly NAV-based. Other passages discuss distribution rate qualitatively but provide no numeric yield.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "custom_portfolio_turnover",
+      "period": "2024-09-30",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "The latest reported annual portfolio turnover rate on or before 2024-12-31 is 20.29% for the year ended 2024-09-30, disclosed in the annual financial highlights. I rejected the 21.33% figure because the subsequent 10-Q labels it under 'Three months ended December 31,' so it is an interim quarter figure, not the requested fiscal-year annual turnover rate.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "custom_default_rate",
+      "period": "",
+      "section": "results",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "Withhold because the packet does not contain a reported trailing-twelve-month principal-weighted portfolio default rate for the fund. The available passages discuss structured-finance model default concepts and general risk-factor statements about default rates, not the requested fund-level reported metric.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "custom_weighted_average_spread",
+      "period": "",
+      "section": "results",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "The latest disclosed spread figure is 5.1%, but it is explicitly for new floating-rate investment fundings during the three months ended December 31, 2024, not a reported portfolio-weighted contractual spread on debt investments at quarter end. The evidence also provides floor prevalence, but not a quarter-end portfolio weighted spread. Because metric identity and period basis do not match the custom definition, the value should be withheld.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "KREF",
+      "metric": "return_1y",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "KREF is a listed common-stock vehicle, so the relevant metric is shareholder total return. The 10-K explicitly provides a cumulative total stockholder return index for common stock and states that all dividends were reinvested. For the 1-year period ended 12/31/2024, the eligible calculation uses the disclosed KREF index values of 99.5 at 12/31/2023 and 83.7 at 12/31/2024. That yields -15.879396984924622%. I rejected the other candidates because they discuss management-agreement termination fees, compensation-policy references to total shareholder return, debt maturity buckets, or repurchase-agreement exposures rather than an actual reported return figure. The selected value is not directly reported as a percentage; it is derived from the filing\u2019s rounded return-index levels, so the result is approximate to the precision implied by those disclosed values.",
+      "calculation_recomputed": true
+    },
+    {
+      "ticker": "KREF",
+      "metric": "return_3y",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish the 3-year annualized total shareholder return for KREF common stock using the eligible supplied calculation. The 10-K explicitly defines the measure as cumulative shareholder return with reinvested dividends: Stockholder Return Performance The following graph is a comparison of the cumulative total stockholder return on shares of our common stock, the Russell 2000 Index (the \u201cRussell 2000\u201d), and the FTSE NAREIT All Mortgage Capped Index, a published industry index, from December 31, 2019 to December 31, 2024. The graph assumes that $100 was invested on December 31, 2019 in our common stock, the Russell 2000 and the FTSE NAREIT All Mortgage Capped Index and that all dividends were reinvested without the payment of any commissions. The same passage provides the needed 3-year endpoints for KKR Real Estate Finance Trust, Inc.: 12/31/2021 $ 123.0 and 12/31/2024 $ 83.7. Candidate 17fe5cd74c1585757af1 uses the supplied eligible annualization calculation from those exact endpoints. No competing candidate reports an alternative eligible 3-year shareholder return value; the others are unrelated narrative, compensation-policy references to TSR, or debt tables. This is a listed common-stock shareholder return measure, not NAV return.",
+      "calculation_recomputed": true
+    },
+    {
+      "ticker": "KREF",
+      "metric": "return_5y",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish the eligible calculated 5-year annualized total shareholder return for KREF common stock. The 10-K expressly provides the listed-security performance basis and the exact start/end index levels needed for the supplied eligible calculation: cumulative total stockholder return on common stock, assuming dividends reinvested, from 12/31/2019 to 12/31/2024. The quoted table shows KKR Real Estate Finance Trust, Inc. at 100.0 on 12/31/2019 and 83.7 on 12/31/2024, which supports the existing annualization calculation to -3.4960496004881714%. The annualized percentage itself is not directly printed, so this remains a calculated value from the supplied eligible candidate. I rejected the other candidates because they discuss management-agreement termination fees, debt maturities, repurchase facilities, or generic compensation-policy references to stock price/total shareholder return, none of which report the requested trailing 5-year shareholder return.",
+      "calculation_recomputed": true
+    },
+    {
+      "ticker": "KREF",
+      "metric": "management_fee",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "The 10-K states the manager is entitled to a quarterly management fee equal to the greater of $62,500 or 0.375% of weighted average adjusted equity. The eligible calculation annualizes the stated quarterly percentage to 1.5%, while preserving the separate quarterly dollar minimum. I rejected the annual expense amounts ($24,533 thousand; $25,137 thousand paid) because they are realized fee expense/payments, not the contractual rate.",
+      "calculation_recomputed": true
+    },
+    {
+      "ticker": "KREF",
+      "metric": "effective_fee",
+      "period": "",
+      "section": "results",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "The evidence shows dollar amounts of management fees, incentive compensation, and reimbursements paid to the manager for 2024, but it does not report an effective management fee rate (%) or provide an eligible precomputed percentage. The fee terms are described qualitatively only, and one passage states the amounts payable under the management agreement are not fixed and determinable. Without a reported percentage or an allowed supplied calculation, the effective fee cannot be published.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "KREF",
+      "metric": "incentive_fee",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "The 2025-02-03 10-K directly states KREF\u2019s quarterly incentive compensation rate is 20.0% and defines the base precisely: 20.0% of the excess of trailing 12-month Distributable Earnings (before incentive compensation) over a 7.0% trailing 12-month weighted average adjusted equity hurdle, less incentive compensation already paid for the first three calendar quarters. This is the fee-rate disclosure, not a realized dollar expense. It is fund-level/company-level and not share-class-specific despite the fund record noting Common; there is no competing percentage in the supplied evidence. I selected the fuller passage because it also preserves the adjusted-equity exclusions and the three-month/one-quarter lag language.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "KREF",
+      "metric": "hurdle",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish 7.0%. The 2025-02-03 10-K directly defines KREF\u2019s incentive compensation hurdle as \u201c7.0% of the trailing 12-month weighted average adjusted equity\u201d and explicitly labels it the \u201cHurdle Rate.\u201d This matches the requested incentive hurdle metric and basis. The duplicate passages in the same filing and incorporated exhibit are consistent, so there is no material ambiguity. Although KREF is a mortgage REIT rather than a fund, the supplied metric is a manager incentive hurdle, not a return measure; the cited definition is directly reported in the management-fee disclosure.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "KREF",
+      "metric": "nav",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "The 2025 10-K explicitly provides KREF's book value per common share as $14.76 at December 31, 2024 in a dated table. For this mortgage REIT, the requested metric is book value per common share rather than fund NAV. I rejected the adjacent $15.52 figure because it is the prior-year value for December 31, 2023, not the latest observation.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "KREF",
+      "metric": "leverage",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish 1.6x. The 2025-02-03 10-K explicitly reports a December 31, 2024 'Debt-to-equity ratio (A) 1.6x' and defines footnote (A) as total outstanding debt agreements excluding non-recourse facilities, plus secured term loan, less cash, divided by KREF's stockholders' equity. This matches the requested metric label 'Debt / equity (x), stated basis.' I rejected 3.6x because the filing separately labels that figure as 'Total leverage ratio,' with a different definition that includes collateralized loan obligations; leverage definitions differ and should not be conflated.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "KREF",
+      "metric": "distribution_yield",
+      "period": "2024-10-21",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "The latest available disclosed distribution yield on or before 2024-12-31 is the 3Q'24 figure of 6.7%, shown as 'Dividend yield on book value per share' in the company\u2019s 2024-10-21 8-K supplemental for KREF common stock. I rejected 10.6% because it is the older 3Q'23 comparative figure in the same table, not the latest observation. This is a yield on book value per share, not shareholder total return or fund NAV yield.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "KREF",
+      "metric": "custom_portfolio_turnover",
+      "period": "",
+      "section": "results",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "No retrieved passages available for model assessment.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "KREF",
+      "metric": "custom_default_rate",
+      "period": "",
+      "section": "results",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "The supplied passages mention possible higher borrower default rates as a risk factor, but do not report a trailing twelve month principal-weighted portfolio default rate for the fund. No explicit percentage, no trailing-12-month measurement, and no fund-level reported default-rate figure are established.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "KREF",
+      "metric": "custom_weighted_average_spread",
+      "period": "",
+      "section": "results",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "No retrieved passages available for model assessment.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "ARCC",
+      "metric": "return_1y",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Published value is the directly reported 1-year total return based on market value for common stock for the year ended 2024-12-31. For a listed fund/BDC, shareholder return should use market-price total return rather than NAV return. I rejected the 13.83% NAV-based total return because it is the wrong basis for this structure, and rejected IRR/target return/expense-example passages because they are not trailing 1-year shareholder total return metrics.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "ARCC",
+      "metric": "return_3y",
+      "period": "",
+      "section": "results",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "The evidence provides only single-year total returns based on market value for each year ended December 31, not a directly reported trailing 3-year annualized shareholder return as of 2024-12-31. Competing passages define the one-year market-value return calculation and list annual figures, but no eligible passage in the packet reports or supplies an explicit approved 3-year annualized calculation output.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "ARCC",
+      "metric": "return_5y",
+      "period": "",
+      "section": "results",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "The evidence provides only single-year total returns based on market value for each year ended December 31, plus methodology footnotes. It does not directly report a trailing 5-year annualized shareholder return as of 2024-12-31, and no eligible supplied calculation provides that exact 5-year annualized figure. Expense-example tables with 5-year columns are hypothetical costs, not fund returns.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "ARCC",
+      "metric": "management_fee",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "The filing directly states the contractual base management fee is 1.5% annually on average total assets, with a reduced 1.0% rate applying only to assets financed using leverage over 1.0x debt-to-equity. I rejected 3.10% and 3.03% because those are expense ratios to average net assets/consolidated net assets, not the contractual advisory fee rate.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "ARCC",
+      "metric": "effective_fee",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "The filing\u2019s financial highlights report a 2024 expense ratio component for \u201cBase management fee\u201d of 3.03%, which is an effective fee ratio to average net assets, not the contractual advisory rate. I rejected the 1.5%/1.0% figures because those are contractual base management fee rates on total assets with leverage breakpoints, not the effective fee requested. I also rejected the 3.08% incentive-fee ratio and 12.26% total operating expense ratio because they are different expense components.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "ARCC",
+      "metric": "incentive_fee",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "The filing directly states the manager receives 20% of pre-incentive fee net investment income above the hurdle/catch-up structure, and the capital gains incentive fee is also 20% of eligible realized capital gains. I rejected 1.75%, 2.1875%, and 7.0% because those are the hurdle, catch-up threshold, and deferral test, not the incentive fee participation percentage. I also rejected 3.08% and 3.27% because those are expense ratios / annual expenses, not the contractual incentive fee rate.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "ARCC",
+      "metric": "hurdle",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "The 2025-02-05 10-K directly states the income-based incentive fee is subject to a fixed hurdle rate of 1.75% per quarter, measured against pre-incentive fee net investment income as a return on net assets at the end of the immediately preceding quarter. I rejected 2.1875% because those passages define the catch-up threshold, not the hurdle rate.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "ARCC",
+      "metric": "nav",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Published NAV per common share is $19.89 as of 2024-12-31. This is directly stated in the audited balance sheet and repeated in the financial highlights and subsequent prospectus supplement. Rejected competing figures such as $19.53 because they are for earlier dates, and market price figures because they are not NAV.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "ARCC",
+      "metric": "leverage",
+      "period": "",
+      "section": "results",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "The passages only describe fee breakpoints tied to leverage of 1.0x debt-to-equity and an asset coverage requirement. They do not state ARCC\u2019s actual debt/equity leverage ratio as of 2024-12-31. The XBRL-style table also mixes agreement terms and asset coverage items, so the 100.00% figure appears to be a contractual threshold/equivalent breakpoint rather than the company\u2019s current leverage observation.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "ARCC",
+      "metric": "distribution_yield",
+      "period": "",
+      "section": "results",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "No retrieved passages available for model assessment.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "ARCC",
+      "metric": "custom_portfolio_turnover",
+      "period": "2024-12-31",
+      "section": "results",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish 39% for the fund-level reported annual portfolio turnover rate for the fiscal year ended 2024-12-31. The selected financial-highlights table explicitly labels the latest period as 12 Months Ended Dec. 31, 2024 and reports Portfolio turnover rate 39.00%, which matches the custom metric definition of reported annual portfolio turnover and excludes unrelated return and asset measures. I rejected the interim 51% figure because it is for the three months ended March 31, 2024 rather than the full fiscal year. Historical 2019-2015 tables were not selected because they do not provide the 2024 observation. Duplicate 2024 annual tables support the same value but were not selected because the chosen passage is the clearest directly labeled source.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "ARCC",
+      "metric": "custom_default_rate",
+      "period": "",
+      "section": "results",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "The packet does not provide a reported trailing twelve month principal-weighted portfolio default rate. The only passage mentions default rates generally as a risk factor and gives no numeric value, no trailing-12-month measurement, and no fund-level reported rate. Because the custom metric is reported-only, no value can be inferred or calculated.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "ARCC",
+      "metric": "custom_weighted_average_spread",
+      "period": "",
+      "section": "results",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "The cited figures are reported spreads on the company\u2019s CLO liabilities or a combined liability spread, not a reported portfolio-weighted contractual spread on the fund\u2019s debt investments. Passages 1-4 describe interest charged on April/October 2036 CLO secured notes/loans, and passage 5 reports a combined 1.71% for those financings. That is borrowing spread evidence, not the requested investment-portfolio spread.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "CCLFX",
+      "metric": "nav",
+      "period": "2023-03-31",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish the Institutional/Class I NAV of 10.67 USD/share for 2023-03-31. The strongest evidence is the latest filing in scope, a dated Class I financial-highlights table in the 2024-12-09 N-CSRS, which explicitly includes the 2023-03-31 column and reports end-of-period NAV of 10.67. This is the correct basis for an interval fund. I rejected competing prospectus snippets and general NAV passages because they either provide no historical value, no date/class mapping, or only partial table text. I also rejected beginning-of-period NAV passages because they are a different definition from the requested end-of-period NAV. Older shareholder-report tables are corroborative but not preferred over the later filing that repeats the same historical figure.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "CCLFX",
+      "metric": "nav",
+      "period": "2023-06-30",
+      "section": "nav_history",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "The packet shows Class I NAVs at March 31, 2023 ($10.67) and May 15, 2023 ($10.55), and later prospectuses only say shares are offered at current NAV without quoting the amount. No passage directly reports a June 30, 2023 per-share NAV for the fund. The June 30, 2023 N-PORT evidence reports portfolio values and total net assets, not per-share NAV, and cannot be used as NAV/share.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "CCLFX",
+      "metric": "nav",
+      "period": "2023-09-30",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish Class I/Institutional NAV per share of $10.80 at 2023-09-30. The semiannual financial highlights for the six months ended September 30, 2023 report net asset value, end of period, of $10.80, and the statement of assets and liabilities separately confirms Class I net asset value, offering, and redemption price per share of 10.80 as of the same date. I rejected later figures such as $10.64 and $10.55 because they are repurchase-offer-date NAVs for November 2023 and March 2024 year-end, not the requested 2023-09-30 observation.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "CCLFX",
+      "metric": "nav",
+      "period": "2023-12-31",
+      "section": "nav_history",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "The packet does not contain a directly reported fund-level NAV per share for 2023-12-31. The only explicit per-share NAV figures provided are 10.67 at 2023-03-31 and 10.55 at the 2024-05-15 repurchase pricing date, neither of which can be carried to 2023-12-31. The 2023-12-31 N-PORT evidence shows fair value hierarchy amounts and references underlying investments valued using NAV as a practical expedient, but that is not the fund\u2019s own per-share NAV.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "CCLFX",
+      "metric": "nav",
+      "period": "2024-03-31",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish the Institutional share-class NAV per share of 10.55 for 2024-03-31. The strongest evidence is the eligible dated financial highlights table in the later N-CSRS filing, which includes the column header for the year ended March 31, 2024 and the row Net asset value, end of period $ 10.55. The earlier N-CSR filing reports the same dated end-of-period NAV and corroborates the figure. I rejected prospectus snippets, headings, valuation-policy text, underlying-investment NAV references, and older historical NAVs because they either do not report a dated per-share fund NAV, do not confirm the mapped share class as strongly as the financial highlights, or refer to different concepts.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "CCLFX",
+      "metric": "nav",
+      "period": "2024-06-30",
+      "section": "nav_history",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "The packet establishes this is an interval fund with Class I shares, but it does not provide a directly stated per-share NAV dated 2024-06-30. The 2024 N-PORT evidence only shows fair-value hierarchy amounts and a 'Net Asset Value' column for underlying private investment vehicles, which is not the fund\u2019s per-share NAV. The closest explicit per-share NAVs in the packet are 10.55 at 2024-03-31 and 10.67 at 2023-03-31, both for Class I and not the requested date.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "CCLFX",
+      "metric": "nav",
+      "period": "2024-09-30",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish $10.93 per share for the Institutional share class. The fund is an interval fund, so NAV is the correct basis, and the latest supplied dated financial table directly reports the end-of-period NAV for 2024-09-30. I rejected older direct NAV figures such as $10.55 and $10.67 because they come from earlier period tables and are superseded by the later 2024-09-30 report. I also rejected passages that merely discuss valuation policies, practical-expedient NAV for underlying investments, repurchase mechanics, or headers/labels without a dated fund-level per-share NAV value. The separate passage stating offering/redemption price per share of 10.93 is corroborative, but the selected financial-highlights table has the strongest date and class support.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "CCLFX",
+      "metric": "nav",
+      "period": "2024-12-31",
+      "section": "nav_history",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "The packet establishes this is an interval fund with currently offered Class I shares, but it does not contain a directly reported per-share NAV for 2024-12-31. The only 2024-12-31 evidence is an N-PORT fair value hierarchy table that uses a 'Net Asset Value' column for certain private investment vehicles held by the fund, which is not the fund's own per-share NAV. Older filings report Class I NAVs for earlier dates only and cannot be carried forward to 2024-12-31.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "nav",
+      "period": "2023-03-31",
+      "section": "nav_history",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "The evidence establishes this is an interval fund with class-level daily NAVs, but none of the supplied passages reports Class I NAV per share as of 2023-03-31. The available Class I figures are year-end 2022 and 2023 financial highlights, while the N-PORT passage gives total net assets as of 2023-03-31, which is not per-share NAV and not class-specific.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "nav",
+      "period": "2023-06-30",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "The June 30, 2023 semiannual report directly gives Class I net asset value per share as $8.37 in the dedicated NAV-per-share table, and the Class I financial highlights for the six months ended June 30, 2023 show the same end-of-period NAV. I rejected other classes\u2019 June 30 NAVs because the share class must match, and rejected December 31, 2022/2023 financial-highlight NAVs because they are different dates, not the requested historical observation.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "nav",
+      "period": "2023-09-30",
+      "section": "nav_history",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "The packet establishes this is an interval fund with class-specific daily NAVs, but it does not provide a Class I NAV per share explicitly dated 2023-09-30. The available Class I figures are year-end financial-highlight values for 2022 and 2023, not the requested historical observation date. The N-PORT passage gives total net assets as of 2023-09-30, which is not per-share NAV and cannot be substituted.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "nav",
+      "period": "2023-12-31",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish Class I NAV per share of $8.52 for 2023-12-31. The strongest evidence is the later N-CSR filed 2025-02-28, which explicitly includes a Class I financial highlights table with the 2023 column showing an end-of-period NAV of $8.52. An earlier N-CSR filed 2024-02-29 independently reports the same Class I 2023 year-end NAV. I rejected other figures because they are either class-unconfirmed snippets from multi-class filings, other classes' NAVs ($8.48, $8.49, $8.53), maximum offering prices rather than NAV, total return lines, or general NAV policy/risk disclosures without a dated per-share Class I value.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "nav",
+      "period": "2024-03-31",
+      "section": "nav_history",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "The packet establishes this is an interval fund with class-level daily NAVs, but it does not provide the Class I NAV per share as of 2024-03-31. The only 2024-03-31 filing evidence gives fund net assets, not per-share NAV, and the prospectus financial highlights only provide Class I year-end NAVs through 2023-12-31.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "nav",
+      "period": "2024-06-30",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "The fund is an interval fund with multiple share classes, so the relevant metric is net asset value per share for the requested class. For Class I, the June 30, 2024 financial highlights report NAV at end of period of $8.58, and the dedicated NAV-per-share table also lists Class I NAV per share of $8.58. I rejected total fund net assets because that is not per-share NAV, and rejected other classes' NAVs because share classes have different expenses and NAVs.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "nav",
+      "period": "2024-09-30",
+      "section": "nav_history",
+      "published": false,
+      "status": "gap",
+      "errors": [],
+      "reason": "The evidence confirms this is an interval fund with class-specific daily NAVs, but no supplied passage reports the Class I NAV per share on 2024-09-30. The only 2024-09-30 figure in the packet is total net assets, not per-share NAV, and the financial highlights tables are for 2023 and earlier year-end periods only.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "TAKIX",
+      "metric": "nav",
+      "period": "2024-12-31",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish Class I NAV per share of $8.55 as of 2024-12-31. The latest filing in scope is the 2025-02-28 N-CSR, and it directly reports Class I financial highlights with the year-end value: \"Net asset value, end of period $ 8.55 $ 8.52 $ 8.28 $ 9.06 $ 8.74.\" This is the cleanest class-specific, date-specific source. I rejected other $8.55 passages because they are unlabeled share-class rows and therefore only corroborative, not sufficient to identify Class I on their own. I also rejected $8.50, $8.51, and $8.56 values because the filing states the fund has multiple share classes whose NAVs may differ by class expenses, so those figures are not interchangeable with Class I. I rejected $8.77 and $8.81 because they are maximum offering prices including sales charges, not NAV.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "nav",
+      "period": "2023-03-31",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish 14.73 USD/share for Common NAV at 2023-03-31. The cleanest support is the later 2024 10-Q, which explicitly reports for that historical date: \"Net asset value at end of period $ 15.12 $ 14.73.\" The 2023 10-Q independently agrees: \"Net asset value per common share $ 14.73 $ 14.89\" and \"Net asset value at end of period $ 14.73 $ 15.35.\" I rejected the 2024 10-K parser hit \"Second quarter 14.73 14.09 12.38 ( 4.3 ) ( 16.0 ) 0.33\" because it is an unlabeled market/NAV table row and not the clearest directly labeled NAV-per-share citation, even though the extracted value is consistent. I also rejected the many 424B2/424B3 prospectus passages because they are ineligible here, often unlabeled, estimated, illustrative, stale, or tied to other periods/contexts rather than the requested 2023-03-31 historical NAV per common share.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "nav",
+      "period": "2023-06-30",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish $14.83 per common share for 2023-06-30. Multiple direct filings agree on the same historical NAV for GBDC common stock at that date, including the contemporaneous 10-Q and later filings that restate the same figure. The cleanest direct support is the 2023-08-07 10-Q quote, \"Net asset value per common share $ 14.83 $ 14.89.\" A later 10-Q also confirms, \"Net asset value at end of period $ 15.32 $ 14.83,\" where the second column corresponds to the prior-year 2023-06-30 period. I rejected numerous 2024 424B2/424B3 passages because they are unconfirmed, estimated, illustrative, refer to other dates such as 2023-09-30, 2023-12-31 or 2024 periods, or are generic discussions of NAV rather than the requested 2023-06-30 observation.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "nav",
+      "period": "2023-09-30",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish $15.02 per common share for 2023-09-30. The cleanest direct support is the FY2023 Form 10-K, which states \"Net asset value per common share $ 15.02 $ 14.89.\" Later filings also consistently restate the 2023-09-30 common-share NAV as $15.02, including 2024 and 2025 10-Q/10-K filings. I rejected passages giving $15.02 as \"net asset value at beginning of period\" because those are rollforward starting values for later quarters, not the requested observation-date NAV itself. I also rejected later prospectus/424B2 excerpts and estimated or illustrative values because they are unconfirmed, often incomplete/OCR-fragmented, or refer to estimates, market prices, or other dates rather than the directly reported 2023-09-30 NAV per common share.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "nav",
+      "period": "2023-12-31",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish $15.03 per common share for 2023-12-31. The cleanest support is the company\u2019s later 10-Q, which directly states: \u201cNet asset value at end of period $ 15.13 $ 15.03.\u201d Earlier filings for the same observation date agree, including the 2024-02-05 10-Q: \u201cNet asset value per common share $ 15.03 $ 15.02\u201d and \u201cNet asset value at end of period $ 15.03 $ 14.71,\u201d plus the 2024-11-19 10-K quarter table showing \u201cFirst quarter 15.03 \u2026\u201d. I rejected numerous 424B2/424B3 prospectus passages because they are unconfirmed, often undated in the excerpt, include historical tables for other periods, or refer to estimates, illustrative assumptions, market price, or other entities rather than the reported 2023-12-31 GBDC common-share NAV.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "nav",
+      "period": "2024-03-31",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish $15.12 per common share for 2024-03-31. The cleanest directly reported evidence is the 10-Q filed 2024-05-06 stating: \"Net asset value per common share $ 15.12 $ 15.02.\" A second 10-Q passage corroborates the same quarter-end figure: \"Net asset value at end of period $ 15.12 $ 14.73.\" The later 10-K filed 2024-11-19 also includes the same quarter in a historical market/NAV table, showing for \"Second quarter\" the NAV value \"15.12,\" which is consistent rather than conflicting. Later 424B2 prospectus supplements show 15.19, but those are for a later period and are not the requested 2024-03-31 observation date.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "nav",
+      "period": "2024-06-30",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish $15.32 per common share for 2024-06-30. The cleanest directly reported evidence is the 2024-08-05 Form 10-Q stating \"Net asset value per common share $ 15.32 $ 15.02.\" A second 10-Q passage corroborates the same quarter-end figure: \"Net asset value at end of period $ 15.32 $ 14.83.\" A later 2024-11-19 10-K also repeats the June 30, 2024 quarter table with \"15.32,\" but the 10-Q is the contemporaneous filing for the requested date. Subsequent 424B2 filings introduce newer filing dates but mostly contain unlabeled historical tables, prior-period values such as $15.19 or $15.02, or generic NAV discussion; they do not undermine the supported 2024-06-30 value.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "nav",
+      "period": "2024-09-30",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish $15.19 per common share for Golub Capital BDC as of 2024-09-30. The fund is a listed BDC, and the requested metric here is NAV/book value per common share rather than shareholder return. The cleanest directly reported figure is from the 2024-11-19 Form 10-K: \u201cNet asset value per common share $ 15.19 $ 15.02.\u201d Multiple corroborating passages in the same 10-K and a later 2025-02-04 10-Q repeat the same 2024-09-30 NAV, including \u201cNet asset value at end of period $ 15.19...\u201d and \u201cNet asset value per common share $ 15.13 $ 15.19,\u201d where 15.19 is the comparative prior-period 2024-09-30 value. I rejected passages about beginning-of-period NAV, total return based on average NAV, market prices, estimated NAVs, merger illustrations, and generic NAV definitions because they are different metrics, different dates, or not the requested period-end common-share NAV.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "GBDC",
+      "metric": "nav",
+      "period": "2024-12-31",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish $15.13 per common share for 2024-12-31. The latest eligible evidence is the 2025-02-04 10-Q and directly reports the period-end NAV for common shares: \u201cNet asset value per common share $ 15.13 $ 15.19.\u201d A second eligible passage in the same filing corroborates the same quarter-end figure in the financial highlights: \u201cNet asset value at end of period $ 15.13 $ 15.03.\u201d I rejected older 2024 prospectus values such as $15.19 and $15.02 because they relate to earlier quarter-ends or offering materials, not the requested 2024-12-31 observation date. I also rejected passages about total return, DRIP mechanics, estimated NAVs, merger illustrations, and generic NAV definitions because they are not the requested period-end common-share NAV.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "KREF",
+      "metric": "nav",
+      "period": "2023-03-31",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "The filing directly reports KREF's book value per share of common stock as $17.16 at March 31, 2023. For this mortgage REIT, the relevant metric is book value per common share, not fund NAV. I rejected the RECOP I references because they describe KREF's share of an investee's net asset value and fair value in dollars, not KREF's per-common-share book value/NAV. ",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "KREF",
+      "metric": "nav",
+      "period": "2023-06-30",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish 2023-06-30 book value per common share of $16.38. For KREF, the packet explicitly reports book value per share for common stockholders, not fund NAV, and the benchmark label allows NAV / book value per common share. The selected table is the clearest directly reported figure because it shows the date, common-equity basis, share count, and per-share result in one place: common stockholders' equity divided by total shares outstanding equals book value per share. I rejected passages about RECOP I 'net asset value' because they describe the NAV of an underlying investment/aggregator vehicle held by KREF, not KREF's own per-common-share NAV/book value. I also rejected narrative duplicates that mention book value per share without the full surrounding table when a more complete directly reported table is available.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "KREF",
+      "metric": "nav",
+      "period": "2023-09-30",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish the 2023-09-30 common book value per share of $16.29. KREF is a mortgage REIT, and the filing explicitly presents this as \"Book value per share\" for common stockholders using common stockholders' equity divided by total shares outstanding. This matches the requested metric label's allowance for \"NAV / book value per common share (USD)\" and the fund share class. I rejected passages referring to RECOP I's net asset value because they describe the NAV of an underlying investment vehicle held by KREF, not KREF's per-common-share NAV/book value. I also rejected generic repurchase-program and narrative passages that reference book value per share conceptually but do not provide a separate competing per-share amount beyond the same reported table.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "KREF",
+      "metric": "nav",
+      "period": "2023-12-31",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish $15.52 per common share as of 2023-12-31. The company directly reports 'Book value per share' for 2023 in its 2023 Form 10-K, with the supporting table showing common stockholders' equity and total shares outstanding used in the calculation. Later 2024 and 2025 filings repeat the same 2023 comparative figure, which is consistent but secondary. Rejected other NAV-related passages because they refer to RECOP I investment net asset value, not KREF per-common-share book value/NAV.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "KREF",
+      "metric": "nav",
+      "period": "2024-03-31",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish the latest directly reported book value per Common share in the supplied evidence. The eligible dated table explicitly gives the per-share figure for KKR Real Estate Finance Trust as of March 31, 2024: common stockholders' equity, total shares outstanding, and Book value per share of 15.18. This fits the requested metric label for this mortgage REIT as NAV / book value per common share. I rejected other passages because they either discuss RECOP I or an aggregator vehicle's net asset value at the investment level, or they mention book value conceptually without stating KREF's own per-common-share figure.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "KREF",
+      "metric": "nav",
+      "period": "2024-06-30",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "The 10-Q directly reports book value per common share of $15.24 as of 2024-06-30 and shows the supporting common equity and share count calculation. This matches the requested metric label allowing NAV/book value per common share. I rejected other NAV references because they refer to RECOP I's internal net asset value, not KREF common per-share value.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "KREF",
+      "metric": "nav",
+      "period": "2024-09-30",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish KREF common book value per share of $14.84 as of 2024-09-30. The selected 10-Q table directly reports the dated common-equity components and the resulting per-share amount: Common stockholders' equity, total shares outstanding at period end, and Book value per share $ 14.84. This is the issuer-level common book value per share for the mortgage REIT. Competing passages mentioning net asset value refer to RECOP I, an underlying equity-method investment, not KREF's own per-common-share book value. Other passages discuss repurchase policy or label the metric without reporting a numeric value. The requested period in the packet is 2024-09-30, and this is the latest supplied dated observation that directly states the metric.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "KREF",
+      "metric": "nav",
+      "period": "2024-12-31",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "The 2025-02-03 10-K directly reports book value per common share of $14.76 as of December 31, 2024 in the company\u2019s book value per share table. This matches the requested metric label allowing book value per common share for KREF. I rejected passages mentioning net asset value only for an underlying equity-method investment and repurchase-program references to book value because they do not report the company-level per-share amount.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "ARCC",
+      "metric": "nav",
+      "period": "2023-03-31",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish $18.45 per common share. The 2023-04-25 10-Q directly reports March 31, 2023 net assets per share of $18.45 in the balance sheet and also shows net asset value at end of period of $18.45 in the financial highlights. I rejected market-price figures such as $18.27 and later-period values such as the 2024 Q1 NAV of $19.53 because the request is NAV/book value per common share exactly at 2023-03-31.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "ARCC",
+      "metric": "nav",
+      "period": "2023-06-30",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "The 2023-07-25 10-Q directly reports Common net assets per share of $18.58 as of June 30, 2023. This is the exact requested historical observation. I rejected later 2024 financial-highlights columns that restate 2023 because the contemporaneous 2023 filing already establishes the same value for the target date, and I rejected market-price and total-return figures because they are different metrics.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "ARCC",
+      "metric": "nav",
+      "period": "2023-09-30",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish $18.99 per common share. The 2023-10-24 10-Q directly reports 'NET ASSETS PER SHARE' as of September 30, 2023, and the financial highlights table independently shows 'Net asset value at end of period' of $18.99 for the same date. Later filings repeat the same 2023 figure, but the exact-period 2023 filing is the cleanest dated support. Rejected competing figures are market price ($19.47) and market-value total return (13.81%), which are different metrics, and quarterly price-range/NAV tables that are supportive but less direct than the balance-sheet and financial-highlights disclosures.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "ARCC",
+      "metric": "nav",
+      "period": "2023-12-31",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish $19.24 per common share as NAV at 2023-12-31. The 2023 audited balance sheet reports \"NET ASSETS PER SHARE\" of $19.24, and the 2023 financial highlights independently show year-end NAV of $19.24. Later 2024 and 2025 filings repeat the same 2023 comparative figure. Rejected competing figures such as $19.53, $19.61, $19.77, and $19.89 because they are NAV at later dates in 2024, not the requested historical observation.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "ARCC",
+      "metric": "nav",
+      "period": "2024-03-31",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish $19.53 per common share as NAV at 2024-03-31. The strongest evidence is the 2024-05-01 10-Q balance sheet stating \u201cNET ASSETS PER SHARE $19.53\u201d as of March 31, 2024, with matching common-share context. This is corroborated by the same 10-Q financial highlights showing net asset value at end of period of $19.53 and by subsequent prospectus disclosures that restate NAV per common share at March 31, 2024 as $19.53. I rejected later June 30, 2024 NAV ($19.61) because it is a different observation date, and rejected hypothetical $15.00 NAV figures because they are illustrative dilution examples, not reported fund data.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "ARCC",
+      "metric": "nav",
+      "period": "2024-06-30",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish $19.61 per common share. The 2024-06-30 10-Q balance sheet directly reports \u201cNET ASSETS PER SHARE\u201d of $19.61, and the financial highlights independently confirm \u201cNet asset value at end of period\u201d of $19.61 for the six months ended June 30, 2024. I rejected passage 1 because it comes from a later 2024-09-30 filing where the parser selected the Q1 2024 row ($19.53) despite the table also showing Q2 2024 at $19.61; for the exact 2024-06-30 observation, the contemporaneous 2024-06-30 filing is cleaner. The later prospectus also repeats $19.61, but it is secondary to the 10-Q.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "ARCC",
+      "metric": "nav",
+      "period": "2024-09-30",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish $19.77 per common share as of 2024-09-30. The 10-Q balance sheet directly reports \"NET ASSETS PER SHARE\" of $19.77, and the financial highlights independently confirm \"Net asset value at end of period\" of $19.77 for the same date and share class. Rejected competing figures include the market price/per share market value ($20.94 and $21.67 references), which are shareholder trading values rather than NAV, and prior-period NAVs such as $19.24 and $19.61, which are different dates.",
+      "calculation_recomputed": false
+    },
+    {
+      "ticker": "ARCC",
+      "metric": "nav",
+      "period": "2024-12-31",
+      "section": "nav_history",
+      "published": true,
+      "status": "pass",
+      "errors": [],
+      "reason": "Publish $19.89 per common share as NAV at 2024-12-31. The 10-K balance sheet directly reports 'NET ASSETS PER SHARE' for December 31, 2024, and the 10-K financial highlights separately confirm 'Net asset value at end of period' of $19.89 for 2024. A same-day 424B2 also restates that the net asset value per share of common stock at December 31, 2024 was $19.89. Rejected March 31, 2024 NAV figures and hypothetical $15.00 dilution examples because they are different dates or illustrative, not the requested 2024-12-31 observation.",
+      "calculation_recomputed": false
+    }
+  ]
+}

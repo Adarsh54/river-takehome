@@ -226,3 +226,15 @@ A targeted model-only trial on the same GBDC effective-fee evidence completed in
 In the local workspace, review the dashboard and use **Publication approval** to exclude any figure that cannot be located in its original source. Exclusion removes the figure from the comparison and regenerated exports; its original decision remains in `publication-exclusions.json` for investigation. Record separate PM and compliance attestations for the displayed report version. Word, PDF and CSV download routes return HTTP 403 until both approvals exist. Changes to the audit or any package file invalidate approvals automatically. No AI review runs during approval or exclusion.
 
 This is a local application gate, not authenticated enterprise access control: reviewer names are self-entered, and a user with filesystem access can read generated files directly. CLI-generated artifacts are review outputs, not authorization to circulate. Production requires authenticated reviewer roles and controlled artifact storage. Approval records are stored beside the report in `publication-approvals.json` and bind to hashes of the audit and export files.
+
+### Replay the validation checks
+
+Run against a completed report and its local SEC cache:
+
+```sh
+python -m apex_benchmark.validation --audit output/latest/audit.json --cache .cache/sec --output output/latest/validation.json
+```
+
+This makes no API calls. It replays saved model decisions against their original supplied evidence, verifies original-source hashes and dates, compares displayed figures to their decisions, independently recomputes supported return/fee calculations, and reconciles N-PORT assets less liabilities to net assets. It exits nonzero on failed checks and produces a per-value record. Missing decisions and missing source files fail for displayed values; blanks remain gaps. No expression from a filing or model is executed.
+
+`docs/saved-decision-validation.json` records the existing live report: 73 displayed values pass, 32 gaps, 48 source hashes verified, nine calculations recomputed, and 28 passing N-PORT balance reconciliations. This is an integrity and arithmetic evaluation, not an independent accuracy score, retrieval-recall benchmark or proof of absence. PM and compliance review remain necessary.
