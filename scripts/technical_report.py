@@ -65,7 +65,7 @@ def build_technical(path=ROOT/'docs/technical-approach.pdf'):
         section('What the LLM is responsible for',
             'Sol interprets the disclosures, compares competing figures and explains its choice. It uses OpenAI\'s Responses API with structured JSON output and store=false. Only public SEC evidence enters requests. Each affected result gets one initial review; there is no routine second LLM verifier. A failed code check permits one correction attempt, with both attempts retained.'),
         section('What the code verifies',
-            'The model selects numbered passages; code restores their exact saved text. It checks source fingerprints, filing dates, values, periods, units and share classes. Calculations must use implemented formulas with cited inputs. These checks catch invalid references and unsupported calculations, but cannot prove every financial interpretation is right.'),
+            'The model selects numbered passages; code restores their exact saved text. It checks source fingerprints, filing dates, values, periods, units and share classes. Calculations must use implemented formulas with cited inputs. Reconciliations check N-PORT assets minus liabilities against net assets, compound annual return chains, and distinguish rounding differences from conflicting figures. These checks do not prove every interpretation is right.'),
         section('How confidence appears in the output',
             'I use evidence status and a written rationale, not high/medium/low grades. A supported value has source links. A blank distinguishes no retrieved evidence, unfinished or failed review, and a reviewed but unestablished value. A failed search is not labeled "not disclosed."'),
         para('A concrete example: Golub management fees', 'heading'),
@@ -97,7 +97,7 @@ def build_technical(path=ROOT/'docs/technical-approach.pdf'):
         section('What has been checked',
             'Automated regression tests pass across source validation, dates, classes, tables, calculations, conflicts and reuse. Checks against real filings caught a hurdle mistaken for an incentive fee. The Sol fee trial took 18.9 seconds: one model call, no reparsing and 104 other results unchanged. This measures a cached update, not cold ingestion.'),
         section('Before production',
-            'Confirm the internal source with the client for production, complete a full Sol run and compare a quarterly package with the analyst\'s work. PM and compliance review should measure accuracy and the effort needed to resolve exceptions. Unfamiliar layouts and OCR still require review; arbitrary custom calculations are not supported. Add authenticated approvals, backups and alerts for failed retrieval or model calls before routine use.'),
+            'Confirm the internal source with the client for production, complete a full Sol run and compare a quarterly package with the analyst\'s work. Build a human-checked evaluation of present, absent, conflicting and unreadable disclosures; measure correct values, valid citations and missed figures. No absence-recall benchmark has yet been completed. Unfamiliar layouts and OCR still require review; arbitrary custom calculations are not supported. Add authenticated approvals, backups and alerts for failed retrieval or model calls before routine use.'),
         para('Implementation: src/apex_benchmark/. Measured runs and validation records: docs/.', 'small'),
     ]
     doc = SimpleDocTemplate(str(path), pagesize=A4, leftMargin=54, rightMargin=54, topMargin=55, bottomMargin=48)

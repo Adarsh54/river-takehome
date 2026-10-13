@@ -2,7 +2,7 @@
 
 A local Python prototype for the Q4 2024 board cycle. It connects to SEC EDGAR, inventories filings published through **February 28, 2025**, parses source evidence, and exports a comparison plus a review queue. No mock competitor data. OpenAI interprets evidence and writes per-value rationales; the standard run requires an API key. Parser-only review is explicitly available with --llm off.
 
-**Current validation status:** live SEC access works after configuring a real contact email. Live testing exposed and fixed N-PORT archive paths and oversized XML evidence extraction. The parser baseline establishes 26 of 40 current comparison cells and 21 of 32 historical per-share observations, with review flags where appropriate. The live LLM run retains 17 current values and 17 historical observations; interpretation and validation gaps remain explicit. Definitions, formulas, rounding reconciliation and remaining gaps are explicit. PM/compliance approval and disputed Apex input approval remain outstanding. See the validation record for the latest run counts.
+**Validation status:** live SEC ingestion and targeted OpenAI reviews have been exercised. Automated tests cover extraction, source checks, calculations, conflicting disclosures, incremental reuse and publication gates. Coverage varies by metric and fund; a missing value is not proof of non-disclosure. A full independent evaluation of extraction accuracy and missed disclosures, and a complete run of all metrics with the current default model, remain outstanding. PM and compliance approval are required before circulation.
 
 The supplied starter CSV is the authoritative Apex Ridge input for this prototype, as authorized by the project owner. The Q4 2024 comparison includes the Q4 2024 metrics and Q1-Q4 2024 NAV history; all 2025 rows are excluded. This source decision is recorded in configuration and is not attributed to Dana. PM and compliance publication approval remains a separate step.
 
@@ -19,25 +19,21 @@ python -m pip install -e '.[dev,ocr]'
 # OCR engine (macOS):
 brew install tesseract
 # Ubuntu/Debian instead: sudo apt-get install tesseract-ocr tesseract-ocr-eng
-# Put these in the ignored .env file (loaded automatically):
+cp .env.example .env
+# Edit .env locally with your real SEC contact and OpenAI key:
 # SEC_USER_AGENT='ApexBenchmark/0.1 Your Name your-real-contact-email@your-domain.com'
 # OPENAI_API_KEY=<your key>
 # OPENAI_MODEL=gpt-6.1-sol
-export SEC_USER_AGENT='ApexBenchmark/0.1 Your Name your-real-contact-email@your-domain.com'
-apex-benchmark --refresh
+apex-workspace
 ```
 
 Replace the contact with your real details. SEC requests need an identifying User-Agent; a declared contact does not guarantee that SEC will allow a particular network. The application caps requests at four per second, backs off for transient errors, stops a fund's document loop on 403, and never circumvents denial.
 
 The repository is private; cloning requires authorized GitHub access. Installation requires internet. SEC retrieval also requires access to `data.sec.gov` and `www.sec.gov`.
 
-Open `output/latest/index.html` directly or serve it locally:
+Open http://127.0.0.1:8766 and click **Run comparison**. The workspace always uses OpenAI Evidence Review. A first run downloads and parses real filings and may take longer than an update. Public SEC passages are sent to OpenAI; Apex Ridge internal data is not sent to the model. If the default model is unavailable to your API project, set `OPENAI_MODEL` to a model your project can access that supports Responses structured output.
 
-```sh
-python -m http.server 8000 --bind 127.0.0.1 --directory output/latest
-```
-
-Visit http://127.0.0.1:8000. There is no hosted application or authentication. In LLM mode, selected public SEC passages are sent to OpenAI; the disputed Apex CSV is excluded from model input.
+For a command-line research run instead, use `apex-benchmark --refresh`. Its outputs are written to `output/latest`; review them through `apex-workspace --report output/latest` to use the publication approval workflow. CLI-generated files are review artifacts, not approval to circulate.
 
 ## Interactive workspace: funds, custom metrics and Word
 
@@ -49,7 +45,7 @@ Open http://127.0.0.1:8766. Search EDGAR by company/fund name, ticker or CIK; se
 
 Add a custom metric with a precise definition, unit, measurement period, fund/share-class scope and literal search phrases. The three example buttons are editable starting definitions. Optionally list context to document, such as reference rate, fee/floor treatment, weighting, coverage and timing. Known context needs a verbatim citation; unknown context stays explicit. The spread example defaults to portfolio weighting at quarter end, records that assumption, and never treats matching labels as proof of comparability. Save, then run the comparison. Matching HTML tables, narrative and native PDF text become cited evidence for OpenAI judgment. Custom metrics support **explicitly reported values only**; arbitrary formulas and custom N-PORT field mappings are not implemented. OCR passages already collected by the core pipeline can contribute, but custom-only terms on scanned pages can be missed. Search phrases and retrieval coverage constrain recall; a blank means unresolved, not necessarily undisclosed.
 
-Definitions are stored in ignored `config/workspace.json`, snapshotted for each run, included in the model request and exported with results. Editing a definition invalidates its matching judgment cache. A new fund triggers SEC discovery and extraction; a definition-only change can reuse an existing source audit. Runs execute in the background with status, elapsed time and logs. A completed run includes source preparation, AI review and export timings in `timings.json`; saved-audit reuse is labeled separately from retrieval. OpenAI mode can incur API charges; parser-only mode leaves custom values for review; cached mode makes no network calls and shows gaps when no exact judgment is cached. One run executes at a time. Reports reflect the configuration at launch, not later edits.
+Definitions are stored in ignored `config/workspace.json`, snapshotted for each run, included in the model request and exported with results. Editing a definition invalidates its matching judgment cache. A new fund triggers SEC discovery and extraction; a definition-only change can reuse an existing source audit. Runs execute in the background with status, elapsed time and logs. A completed run includes source preparation, AI review and export timings in `timings.json`; saved-audit reuse is labeled separately from retrieval. Website runs use OpenAI evidence review and may incur API charges. Parser-only and cached modes are CLI diagnostics; they are not offered in the website. One run executes at a time. Reports reflect the configuration at launch, not later edits.
 
 The **Download committee Word** link produces `benchmark.docx`: a clean board comparison with Apex Ridge alongside the peer group, observation dates, NAV history and a PM-authored summary. The initial five-peer set fits on one landscape page. Trailing net returns compare Apex with interval funds; listed-vehicle shareholder returns, custom metrics, filing dates, methodology, citations and unresolved evidence remain in **Detailed evidence Word** (`benchmark-evidence.docx`) and the dashboard. The PM writes the two or three summary sentences in the workspace; the system does not write performance claims. Save this text before approval; changes invalidate previous approvals. Both documents are generated from saved decisions without another AI review.
 
@@ -60,7 +56,8 @@ This is a single-user localhost application, not a hosted service. It binds to 1
 | Output | Purpose |
 | --- | --- |
 | `index.html` | Comparison, eight-quarter competitor NAV table, filing inventory, searchable source review queue |
-| `benchmark.docx` | Formatted committee package with comparison, definitions and per-value evidence notes |
+| `benchmark.docx` | Clean board comparison, dated internal and competitor figures, NAV history and PM-authored summary |
+| `benchmark-evidence.docx` | Compliance copy with per-value evidence status, rationale, citations, definitions and unresolved disclosures |
 | `benchmark.pdf` | Portable review package with the same flags, definitions and source evidence |
 | `benchmark.csv` | Editable long-form data with status, period, definitions and source references |
 | `nport.json` | Structured fund totals, borrowing fields, monthly return entries, holdings and balance checks with XML provenance |
