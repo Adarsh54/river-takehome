@@ -125,7 +125,7 @@ Blank values distinguish evidence not found, pending/failed AI review, and revie
 {('<details><summary>Custom metric definitions for this run</summary>'+definitions+'</details>') if definitions else ''}
 <h2>Comparison</h2><p>Listed funds use shareholder returns; interval funds use net NAV returns. KREF book value, leverage and yield are not automatically comparable with the other funds. Fee bases differ; KREF's annualized percentage retains a quarterly dollar minimum. * Calculated from filing values; open the evidence for inputs and formula.</p>
 <div class="scroll"><table><thead><tr><th>Metric</th><th>Apex Ridge</th>{''.join('<th>'+t+'</th>' for t in tickers)}</tr></thead><tbody>{''.join(rows)}</tbody></table></div>
-<h2>NAV history</h2><p>Eight competitor quarter-ends; no interpolation or carry-forward. KREF uses book value per common share. Apex history starts Q1 2024 and is withheld pending approval.</p>
+<h2>NAV history</h2><p>Eight competitor quarter-ends; no interpolation or carry-forward. KREF uses book value per common share. Apex history starts Q1 2024; only authorized internal rows are included.</p>
 <div class="scroll"><table><tr><th>Fund</th>{''.join('<th>'+d+'</th>' for d in run['quarters'])}</tr>{''.join(history)}</table></div>
 {apex_history}
 <h2>Retrieval and extraction coverage</h2><ul>{errors or '<li>No retrieval or extraction errors recorded.</li>'}</ul><p>{len(run['filings'])} eligible filings inventoried; {len(run['documents'])} source documents parsed; {len(run['candidates'])} evidence candidates. Cache mode: {esc(run['mode'])}.</p>

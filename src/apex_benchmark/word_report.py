@@ -162,7 +162,7 @@ def committee_summary(run):
     return opening + ' ' + middle + ' Differences in reporting periods, share classes and calculation methods must be resolved or disclosed before the PM approves comparative language for the LP letter.'
 
 
-def export_word(run, path):
+def export_working_word(run, path):
     """Concise attachment; the separate evidence document retains the full audit."""
     doc = Document()
     sec = doc.sections[0]
@@ -258,4 +258,81 @@ def export_word(run, path):
                 cell._tc.get_or_add_tcPr().append(shading)
                 for paragraph in cell.paragraphs:
                     for run in paragraph.runs: run.font.color.rgb = RGBColor(0, 0, 0)
+    doc.save(path)
+
+
+def export_word(run, path):
+    """Board copy: comparisons and PM-authored narrative; evidence stays in the working copy."""
+    doc = Document()
+    sec = doc.sections[0]
+    sec.orientation = WD_ORIENT.LANDSCAPE
+    sec.page_width, sec.page_height = Inches(11.7), Inches(8.3)
+    sec.top_margin = sec.bottom_margin = Inches(.4)
+    sec.left_margin = sec.right_margin = Inches(.45)
+    normal = doc.styles['Normal']
+    normal.font.name, normal.font.size = 'Calibri', Pt(9)
+    normal.paragraph_format.space_after = Pt(4)
+    for name, size in [('Title',20), ('Heading 1',11)]:
+        doc.styles[name].font.name = 'Calibri'
+        doc.styles[name].font.size = Pt(size)
+        doc.styles[name].font.color.rgb = RGBColor(0,0,0)
+        doc.styles[name].paragraph_format.space_before = Pt(6)
+        doc.styles[name].paragraph_format.space_after = Pt(4)
+    for style in doc.styles:
+        for border in list(style.element.iter(qn('w:pBdr'))):
+            border.getparent().remove(border)
+    cfg=run['config'];funds=cfg['funds']
+    lookup={(r['ticker'],r['metric']):r for r in run['results']}
+    metrics=[('return_1y','Net return 1Y'),('return_3y','Net return 3Y'),('return_5y','Net return 5Y'),
+             ('management_fee','Management fee'),('incentive_fee','Incentive fee'),('hurdle','Hurdle'),
+             ('nav','NAV per share'),('leverage','Leverage (D/E)'),('distribution_yield','Distribution yield')]
+    def cell(r, metric):
+        if not r or r.get('value') is None:return '—'
+        unit='x' if metric=='leverage' else '' if metric=='nav' else '%'
+        prefix='$' if metric=='nav' else ''
+        return prefix+f"{r['value']:,.2f}"+unit+'\n'+r.get('period','')
+    def compact(headers,rows):
+        widths=[1.65]+[(10.8-1.65)/(len(headers)-1)]*(len(headers)-1)
+        t=table(doc,headers,rows,widths)
+        for row in t.rows:
+            for c in row.cells:
+                for p in c.paragraphs:
+                    p.paragraph_format.space_after=Pt(1)
+                    p.paragraph_format.space_before=Pt(1)
+                    p.paragraph_format.line_spacing=1
+                    for r in p.runs:r.font.size=Pt(8)
+        return t
+    # Keep the full initial peer group together; larger groups get their own comparison page.
+    for start in range(0,len(funds),5):
+        if start:doc.add_page_break()
+        group=funds[start:start+5]
+        doc.add_paragraph('Apex Ridge peer comparison',style='Title')
+        doc.add_paragraph('Quarter ended '+cfg['target_period'])
+        rows=[]
+        for metric,label in metrics:
+            row=[label,cell(run['apex'].get('values',{}).get(metric),metric)]
+            for f in group:
+                # Dana requested net fund returns against the interval-fund peers.
+                row.append('—' if metric.startswith('return_') and f.get('return_basis')!='net_nav'
+                           else cell(lookup.get((f['ticker'],metric)),metric))
+            rows.append(row)
+        compact(['Metric','Apex Ridge']+[f['ticker']+(' (book value)' if f.get('structure')=='mortgage_reit' else '') for f in group],rows)
+        doc.add_paragraph('NAV per share history',style='Heading 1')
+        quarters=run.get('quarters',[])
+        history=[]
+        apex={r['period']:r for r in run['apex'].get('nav_history',[])}
+        for q in quarters:
+            row=[q,('$'+f"{apex[q]['value']:.2f}" if q in apex else '—')]
+            for f in group:
+                r=next((r for r in run['nav_history'] if r['ticker']==f['ticker'] and r['period']==q),None)
+                row.append('$'+f"{r['value']:.2f}" if r and r.get('value') is not None else '—')
+            history.append(row)
+        compact(['Period','Apex Ridge (2024 onward)']+[f['ticker']+(' book value' if f.get('structure')=='mortgage_reit' else '') for f in group],history)
+        doc.add_paragraph('PM perspective',style='Heading 1')
+        doc.add_paragraph(run.get('pm_narrative') or '[PM to add two or three sentences on relative performance and matters for discussion.]')
+    footer=sec.footer.paragraphs[0]
+    footer.text='APEX RIDGE | Review copy | Run '+run.get('run_id','')
+    for r in footer.runs:r.font.size=Pt(8)
+    doc.core_properties.title='Apex Ridge board comparison'
+    doc.core_properties.author='Apex Ridge'
     doc.save(path)

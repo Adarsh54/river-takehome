@@ -43,6 +43,8 @@ def approve(folder, role, reviewer, version, confirmed):
     if other and other['reviewer'].casefold() == reviewer.casefold():
         raise ValueError('PM and compliance approvals require separate reviewers.')
     run = json.loads((Path(folder) / 'audit.json').read_text())
+    if not run.get('pm_narrative','').strip():
+        raise ValueError('Save the PM-authored summary before publication approval.')
     for result in run['results'] + run['nav_history']:
         if result.get('value') is None:
             continue

@@ -119,7 +119,7 @@ class Workspace:
                     for index,r in enumerate(audit.get(section,[])):
                         if r.get('value') is not None:
                             figures.append({'section':section,'index':index,'label':f"{r['ticker']} | {r['metric']} | {r.get('period')} | {r['value']}"})
-            return {'publication':publication,'publication_figures':figures,'config':self.config,'job':job,'csrf':self.token,'has_report':(self.report/'index.html').exists(),
+            return {'publication':publication,'publication_figures':figures,'pm_narrative':audit.get('pm_narrative','') if (self.report/'audit.json').exists() else '','config':self.config,'job':job,'csrf':self.token,'has_report':(self.report/'index.html').exists(),
                     'has_word':(self.report/'benchmark.docx').exists(),'has_evidence_word':(self.report/'benchmark-evidence.docx').exists(),'openai_configured':bool(os.environ.get('OPENAI_API_KEY'))}
 
 
@@ -161,6 +161,17 @@ def handler(workspace):
                 size=int(self.headers.get('Content-Length','0'))
                 if not 0<size<=100000:raise ValueError('Invalid request size')
                 data=json.loads(self.rfile.read(size))
+                if self.path=='/api/narrative':
+                    with workspace.lock:
+                        if workspace.job and workspace.job['status']=='running':raise ValueError('Wait for the run to finish.')
+                        if data.get('version') != approval.status(workspace.report)['version']:raise ValueError('Report changed; reload before saving.')
+                        narrative=data.get('text','').strip()
+                        if not 1<=len(narrative)<=1500:raise ValueError('Enter the PM summary in up to 1500 characters.')
+                        audit=json.loads((workspace.report/'audit.json').read_text())
+                        audit['pm_narrative']=narrative
+                        from .report import export
+                        export(audit,workspace.report)
+                        return self.send({'saved':True})
                 if self.path in {'/api/approve','/api/exclude'}:
                     with workspace.lock:
                         if workspace.job and workspace.job['status']=='running':raise ValueError('Wait for the active run to finish before publication review.')

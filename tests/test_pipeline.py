@@ -127,8 +127,8 @@ def test_exhibits_are_parsed():
 
 def test_internal_data_is_gated_and_future_rows_excluded():
     path = ROOT / 'data/apex_ridge_fund_data.csv'
-    assert internal_data(path, CONFIG)['values'] == {}
-    cfg = dict(CONFIG, apex_data_approved=True)
+    assert internal_data(path, dict(CONFIG, apex_data_approved=False))['values'] == {}
+    cfg = dict(CONFIG, apex_data_approved=True, apex_approved_by=None, apex_approval_note=None)
     with pytest.raises(ValueError, match='approver'):
         internal_data(path, cfg)
     cfg.update(apex_approved_by='Test only', apex_approval_note='Synthetic approval for unit testing only')
@@ -161,7 +161,7 @@ def test_full_failure_run_exports_honest_report(tmp_path):
         refresh = True
         def json(self, url):
             raise RetrievalError('HTTP 403 synthetic test response')
-    run = run_pipeline(CONFIG, BlockedClient(), ROOT/'data/apex_ridge_fund_data.csv', progress=lambda *a,**k:None)
+    run = run_pipeline(dict(CONFIG, apex_data_approved=False), BlockedClient(), ROOT/'data/apex_ridge_fund_data.csv', progress=lambda *a,**k:None)
     export(run, tmp_path)
     assert len(run['results']) == 40
     assert all(r['value'] is None and r['status']=='retrieval_incomplete' for r in run['results'])

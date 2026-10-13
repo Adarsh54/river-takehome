@@ -11,7 +11,7 @@ def package(path):
     path.mkdir(exist_ok=True)
     for name in approval.PACKAGE_FILES:
         (path/name).write_text('draft')
-    run={'results':[{'ticker':'TEST','metric':'fee','value':1.2,'sources':[{'source_url':'https://www.sec.gov/example', 'locator':'page 1', 'quote':'1.2', 'source_sha256':'abc'}]}], 'nav_history':[]}
+    run={'pm_narrative':'PM-written test summary.','results':[{'ticker':'TEST','metric':'fee','value':1.2,'sources':[{'source_url':'https://www.sec.gov/example', 'locator':'page 1', 'quote':'1.2', 'source_sha256':'abc'}]}], 'nav_history':[]}
     (path/'audit.json').write_text(json.dumps(run))
     return run
 

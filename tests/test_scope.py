@@ -10,7 +10,7 @@ from apex_benchmark.metrics import validate_metrics,metric_labels,extract_custom
 from apex_benchmark.fund_browser import FundBrowser,COMPANIES,FUNDS,NAMES
 from apex_benchmark.judgment import build_packet,validate_decision,JudgmentError
 from apex_benchmark.workspace import Workspace,handler
-from apex_benchmark.word_report import export_word, export_evidence_word, committee_summary
+from apex_benchmark.word_report import export_working_word as export_word, export_evidence_word, committee_summary
 from apex_benchmark.resolve import resolve_metric
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -206,3 +206,20 @@ def test_dashboard_preserves_full_candidates_in_separate_review_page():
  assert 'candidates.html' in main and 'class="candidate"' not in main
  assert cs[0]['id'] in queue and cs[0]['quote'] in queue
  assert 'Back to comparison' in queue
+
+
+def test_board_copy_keeps_apex_and_periods_without_compliance_appendix(tmp_path):
+ from docx import Document
+ from apex_benchmark.word_report import export_word as board_word
+ from apex_benchmark.resolve import internal_data
+ cfg=copy.deepcopy(CONFIG)
+ run={'config':cfg,'results':[],'nav_history':[],'quarters':['2024-12-31'],
+      'run_id':'board-test','apex':internal_data(ROOT/'data/apex_ridge_fund_data.csv',cfg),
+      'pm_narrative':'PM-authored discussion text.'}
+ path=tmp_path/'board.docx';board_word(run,path);doc=Document(path)
+ text=' '.join(p.text for p in doc.paragraphs)+' '.join(c.text for t in doc.tables for row in t.rows for c in row.cells)
+ assert '10.34%' in text and '$25.42' in text and '2024-12-31' in text
+ assert 'PM-authored discussion text.' in text
+ assert '2025-02-28' not in text and 'Definitions and source notes' not in text
+ assert 'withheld' not in text and len(doc.tables)==2
+ assert not any(rel.reltype.endswith('/hyperlink') for rel in doc.part.rels.values())

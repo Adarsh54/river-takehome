@@ -74,7 +74,7 @@ def test_stored_rule_version_change_is_detected(tmp_path,monkeypatch):
 def test_conflict_survives_review_and_both_report_formats(tmp_path):
     from apex_benchmark.judgment import adjudicate_run
     from apex_benchmark.report import html_report
-    from apex_benchmark.word_report import export_word
+    from apex_benchmark.word_report import export_working_word as export_word
     from docx import Document
     import hashlib
     p,d=conflict_fixture();r=run();r['candidates']=copy.deepcopy(p['evidence'])
